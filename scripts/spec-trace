@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+import json
+from collections import defaultdict
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+REGISTRY_PATH = ROOT / "specs" / "registry.yml"
+
+
+def main():
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    groups = defaultdict(list)
+    for item in registry.get("items", []):
+        groups[item.get("milestone", "Unassigned")].append(item)
+
+    print("DreamJotter Spec Traceability")
+    print("=============================")
+    for milestone in sorted(groups):
+        print(f"\n{milestone}")
+        print("-" * len(milestone))
+        for item in sorted(groups[milestone], key=lambda entry: entry.get("id", "")):
+            print(f"{item.get('id')} [{item.get('status')}] {item.get('title')}")
+            print(f"  spec: {item.get('spec')}")
+            if item.get("acceptance"):
+                print(f"  acceptance: {item.get('acceptance')}")
+            related_adrs = item.get("related_adrs") or []
+            if related_adrs:
+                print(f"  ADRs: {', '.join(related_adrs)}")
+            data_contracts = item.get("related_data_contracts") or []
+            if data_contracts:
+                print(f"  data contracts: {', '.join(data_contracts)}")
+            modules = item.get("planned_modules") or []
+            if modules:
+                print(f"  planned modules: {', '.join(modules)}")
+            guardrails = item.get("guardrails") or []
+            if guardrails:
+                print(f"  guardrails: {'; '.join(guardrails)}")
+
+
+if __name__ == "__main__":
+    main()

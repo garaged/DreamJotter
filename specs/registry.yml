@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "registry_statuses": [
+    "idea",
+    "specified",
+    "clarified",
+    "planned",
+    "executable-spec-ready",
+    "implementation-ready",
+    "implemented",
+    "accepted",
+    "deferred"
+  ],
+  "items": [
+    {
+      "id": "VISION-PRODUCT-001",
+      "title": "Product Vision",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/vision/product-vision.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": ["ProductSpecs"],
+      "guardrails": ["Non-programmer workflows come first; Pro Mode remains optional."],
+      "notes": "Defines DreamJotter as a screenplay app with progressive complexity."
+    },
+    {
+      "id": "VISION-PERSONAS-001",
+      "title": "User Personas",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/vision/user-personas.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [],
+      "related_data_contracts": [],
+      "planned_modules": ["ProductSpecs"],
+      "guardrails": ["Beginner and advanced workflows must remain distinguishable."],
+      "notes": "Captures beginner, filmmaker, professional, and technical power-user perspectives."
+    },
+    {
+      "id": "VISION-PRINCIPLES-001",
+      "title": "Product Principles",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/vision/product-principles.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": ["docs/adr/0003-commands-before-routines-before-plugins.md"],
+      "related_data_contracts": [],
+      "planned_modules": ["ProductSpecs"],
+      "guardrails": ["Semantic screenplay data and local-first ownership outrank presentation convenience."],
+      "notes": "Defines principles for non-programmers, semantic screenplays, and progressive disclosure."
+    },
+    {
+      "id": "ARCH-OVERVIEW-001",
+      "title": "Architecture Overview",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/architecture/overview.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": ["PortableCore", "AppleAppAdapter", "ProjectPackage"],
+      "guardrails": ["Core behavior must not depend on Apple UI frameworks."],
+      "notes": "Separates Apple app, portable core, project format, and app metadata responsibilities."
+    },
+    {
+      "id": "ARCH-PORTABLE-CORE-001",
+      "title": "Portable Core",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/architecture/portable-core.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md"],
+      "related_data_contracts": [],
+      "planned_modules": ["PortableCore", "ScreenplayModel", "Parser", "StorageContracts", "ExportCore"],
+      "guardrails": ["Portable core must not depend on SwiftUI, AppKit, UIKit, SwiftData, or CloudKit."],
+      "notes": "Defines future portable core responsibilities and exclusions."
+    },
+    {
+      "id": "ARCH-APPLE-NATIVE-001",
+      "title": "Apple Native First",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/architecture/apple-native-first.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md"],
+      "related_data_contracts": [],
+      "planned_modules": ["AppleAppAdapter", "MacApp", "iPadApp", "iPhoneApp"],
+      "guardrails": ["Apple-native UI must call portable core contracts rather than own domain behavior."],
+      "notes": "Defines platform priority and Apple-specific boundaries."
+    },
+    {
+      "id": "ADR-0001",
+      "title": "Apple Native First, Portable Core",
+      "milestone": "M0-M4",
+      "status": "accepted",
+      "spec": "docs/adr/0001-apple-native-first-portable-core.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [],
+      "related_data_contracts": [],
+      "planned_modules": ["PortableCore", "AppleAppAdapter"],
+      "guardrails": ["Apple platform optimization must not trap domain behavior in UI frameworks."],
+      "notes": "Accepted architecture decision for Apple-native first with portable core."
+    },
+    {
+      "id": "ADR-0002",
+      "title": "Local-First .dreamjotter Package",
+      "milestone": "M0-M4",
+      "status": "accepted",
+      "spec": "docs/adr/0002-local-first-dreamjotter-package.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [],
+      "related_data_contracts": [],
+      "planned_modules": ["ProjectPackage", "StorageContracts"],
+      "guardrails": [".dreamjotter is canonical; SwiftData is derived-only if used later."],
+      "notes": "Accepted storage decision for local-first canonical project packages."
+    },
+    {
+      "id": "ADR-0003",
+      "title": "Commands Before Routines Before Plugins",
+      "milestone": "M0-M4",
+      "status": "accepted",
+      "spec": "docs/adr/0003-commands-before-routines-before-plugins.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [],
+      "related_data_contracts": [],
+      "planned_modules": ["CommandSystem", "RoutineSystem"],
+      "guardrails": ["Plugins are future work; Milestone 1-4 behavior must be command-led."],
+      "notes": "Accepted sequencing decision for commands, routines, and later plugins."
+    },
+    {
+      "id": "MILESTONE-MAP-001",
+      "title": "Milestone Map",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/milestones/milestone-map.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": ["SpecManagement"],
+      "guardrails": ["Milestones must preserve documentation-first sequencing before implementation."],
+      "notes": "Defines Milestones 0 through 4."
+    },
+    {
+      "id": "PRD-MAIN-001",
+      "title": "Product Requirements Specification",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/specs/product-requirements.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": ["ProductSpecs", "ScreenplayModel", "ProjectPackage", "ExportCore", "CommandSystem", "RoutineSystem"],
+      "guardrails": ["Product scope through Milestone 4 excludes full plugin marketplace, cloud sync, real AI providers, and SwiftData canonical storage."],
+      "notes": "Main product requirements from initial version through Milestone 4."
+    },
+    {
+      "id": "M1-APPLE-PROTOTYPE-FOUNDATIONS",
+      "title": "Milestone 1 Apple Prototype Foundations",
+      "milestone": "M1",
+      "status": "specified",
+      "spec": "docs/milestones/milestone-1-apple-prototype-foundations.md",
+      "acceptance": "docs/acceptance/milestone-1-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": ["PortableCore", "ScreenplayModel", "ScreenplayParser", "FountainIO", "ProjectPackage", "EditorBehavior", "ExportCore", "AppleAppShell"],
+      "guardrails": ["Milestone 1 must not create production app code, app UI, Xcode project, SwiftData canonical storage, real AI integration, or plugin runtime."],
+      "notes": "Detailed Milestone 1 scope and feature specifications."
+    }
+  ]
+}

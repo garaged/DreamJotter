@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+REGISTRY_PATH = ROOT / "specs" / "registry.yml"
+CONSTITUTION_PATH = ROOT / "docs" / "constitution.md"
+ALLOWED_STATUSES = {
+    "idea",
+    "specified",
+    "clarified",
+    "planned",
+    "executable-spec-ready",
+    "implementation-ready",
+    "implemented",
+    "accepted",
+    "deferred",
+}
+
+
+def load_registry():
+    try:
+        return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        print(f"FAIL registry is not valid JSON-compatible YAML: {error}")
+        sys.exit(1)
+
+
+def as_list(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def path_exists(relative_path):
+    return (ROOT / relative_path).exists()
+
+
+def main():
+    errors = []
+
+    if not REGISTRY_PATH.exists():
+        errors.append("specs/registry.yml is missing")
+    if not CONSTITUTION_PATH.exists():
+        errors.append("docs/constitution.md is missing")
+
+    if errors:
+        for error in errors:
+            print(f"FAIL {error}")
+        return 1
+
+    registry = load_registry()
+    items = registry.get("items", [])
+    if not isinstance(items, list) or not items:
+        errors.append("registry must contain a non-empty items list")
+
+    for index, item in enumerate(items, start=1):
+        label = item.get("id", f"item #{index}") if isinstance(item, dict) else f"item #{index}"
+        if not isinstance(item, dict):
+            errors.append(f"{label}: registry item must be an object")
+            continue
+
+        for field in ("id", "title", "status", "milestone", "spec"):
+            if not item.get(field):
+                errors.append(f"{label}: missing required field '{field}'")
+
+        status = item.get("status")
+        if status and status not in ALLOWED_STATUSES:
+            errors.append(f"{label}: invalid status '{status}'")
+
+        spec = item.get("spec")
+        if spec and not path_exists(spec):
+            errors.append(f"{label}: spec path does not exist: {spec}")
+
+        acceptance = item.get("acceptance")
+        if acceptance and not path_exists(acceptance):
+            errors.append(f"{label}: acceptance path does not exist: {acceptance}")
+
+        for contract in as_list(item.get("related_data_contracts")):
+            if contract and not path_exists(contract):
+                errors.append(f"{label}: data contract path does not exist: {contract}")
+
+        guardrails = as_list(item.get("guardrails"))
+        if not any(str(guardrail).strip() for guardrail in guardrails):
+            errors.append(f"{label}: must include at least one guardrail")
+
+        milestone = str(item.get("milestone", "")).upper()
+        searchable = " ".join(
+            str(item.get(key, "")) for key in ("title", "notes", "milestone")
+        ).lower()
+        searchable += " " + " ".join(str(value) for value in guardrails).lower()
+        in_m1_to_m4 = any(marker in milestone for marker in ("M1", "M2", "M3", "M4")) or milestone == "M0-M4"
+        if in_m1_to_m4 and "arbitrary plugin runtime" in searchable:
+            if not any(phrase in searchable for phrase in ("no arbitrary plugin runtime", "must not", "not allowed", "deferred", "future work")):
+                errors.append(f"{label}: arbitrary plugin runtime appears to be in Milestone 1-4 scope")
+
+    constitution = CONSTITUTION_PATH.read_text(encoding="utf-8").lower()
+    required_mentions = {
+        "Apple-native first": ["apple-native", "apple native"],
+        "portable core": ["portable core"],
+        ".dreamjotter": [".dreamjotter"],
+        "SwiftData is not canonical storage": ["swiftdata is not canonical storage", "swiftdata", "not canonical storage"],
+        "commands before routines before plugins": ["commands before routines before plugins"],
+        "semantic screenplay model": ["semantic screenplay model"],
+    }
+    for label, alternatives in required_mentions.items():
+        if not any(term in constitution for term in alternatives):
+            errors.append(f"constitution must mention {label}")
+
+    if errors:
+        for error in errors:
+            print(f"FAIL {error}")
+        return 1
+
+    print(f"PASS spec-check: {len(items)} registry items validated")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -35,13 +35,38 @@ Plugins are future work. MVP architecture should be driven by commands first, ro
 
 Specs are the source of truth. Implementation should follow documented product goals, architecture decisions, acceptance criteria, data contracts, and traceability.
 
-Expected flow:
+Current SDD flow:
 
-1. Write or update the relevant spec.
-2. Add or update acceptance criteria using observable behavior.
-3. Update traceability so requirements can be followed through milestones, tests, and implementation.
-4. Implement only the scoped behavior.
-5. Validate against acceptance criteria.
+1. Check the constitution in `docs/constitution.md`.
+2. Create or update the relevant spec using `docs/templates/feature-spec-template.md` when applicable.
+3. Add acceptance criteria and Given/When/Then examples.
+4. Add data contracts for persistent model or package changes.
+5. Add an ADR for architecture-changing decisions.
+6. Register the spec in `specs/registry.yml`.
+7. Run the spec checks before implementation.
+8. Implement only behavior that traces back to registry IDs.
+
+## SDD Commands
+
+Run the spec validation checks:
+
+```sh
+python3 scripts/spec-check
+```
+
+View traceability grouped by milestone:
+
+```sh
+python3 scripts/spec-trace
+```
+
+Create a new feature spec from the template:
+
+```sh
+python3 scripts/spec-new PRD-EDITOR-002 "Editor Commands" M2 docs/specs/editor-commands.md
+```
+
+`spec-new` creates the file only. Add the new spec to `specs/registry.yml` before implementation work starts.
 
 ## Repo Layout
 
@@ -52,15 +77,24 @@ DreamJotter/
   CONTRIBUTING.md
   TODO.md
   docs/
+    constitution.md
     vision/
     architecture/
     adr/
     milestones/
     acceptance/
+    specs/
+    templates/
+  specs/
+    registry.yml
+  scripts/
+    spec-check
+    spec-new
+    spec-trace
 ```
 
-Future spec folders may include `docs/specs`, `docs/data-contracts`, `docs/editor`, `docs/storage`, `docs/export`, `docs/routines`, `docs/ai`, and `docs/plugins` when those areas receive detailed specs.
+Future spec folders may include `docs/data-contracts`, `docs/editor`, `docs/storage`, `docs/export`, `docs/routines`, `docs/ai`, and `docs/plugins` when those areas receive detailed specs.
 
 ## Current Status
 
-Milestone 0 is in progress: SDD foundation. No app code, Swift package, Xcode project, production UI, plugin runtime, or external service integration exists yet.
+Milestone 1 specs are in progress: Apple prototype foundations. No app code, Swift package, Xcode project, production UI, plugin runtime, or external service integration exists yet.
