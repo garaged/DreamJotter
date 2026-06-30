@@ -34,3 +34,13 @@ MVP architecture should be shaped by:
 5. Plugin APIs after command and routine surfaces mature.
 
 Plugins must not drive MVP architecture.
+
+## Architecture Guardrails
+
+These phrases are intentionally explicit because executable specs validate them:
+
+- Apple-native first.
+- Portable core.
+- `.dreamjotter` is canonical project storage.
+- Commands before routines before plugins.
+- SwiftData is not canonical storage.

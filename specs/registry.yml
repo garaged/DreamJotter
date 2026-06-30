@@ -873,6 +873,28 @@
         "Table-read data is generated from semantic screenplay elements and future text-to-speech remains a platform adapter, not portable core storage."
       ],
       "notes": "Defines ordered speaking parts, dialogue extraction, action separation, character preservation, non-dialogue scenes, and future TTS boundary."
+    },
+    {
+      "id": "EXECUTABLE-SPECS-SKELETON",
+      "title": "Executable Spec Skeleton",
+      "milestone": "M1-M4",
+      "status": "executable-spec-ready",
+      "spec": "Package.swift",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": [
+        "SpecSupport",
+        "DreamJotterExecutableSpecs"
+      ],
+      "guardrails": [
+        "Executable specs validate documentation, traceability, architecture guardrails, and deferred plugin boundaries without implementing app features, production models, or UI."
+      ],
+      "notes": "Creates SwiftPM executable spec skeleton with milestone-organized tests for required spec files, traceability, architecture wording, and Milestone 4 plugin scripting exclusions."
     }
   ]
 }
