@@ -4,17 +4,13 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 
 ## Milestone 1 Implementation
 
-- Expand behavior-level executable specs beyond the Milestone 1 parser, Fountain, derived data, editor behavior, project, export, Codable, and guardrail checks.
-- Expand portable core data models beyond the first project/screenplay/editor/export foundation subset.
-- Expand `ScriptElementKind` and semantic screenplay validation beyond the Milestone 1 supported kinds and relationship checks.
-- Expand Codable contract tests as persistent models are added.
-- Expand screenplay parser coverage beyond the Milestone 1 deterministic fixture subset.
-- Expand Fountain import/export beyond the Milestone 1 semantic fixture round-trip subset.
-- Expand derived scene list, character suggestion, and location suggestion coverage beyond the first semantic fixture subset.
-- Expand package-independent editor behavior reducer/controller beyond first smart Enter, Tab, scene-heading prefix, autocomplete, and TODO behaviors.
-- Implement actual `.dreamjotter` package file I/O after storage executable specs are added.
-- Implement real PDF adapter after export renderer acceptance specs are executable.
+Status: foundation complete.
+
 - Maintain executable guardrails that keep core modules free of SwiftUI, AppKit, UIKit, SwiftData, and CloudKit.
+- Expand parser fixtures only when new Milestone 1-compatible edge cases are discovered.
+- Expand portable core data models as later milestones require persistent records beyond the first project/screenplay/editor/export foundation subset.
+- Keep `.dreamjotter` package file I/O deferred to Milestone 2 storage implementation.
+- Keep real PDF rendering deferred until export renderer acceptance specs are executable.
 
 ## Milestone 2 Implementation
 

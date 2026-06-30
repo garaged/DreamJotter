@@ -73,7 +73,7 @@
       "id": "ARCH-OVERVIEW-001",
       "title": "Architecture Overview",
       "milestone": "M0-M4",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/architecture/overview.md",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [
@@ -293,7 +293,7 @@
       "guardrails": [
         "Milestone 1 must not create production app code, app UI, Xcode project, SwiftData canonical storage, real AI integration, or plugin runtime."
       ],
-      "notes": "Detailed Milestone 1 scope and feature specifications. First portable core slices now cover parser, Fountain round trip, derived scene/autocomplete data, editor behavior basics, blank project creation concept, and PDF export intent."
+      "notes": "Detailed Milestone 1 scope and feature specifications. Portable core foundation now covers parser, Fountain round trip, derived scene/autocomplete data, editor behavior basics, blank project creation concept, PDF export intent, semantic validation, Codable checks, and forbidden import guardrails. App UI, real package file I/O, and real PDF rendering remain deferred by scope."
     },
     {
       "id": "M2-REAL-MVP-WRITER-ORGANIZATION",
