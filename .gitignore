@@ -1,0 +1,44 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+DerivedData/
+build/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.xcscmblueprint
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Swift tooling
+*.swiftpm
+*.doccarchive
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace/
+
+# Documentation tooling
+.cache/
+.temp/
+tmp/
+site/
+public/
+.vitepress/dist/
+.docusaurus/
+
+# Logs
+*.log
+
+# Local environment
+.env
+.env.*
+!.env.example
