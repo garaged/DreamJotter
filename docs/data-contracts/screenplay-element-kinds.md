@@ -23,9 +23,11 @@ This contract defines the portable semantic kinds used by `ScriptElement`. Eleme
 | `parenthetical` | Dialogue direction. | `(susurra)` | Usually appears between cue and dialogue. |
 | `dialogue` | Spoken text. | `¿Dónde está José?` | May link to Character via preceding cue. |
 | `transition` | Screenplay transition. | `CORTE A:` | Includes English and localized transitions where supported. |
+| `shot` | Camera or shot instruction. | `CLOSE ON:` | Used only when parser confidence is high. |
 | `section` | Organizational section. | `# Acto Uno` | Common from Fountain import. |
 | `synopsis` | Inline synopsis/planning text. | `= Lucía encuentra una pista.` | Common from Fountain import. |
 | `noteReference` | Reference to a Note record. | `note-001` | Note body belongs in `Note`, not element text. |
+| `pageBreak` | Explicit page break. | `===` | Common from Fountain import and export. |
 | `unknown` | Preserved unsupported or malformed text. | `INT HOUSE DAY` | Must preserve text and diagnostics. |
 
 ## Supported Transition Examples

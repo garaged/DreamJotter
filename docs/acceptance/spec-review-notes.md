@@ -105,7 +105,7 @@ Decision: Editor behavior is specified as platform-neutral state and reducer/con
 
 ## Remaining Open Questions
 
-- Exact parser output fixtures are not yet defined as expected JSON; current fixtures are input-only.
+- Parser expected-output fixtures now exist for the initial four Fountain inputs; additional fixtures are still needed for shots, page breaks, sections, synopsis lines, and future FDX boundaries.
 - Exact partial-reparse strategy for the editor is deferred until parser performance is measurable.
 - Exact undo model for each command remains command-specific and needs executable specs before implementation.
 - Snapshot storage retention and cleanup policy remains open.
@@ -126,7 +126,7 @@ Decision: Editor behavior is specified as platform-neutral state and reducer/con
 
 ## Recommended Implementation Order After Specs
 
-1. Expand executable specs from documentation checks into behavior fixtures for parser classification.
+1. Use the Milestone 1 parser fixture expectations to drive parser implementation, then add more fixture coverage for shots, page breaks, sections, synopsis lines, and malformed edge cases.
 2. Implement portable core data models from `docs/data-contracts/core-domain-model.md` and `docs/data-contracts/screenplay-element-kinds.md`.
 3. Implement screenplay parser against `specs/fixtures/screenplay/` and expected semantic outputs.
 4. Implement Fountain import/export on top of semantic elements.

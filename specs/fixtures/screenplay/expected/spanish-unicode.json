@@ -1,0 +1,18 @@
+{
+  "fixture": "specs/fixtures/screenplay/spanish-unicode.fountain",
+  "description": "Spanish and Unicode screenplay fixture preserving accents, ñ, parenthetical, dialogue, and localized transition.",
+  "expectedElements": [
+    { "kind": "titlePage", "text": "Title: La Noche Larga\nAuthor: DreamJotter" },
+    { "kind": "sceneHeading", "text": "EXT. ZOCALO - NOCHE" },
+    { "kind": "action", "text": "La ciudad respira bajo la lluvia." },
+    { "kind": "characterCue", "text": "NIÑA" },
+    { "kind": "parenthetical", "text": "(susurra)", "characterName": "NIÑA" },
+    { "kind": "dialogue", "text": "¿Dónde está José?", "characterName": "NIÑA" },
+    { "kind": "transition", "text": "CORTE A:" }
+  ],
+  "expectedScenes": [
+    { "heading": "EXT. ZOCALO - NOCHE", "location": "ZOCALO", "timeOfDay": "NOCHE" }
+  ],
+  "expectedCharacters": ["NIÑA"],
+  "expectedDiagnostics": []
+}

@@ -1,0 +1,17 @@
+{
+  "fixture": "specs/fixtures/screenplay/simple.fountain",
+  "description": "One-scene screenplay fixture with title page metadata, scene heading, action, character cue, dialogue, and transition.",
+  "expectedElements": [
+    { "kind": "titlePage", "text": "Title: Simple Fixture\nAuthor: DreamJotter" },
+    { "kind": "sceneHeading", "text": "INT. KITCHEN - DAY" },
+    { "kind": "action", "text": "A kettle screams on the stove." },
+    { "kind": "characterCue", "text": "MARIA" },
+    { "kind": "dialogue", "text": "I cannot sleep.", "characterName": "MARIA" },
+    { "kind": "transition", "text": "CUT TO:" }
+  ],
+  "expectedScenes": [
+    { "heading": "INT. KITCHEN - DAY", "location": "KITCHEN", "timeOfDay": "DAY" }
+  ],
+  "expectedCharacters": ["MARIA"],
+  "expectedDiagnostics": []
+}

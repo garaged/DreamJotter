@@ -5,7 +5,7 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 ## Milestone 1 Implementation
 
 - Add behavior-level executable specs for screenplay parser fixture classification.
-- Define expected semantic output fixtures for `simple.fountain`, `multi-scene.fountain`, `spanish-unicode.fountain`, and `malformed.fountain`.
+- Extend semantic output fixtures for shots, page breaks, sections, synopsis lines, and additional malformed edge cases.
 - Implement portable core data models from `docs/data-contracts/core-domain-model.md`.
 - Implement `ScriptElementKind` and semantic screenplay element validation.
 - Implement basic screenplay parser with deterministic classification rules.

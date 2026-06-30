@@ -53,4 +53,89 @@ struct Milestone1ExecutableSpecs {
             }
         }
     }
+
+    @Test("Screenplay parser fixture expectations exist and point to source fixtures")
+    func screenplayParserFixtureExpectationsExist() throws {
+        let expectations = try ScreenplayFixtureExpectations.loadAll()
+        #expect(expectations.count == 4)
+
+        for expectation in expectations {
+            #expect(try SpecRepository.pathExists(expectation.fixture))
+            #expect(!expectation.description.isEmpty)
+            #expect(!expectation.expectedElements.isEmpty)
+        }
+    }
+
+    @Test("Expected screenplay elements use canonical semantic kinds")
+    func expectedScreenplayElementsUseCanonicalSemanticKinds() throws {
+        let expectations = try ScreenplayFixtureExpectations.loadAll()
+        let canonicalKinds = ScreenplayFixtureExpectations.canonicalElementKinds
+
+        for expectation in expectations {
+            for element in expectation.expectedElements {
+                #expect(canonicalKinds.contains(element.kind), "Unexpected kind: \(element.kind) in \(expectation.fixture)")
+                #expect(!element.text.isEmpty)
+            }
+        }
+    }
+
+    @Test("Simple fixture specifies one-scene semantic sequence")
+    func simpleFixtureSpecifiesOneSceneSemanticSequence() throws {
+        let expectation = try ScreenplayFixtureExpectations.load("specs/fixtures/screenplay/expected/simple.json")
+        let sequence = expectation.expectedElements.map { $0.kind }
+
+        #expect(sequence == ["titlePage", "sceneHeading", "action", "characterCue", "dialogue", "transition"])
+        #expect(expectation.expectedScenes.map(\.heading) == ["INT. KITCHEN - DAY"])
+        #expect(expectation.expectedCharacters == ["MARIA"])
+        #expect(expectation.expectedDiagnostics.isEmpty)
+    }
+
+    @Test("Multi-scene fixture preserves scene and character order")
+    func multiSceneFixturePreservesSceneAndCharacterOrder() throws {
+        let expectation = try ScreenplayFixtureExpectations.load("specs/fixtures/screenplay/expected/multi-scene.json")
+        let sceneHeadings = expectation.expectedScenes.map(\.heading)
+        let dialogueTexts = expectation.expectedElements.filter { $0.kind == "dialogue" }.map(\.text)
+
+        #expect(sceneHeadings == ["EXT. PARK - MORNING", "INT. CAR - CONTINUOUS"])
+        #expect(expectation.expectedCharacters == ["ANA"])
+        #expect(dialogueTexts == ["We are late.", "Try again."])
+    }
+
+    @Test("Spanish Unicode fixture preserves accents and dialogue semantics")
+    func spanishUnicodeFixturePreservesAccentsAndDialogueSemantics() throws {
+        let expectation = try ScreenplayFixtureExpectations.load("specs/fixtures/screenplay/expected/spanish-unicode.json")
+        let allText = expectation.expectedElements.map(\.text).joined(separator: "\n")
+
+        #expect(allText.contains("NIÑA"))
+        #expect(allText.contains("¿Dónde está José?"))
+        #expect(allText.contains("CORTE A:"))
+        #expect(expectation.expectedElements.contains(ExpectedScriptElement(kind: "parenthetical", text: "(susurra)", characterName: "NIÑA")))
+        #expect(expectation.expectedCharacters == ["NIÑA"])
+    }
+
+    @Test("Malformed fixture preserves text and declares diagnostics")
+    func malformedFixturePreservesTextAndDeclaresDiagnostics() throws {
+        let expectation = try ScreenplayFixtureExpectations.load("specs/fixtures/screenplay/expected/malformed.json")
+        let kinds = expectation.expectedElements.map(\.kind)
+        let diagnosticCodes = expectation.expectedDiagnostics.map(\.code)
+
+        #expect(kinds.contains("unknown"))
+        #expect(kinds.contains("noteReference"))
+        #expect(expectation.expectedScenes.isEmpty)
+        #expect(diagnosticCodes.contains("ambiguousUppercaseLine"))
+        #expect(diagnosticCodes.contains("invalidSceneHeading"))
+        #expect(diagnosticCodes.contains("malformedParenthetical"))
+    }
+
+    @Test("Semantic screenplay model remains independent from rich text storage")
+    func semanticScreenplayModelRemainsIndependentFromRichTextStorage() throws {
+        let elementKinds = try SpecRepository.read("docs/data-contracts/screenplay-element-kinds.md")
+        let screenplayEngine = try SpecRepository.read("docs/editor/screenplay-engine-spec.md")
+
+        #expect(SpecRepository.contains(elementKinds, "semantic kinds"))
+        #expect(SpecRepository.contains(elementKinds, "not visual styling"))
+        #expect(SpecRepository.contains(elementKinds, "Do not infer canonical meaning only from rich text"))
+        #expect(SpecRepository.contains(screenplayEngine, "semantic project data"))
+        #expect(SpecRepository.contains(screenplayEngine, "Malformed input must be recoverable"))
+    }
 }

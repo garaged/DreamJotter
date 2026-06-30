@@ -1,0 +1,20 @@
+{
+  "fixture": "specs/fixtures/screenplay/malformed.fountain",
+  "description": "Malformed screenplay fixture preserving ambiguous uppercase text, invalid scene heading, malformed parenthetical, and note text with diagnostics.",
+  "expectedElements": [
+    { "kind": "titlePage", "text": "Title: Malformed Fixture" },
+    { "kind": "action", "text": "THIS IS PROBABLY IMPORTANT\nbut maybe not dialogue." },
+    { "kind": "unknown", "text": "INT HOUSE DAY" },
+    { "kind": "action", "text": "MAYBE CUT TO THE NEXT THING" },
+    { "kind": "characterCue", "text": "JOSE" },
+    { "kind": "unknown", "text": "(parenthetical without closing\nWe keep this text.", "characterName": "JOSE" },
+    { "kind": "noteReference", "text": "TODO: clarify whether this is a note" }
+  ],
+  "expectedScenes": [],
+  "expectedCharacters": ["JOSE"],
+  "expectedDiagnostics": [
+    { "code": "ambiguousUppercaseLine", "message": "Uppercase text was preserved without creating a character cue because dialogue context was not clear.", "text": "THIS IS PROBABLY IMPORTANT" },
+    { "code": "invalidSceneHeading", "message": "Scene-like text is missing a supported scene heading prefix pattern.", "text": "INT HOUSE DAY" },
+    { "code": "malformedParenthetical", "message": "Parenthetical-like text is missing a closing parenthesis and must be preserved.", "text": "(parenthetical without closing" }
+  ]
+}

@@ -31,14 +31,13 @@ The engine classifies non-empty text blocks into these semantic kinds, aligned w
 | --- | --- |
 | `sceneHeading` | Starts or identifies a scene location/time block. |
 | `action` | Describes visible action, setting, or prose direction. |
-| `character` | Names the speaker for following dialogue. |
+| `characterCue` | Names the speaker for following dialogue. |
 | `dialogue` | Spoken text belonging to the most recent character cue. |
 | `parenthetical` | Performance direction inside a dialogue block. |
 | `transition` | Editing transition such as `CUT TO:`. |
-| `shot` | Camera or shot instruction such as `CLOSE ON:`. |
-| `note` | Inline writer note or TODO marker. |
 | `section` | Act, sequence, or outline heading. |
-| `pageBreak` | Explicit page break marker. |
+| `synopsis` | Inline synopsis or planning text imported from Fountain where supported. |
+| `noteReference` | Inline writer note or TODO marker linked to note data where supported. |
 | `unknown` | Preserved malformed or unsupported text. |
 
 ## Deterministic Parsing Rules
@@ -130,9 +129,9 @@ Shot detection has lower priority than transition and character cue detection. A
 
 ## Note Detection
 
-Fountain inline notes use `[[note text]]` and become `note` elements or note references. Notes must preserve Unicode text and may include TODO markers. Notes may later link to project `Note` records, but parsing must not require a notes database.
+Fountain inline notes use `[[note text]]` and become `noteReference` elements or note references. Notes must preserve Unicode text and may include TODO markers. Notes may later link to project `Note` records, but parsing must not require a notes database.
 
-Lines beginning with `TODO:` may be classified as `note` when the parser option `treatTodoLinesAsNotes` is enabled. Otherwise they remain action text.
+Lines beginning with `TODO:` may be classified as `noteReference` when the parser option `treatTodoLinesAsNotes` is enabled. Otherwise they remain action text.
 
 ## Act, Sequence, and Page Breaks
 
@@ -204,7 +203,7 @@ Expected sequence:
 | --- | --- | --- |
 | 1 | `sceneHeading` | `INT. KITCHEN - DAY` |
 | 2 | `action` | `A kettle screams on the stove.` |
-| 3 | `character` | `MARIA` |
+| 3 | `characterCue` | `MARIA` |
 | 4 | `dialogue` | `I cannot sleep.` |
 | 5 | `transition` | `CUT TO:` |
 
@@ -242,7 +241,7 @@ JOSÉ
 No mires atrás.
 ```
 
-Expected sequence: character, parenthetical, dialogue.
+Expected sequence: characterCue, parenthetical, dialogue.
 
 ### Script With Transitions
 
@@ -272,7 +271,7 @@ INT. ROOM - DAY
 The room is empty.
 ```
 
-Expected behavior: the bracketed TODO is a note element and the surrounding text remains in order.
+Expected behavior: the bracketed TODO is a noteReference element and the surrounding text remains in order.
 
 ### Ambiguous Uppercase Line
 

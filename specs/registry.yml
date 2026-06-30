@@ -922,6 +922,33 @@
         "Spec baseline must remain coherent before implementation: Apple-native first with portable core, .dreamjotter canonical storage, SwiftData derived-only, routines before plugins, no real AI providers, no production UI, and no plugin marketplace through Milestone 4."
       ],
       "notes": "Documents consistency issues found, corrections made, open questions, implementation risks, and recommended implementation order after specs."
+    },
+    {
+      "id": "M1-PARSER-EXECUTABLE-SPECS",
+      "title": "Milestone 1 Parser Executable Specs",
+      "milestone": "M1",
+      "status": "executable-spec-ready",
+      "spec": "Tests/DreamJotterExecutableSpecs/Milestone1ExecutableSpecs.swift",
+      "acceptance": "docs/acceptance/milestone-1-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md",
+        "docs/data-contracts/serialization-rules.md"
+      ],
+      "planned_modules": [
+        "SpecSupport",
+        "ScreenplayParser",
+        "ScreenplayModel",
+        "FountainIO"
+      ],
+      "guardrails": [
+        "Parser executable specs define expected semantic output from fixtures without implementing production app UI or TextKit adapters."
+      ],
+      "notes": "Adds expected semantic JSON outputs for simple, multi-scene, Spanish/Unicode, and malformed Fountain fixtures plus executable checks for canonical element kinds and diagnostics."
     }
   ]
 }

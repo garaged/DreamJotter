@@ -1,0 +1,22 @@
+{
+  "fixture": "specs/fixtures/screenplay/multi-scene.fountain",
+  "description": "Multi-scene screenplay fixture with two scene headings and repeated character dialogue.",
+  "expectedElements": [
+    { "kind": "titlePage", "text": "Title: Multi Scene Fixture" },
+    { "kind": "sceneHeading", "text": "EXT. PARK - MORNING" },
+    { "kind": "action", "text": "Birds scatter from the grass." },
+    { "kind": "characterCue", "text": "ANA" },
+    { "kind": "dialogue", "text": "We are late.", "characterName": "ANA" },
+    { "kind": "sceneHeading", "text": "INT. CAR - CONTINUOUS" },
+    { "kind": "action", "text": "The engine refuses to start." },
+    { "kind": "characterCue", "text": "ANA" },
+    { "kind": "dialogue", "text": "Try again.", "characterName": "ANA" },
+    { "kind": "transition", "text": "FADE OUT." }
+  ],
+  "expectedScenes": [
+    { "heading": "EXT. PARK - MORNING", "location": "PARK", "timeOfDay": "MORNING" },
+    { "heading": "INT. CAR - CONTINUOUS", "location": "CAR", "timeOfDay": "CONTINUOUS" }
+  ],
+  "expectedCharacters": ["ANA"],
+  "expectedDiagnostics": []
+}
