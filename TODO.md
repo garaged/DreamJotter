@@ -8,8 +8,8 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 - Extend semantic output fixtures for shots, page breaks, sections, synopsis lines, and additional malformed edge cases.
 - Implement portable core data models from `docs/data-contracts/core-domain-model.md`.
 - Implement `ScriptElementKind` and semantic screenplay element validation.
-- Implement basic screenplay parser with deterministic classification rules.
-- Implement basic Fountain import/export against semantic elements.
+- Expand screenplay parser coverage beyond the first deterministic fixture subset.
+- Expand Fountain import/export beyond the first semantic fixture round-trip subset.
 - Implement package-independent editor behavior reducer/controller tests.
 - Keep all core modules free of SwiftUI, AppKit, UIKit, SwiftData, and CloudKit.
 

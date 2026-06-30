@@ -162,6 +162,41 @@ struct Milestone1ExecutableSpecs {
         #expect(document.characters.isEmpty)
         #expect(document.diagnostics.isEmpty)
     }
+
+    @Test("Fountain import uses semantic parser output")
+    func fountainImportUsesSemanticParserOutput() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/simple.fountain")
+
+        #expect(FountainIO.importScreenplay(source) == ScreenplayParser.parse(source))
+    }
+
+    @Test("Fountain export preserves supported semantic content")
+    func fountainExportPreservesSupportedSemanticContent() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/spanish-unicode.fountain")
+        let document = ScreenplayParser.parse(source)
+        let exported = FountainIO.exportScreenplay(document)
+
+        #expect(exported.contains("Title: La Noche Larga"))
+        #expect(exported.contains("EXT. ZOCALO - NOCHE"))
+        #expect(exported.contains("NIÑA"))
+        #expect(exported.contains("¿Dónde está José?"))
+        #expect(exported.contains("CORTE A:"))
+    }
+
+    @Test("Fountain semantic round trip preserves fixture elements")
+    func fountainSemanticRoundTripPreservesFixtureElements() throws {
+        for expectation in try ScreenplayFixtureExpectations.loadAll() {
+            let source = try SpecRepository.read(expectation.fixture)
+            let imported = FountainIO.importScreenplay(source)
+            let exported = FountainIO.exportScreenplay(imported)
+            let reimported = FountainIO.importScreenplay(exported)
+
+            #expect(reimported.elements.map(\.expectedElement) == expectation.expectedElements)
+            #expect(reimported.scenes.map(\.expectedScene) == expectation.expectedScenes)
+            #expect(reimported.characters == expectation.expectedCharacters)
+            #expect(reimported.diagnostics.map(\.expectedDiagnostic) == expectation.expectedDiagnostics)
+        }
+    }
 }
 
 private extension ScriptElement {

@@ -16,7 +16,7 @@
       "id": "VISION-PRODUCT-001",
       "title": "Product Vision",
       "milestone": "M0-M4",
-      "status": "specified",
+      "status": "implementation-ready",
       "spec": "docs/vision/product-vision.md",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [
@@ -663,7 +663,7 @@
       "guardrails": [
         "Fountain import/export is interoperability only; .dreamjotter remains canonical and round-trip expectations are semantic, not byte-for-byte."
       ],
-      "notes": "Defines supported Fountain subset, import/export mapping, Unicode preservation, unsupported syntax diagnostics, and semantic round-trip expectations."
+      "notes": "Defines supported Fountain subset, import/export mapping, Unicode preservation, unsupported syntax diagnostics, and semantic round-trip expectations. First portable semantic fixture round-trip subset is implemented in FountainIO."
     },
     {
       "id": "EDITOR-BEHAVIOR-SPEC",
