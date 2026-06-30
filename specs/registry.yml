@@ -895,6 +895,33 @@
         "Executable specs validate documentation, traceability, architecture guardrails, and deferred plugin boundaries without implementing app features, production models, or UI."
       ],
       "notes": "Creates SwiftPM executable spec skeleton with milestone-organized tests for required spec files, traceability, architecture wording, and Milestone 4 plugin scripting exclusions."
+    },
+    {
+      "id": "SPEC-REVIEW-CONSISTENCY-PASS",
+      "title": "Spec Review And Consistency Pass",
+      "milestone": "M0-M4",
+      "status": "specified",
+      "spec": "docs/acceptance/spec-review-notes.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md",
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md"
+      ],
+      "planned_modules": [
+        "SpecManagement",
+        "DreamJotterExecutableSpecs"
+      ],
+      "guardrails": [
+        "Spec baseline must remain coherent before implementation: Apple-native first with portable core, .dreamjotter canonical storage, SwiftData derived-only, routines before plugins, no real AI providers, no production UI, and no plugin marketplace through Milestone 4."
+      ],
+      "notes": "Documents consistency issues found, corrections made, open questions, implementation risks, and recommended implementation order after specs."
     }
   ]
 }

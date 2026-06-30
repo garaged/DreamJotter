@@ -44,7 +44,8 @@ Current SDD flow:
 5. Add an ADR for architecture-changing decisions.
 6. Register the spec in `specs/registry.yml`.
 7. Run the spec checks before implementation.
-8. Implement only behavior that traces back to registry IDs.
+8. Add or update executable specs when behavior is ready to be tested.
+9. Implement only behavior that traces back to registry IDs.
 
 ## SDD Commands
 
@@ -66,6 +67,12 @@ Create a new feature spec from the template:
 python3 scripts/spec-new PRD-EDITOR-002 "Editor Commands" M2 docs/specs/editor-commands.md
 ```
 
+Run executable documentation specs:
+
+```sh
+CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift test --disable-sandbox --scratch-path /private/tmp/DreamJotterSwiftPM
+```
+
 `spec-new` creates the file only. Add the new spec to `specs/registry.yml` before implementation work starts.
 
 ## Repo Layout
@@ -76,6 +83,11 @@ DreamJotter/
   README.md
   CONTRIBUTING.md
   TODO.md
+  Package.swift
+  Sources/
+    SpecSupport/
+  Tests/
+    DreamJotterExecutableSpecs/
   docs/
     constitution.md
     vision/
@@ -84,17 +96,24 @@ DreamJotter/
     milestones/
     acceptance/
     specs/
+    data-contracts/
+    editor/
+    storage/
+    export/
+    routines/
+    ai/
+    plugins/
+    ux/
     templates/
   specs/
     registry.yml
+    fixtures/
   scripts/
     spec-check
     spec-new
     spec-trace
 ```
 
-Future spec folders may include `docs/data-contracts`, `docs/editor`, `docs/storage`, `docs/export`, `docs/routines`, `docs/ai`, and `docs/plugins` when those areas receive detailed specs.
-
 ## Current Status
 
-Milestone 1 specs are in progress: Apple prototype foundations. No app code, Swift package, Xcode project, production UI, plugin runtime, or external service integration exists yet.
+The repository contains documentation-first specs through Milestone 4 plus a SwiftPM executable-spec skeleton. No production app code, Xcode project, production UI, plugin runtime, real AI provider, cloud sync, or external service integration exists yet.
