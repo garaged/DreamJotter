@@ -770,6 +770,109 @@
         "Plugin runtime, arbitrary code execution, marketplace, direct file mutation, and plugin-required project readability are deferred beyond Milestone 4."
       ],
       "notes": "Defines future plugin safety model: approved commands only, declared permissions, disableability, project file safety, and marketplace deferral."
+    },
+    {
+      "id": "EXPORT-SYSTEM-SPEC",
+      "title": "Export System Spec",
+      "milestone": "M2-M4",
+      "status": "specified",
+      "spec": "docs/export/export-system-spec.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md"
+      ],
+      "planned_modules": [
+        "ExportCore",
+        "FountainIO",
+        "PDFExportAdapter",
+        "BackupExport",
+        "ExportPresets"
+      ],
+      "guardrails": [
+        "Exports are projections from semantic .dreamjotter project data; export artifacts, SwiftData, and renderer state are not canonical storage."
+      ],
+      "notes": "Defines Fountain, Markdown, plain text, JSON backup, PDF abstraction, presets, reader/contest/print/production/backup/archive exports, and unsupported export handling."
+    },
+    {
+      "id": "SCRIPT-ANALYSIS-SPEC",
+      "title": "Script Analysis Spec",
+      "milestone": "M2-M4",
+      "status": "specified",
+      "spec": "docs/specs/script-analysis-spec.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "ScriptAnalysis",
+        "HealthReport",
+        "ScreenplayModel",
+        "Diagnostics"
+      ],
+      "guardrails": [
+        "Script analysis is read-only and must not mutate project data, create notes, resolve TODOs, or call AI providers."
+      ],
+      "notes": "Defines scene, character, note, TODO, dialogue/action, longest scene, formatting warning, and unused character report behavior."
+    },
+    {
+      "id": "CONTINUITY-ANALYSIS-SPEC",
+      "title": "Continuity Analysis Spec",
+      "milestone": "M3-M4",
+      "status": "specified",
+      "spec": "docs/specs/continuity-analysis-spec.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "ContinuityAnalysis",
+        "CharacterConsistency",
+        "WarningLanguage",
+        "Diagnostics"
+      ],
+      "guardrails": [
+        "Continuity findings are advisory, friendly, false-positive-aware, and must not mutate project data or block writing."
+      ],
+      "notes": "Defines character spelling mismatch, unknown character reference, conflicting metadata, unresolved TODOs, friendly language, and false-positive mitigation."
+    },
+    {
+      "id": "TABLE-READ-SPEC",
+      "title": "Table-Read Spec",
+      "milestone": "M3-M4",
+      "status": "specified",
+      "spec": "docs/specs/table-read-spec.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "TableReadModel",
+        "ScreenplayModel",
+        "ReadAloudAdapter",
+        "Accessibility"
+      ],
+      "guardrails": [
+        "Table-read data is generated from semantic screenplay elements and future text-to-speech remains a platform adapter, not portable core storage."
+      ],
+      "notes": "Defines ordered speaking parts, dialogue extraction, action separation, character preservation, non-dialogue scenes, and future TTS boundary."
     }
   ]
 }
