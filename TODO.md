@@ -6,7 +6,7 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 
 - Expand behavior-level executable specs beyond the Milestone 1 parser, Fountain, derived data, editor behavior, project, export, Codable, and guardrail checks.
 - Expand portable core data models beyond the first project/screenplay/editor/export foundation subset.
-- Expand `ScriptElementKind` and semantic screenplay element validation beyond the first supported kinds.
+- Expand `ScriptElementKind` and semantic screenplay validation beyond the Milestone 1 supported kinds and relationship checks.
 - Expand Codable contract tests as persistent models are added.
 - Expand screenplay parser coverage beyond the Milestone 1 deterministic fixture subset.
 - Expand Fountain import/export beyond the Milestone 1 semantic fixture round-trip subset.

@@ -357,7 +357,8 @@ struct Milestone1ExecutableSpecs {
             "Sources/DreamJotterCore/ProjectFoundation.swift",
             "Sources/DreamJotterCore/ScreenplayDerivedData.swift",
             "Sources/DreamJotterCore/ScreenplayModel.swift",
-            "Sources/DreamJotterCore/ScreenplayParser.swift"
+            "Sources/DreamJotterCore/ScreenplayParser.swift",
+            "Sources/DreamJotterCore/SemanticValidation.swift"
         ]
         let forbiddenImports = ["SwiftUI", "AppKit", "UIKit", "SwiftData", "CloudKit"]
 
@@ -367,6 +368,56 @@ struct Milestone1ExecutableSpecs {
                 #expect(!source.contains("import \(forbiddenImport)"), "\(sourceFile) imports \(forbiddenImport)")
             }
         }
+    }
+
+    @Test("Semantic validation accepts parsed Milestone 1 fixtures")
+    func semanticValidationAcceptsParsedMilestone1Fixtures() throws {
+        for expectation in try ScreenplayFixtureExpectations.loadAll() {
+            let source = try SpecRepository.read(expectation.fixture)
+            let document = ScreenplayParser.parse(source)
+
+            #expect(SemanticValidator.validate(document: document).isEmpty)
+        }
+    }
+
+    @Test("Semantic validation reports broken dialogue and scene references")
+    func semanticValidationReportsBrokenDialogueAndSceneReferences() {
+        let document = ScreenplayDocument(
+            elements: [
+                ScriptElement(kind: .dialogue, text: "No cue yet.", characterName: "GHOST")
+            ],
+            scenes: [
+                Scene(heading: "INT. LOST ROOM - NIGHT", location: "LOST ROOM", timeOfDay: "NIGHT")
+            ],
+            characters: [],
+            diagnostics: []
+        )
+        let issues = SemanticValidator.validate(document: document)
+        let codes = issues.map(\.code)
+
+        #expect(codes.contains("unknownDialogueCharacter"))
+        #expect(codes.contains("sceneWithoutHeadingElement"))
+    }
+
+    @Test("Project validation enforces dreamjotter package metadata")
+    func projectValidationEnforcesDreamJotterPackageMetadata() {
+        let project = DreamJotterProject(
+            metadata: ProjectMetadata(
+                id: "",
+                title: "Broken",
+                createdAt: Date(timeIntervalSince1970: 1_782_777_600),
+                modifiedAt: Date(timeIntervalSince1970: 1_782_777_600),
+                schemaVersion: ProjectFactory.currentSchemaVersion,
+                primaryScreenplayID: "",
+                packageExtension: ".txt"
+            ),
+            screenplay: ScreenplayDocument()
+        )
+        let codes = SemanticValidator.validate(project: project).map(\.code)
+
+        #expect(codes.contains("missingProjectID"))
+        #expect(codes.contains("missingPrimaryScreenplayID"))
+        #expect(codes.contains("invalidPackageExtension"))
     }
 }
 
