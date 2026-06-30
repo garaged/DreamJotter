@@ -50,7 +50,8 @@ public enum ScreenplayFixtureExpectations {
         "specs/fixtures/screenplay/expected/simple.json",
         "specs/fixtures/screenplay/expected/multi-scene.json",
         "specs/fixtures/screenplay/expected/spanish-unicode.json",
-        "specs/fixtures/screenplay/expected/malformed.json"
+        "specs/fixtures/screenplay/expected/malformed.json",
+        "specs/fixtures/screenplay/expected/advanced.json"
     ]
 
     public static let canonicalElementKinds: Set<String> = [

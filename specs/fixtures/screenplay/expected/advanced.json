@@ -1,0 +1,21 @@
+{
+  "fixture": "specs/fixtures/screenplay/advanced.fountain",
+  "description": "Advanced Milestone 1 Fountain subset fixture covering sections, synopsis, forced scene headings, forced action, forced mixed-case character cues, shots, page breaks, and forced transitions.",
+  "expectedElements": [
+    { "kind": "titlePage", "text": "Title: Advanced Fixture" },
+    { "kind": "section", "text": "Act One" },
+    { "kind": "synopsis", "text": "Storm clouds gather over the city." },
+    { "kind": "sceneHeading", "text": "INT. OBSERVATORY - NIGHT" },
+    { "kind": "action", "text": "THIS MUST STAY ACTION" },
+    { "kind": "characterCue", "text": "McClane" },
+    { "kind": "dialogue", "text": "Welcome to México.", "characterName": "McClane" },
+    { "kind": "shot", "text": "CLOSE ON:" },
+    { "kind": "pageBreak", "text": "===" },
+    { "kind": "transition", "text": "DISSOLVE TO:" }
+  ],
+  "expectedScenes": [
+    { "heading": "INT. OBSERVATORY - NIGHT", "location": "OBSERVATORY", "timeOfDay": "NIGHT" }
+  ],
+  "expectedCharacters": ["McClane"],
+  "expectedDiagnostics": []
+}

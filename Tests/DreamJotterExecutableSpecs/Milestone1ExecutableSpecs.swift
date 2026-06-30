@@ -58,7 +58,7 @@ struct Milestone1ExecutableSpecs {
     @Test("Screenplay parser fixture expectations exist and point to source fixtures")
     func screenplayParserFixtureExpectationsExist() throws {
         let expectations = try ScreenplayFixtureExpectations.loadAll()
-        #expect(expectations.count == 4)
+        #expect(expectations.count >= 5)
 
         for expectation in expectations {
             #expect(try SpecRepository.pathExists(expectation.fixture))
@@ -126,6 +126,19 @@ struct Milestone1ExecutableSpecs {
         #expect(diagnosticCodes.contains("ambiguousUppercaseLine"))
         #expect(diagnosticCodes.contains("invalidSceneHeading"))
         #expect(diagnosticCodes.contains("malformedParenthetical"))
+    }
+
+    @Test("Advanced Fountain fixture covers extended Milestone 1 semantic kinds")
+    func advancedFountainFixtureCoversExtendedMilestone1SemanticKinds() throws {
+        let expectation = try ScreenplayFixtureExpectations.load("specs/fixtures/screenplay/expected/advanced.json")
+        let sequence = expectation.expectedElements.map(\.kind)
+
+        #expect(sequence.contains("section"))
+        #expect(sequence.contains("synopsis"))
+        #expect(sequence.contains("shot"))
+        #expect(sequence.contains("pageBreak"))
+        #expect(expectation.expectedElements.contains(ExpectedScriptElement(kind: "characterCue", text: "McClane")))
+        #expect(expectation.expectedElements.contains(ExpectedScriptElement(kind: "dialogue", text: "Welcome to México.", characterName: "McClane")))
     }
 
     @Test("Semantic screenplay model remains independent from rich text storage")

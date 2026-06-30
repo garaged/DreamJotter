@@ -4,13 +4,12 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 
 ## Milestone 1 Implementation
 
-- Expand behavior-level executable specs beyond the initial parser, Fountain, derived data, editor behavior, project, export, Codable, and guardrail checks.
-- Extend semantic output fixtures for shots, page breaks, sections, synopsis lines, and additional malformed edge cases.
+- Expand behavior-level executable specs beyond the Milestone 1 parser, Fountain, derived data, editor behavior, project, export, Codable, and guardrail checks.
 - Expand portable core data models beyond the first project/screenplay/editor/export foundation subset.
 - Expand `ScriptElementKind` and semantic screenplay element validation beyond the first supported kinds.
 - Expand Codable contract tests as persistent models are added.
-- Expand screenplay parser coverage beyond the first deterministic fixture subset.
-- Expand Fountain import/export beyond the first semantic fixture round-trip subset.
+- Expand screenplay parser coverage beyond the Milestone 1 deterministic fixture subset.
+- Expand Fountain import/export beyond the Milestone 1 semantic fixture round-trip subset.
 - Expand derived scene list, character suggestion, and location suggestion coverage beyond the first semantic fixture subset.
 - Expand package-independent editor behavior reducer/controller beyond first smart Enter, Tab, scene-heading prefix, autocomplete, and TODO behaviors.
 - Implement actual `.dreamjotter` package file I/O after storage executable specs are added.

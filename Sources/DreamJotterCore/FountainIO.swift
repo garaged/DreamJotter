@@ -25,13 +25,14 @@ public enum FountainIO {
         case .titlePage,
              .sceneHeading,
              .action,
-             .characterCue,
              .parenthetical,
              .dialogue,
              .transition,
              .shot,
              .unknown:
             return element.text
+        case .characterCue:
+            return element.text == element.text.uppercased() ? element.text : "@\(element.text)"
         }
     }
 }

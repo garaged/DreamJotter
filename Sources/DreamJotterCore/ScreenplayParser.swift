@@ -34,6 +34,59 @@ public enum ScreenplayParser {
                 continue
             }
 
+            if line == "===" {
+                elements.append(ScriptElement(kind: .pageBreak, text: line))
+                currentCharacter = nil
+                index += 1
+                continue
+            }
+
+            if line.hasPrefix("#") {
+                elements.append(ScriptElement(kind: .section, text: forcedText(from: line, marker: "#")))
+                currentCharacter = nil
+                index += 1
+                continue
+            }
+
+            if line.hasPrefix("="), line != "===" {
+                elements.append(ScriptElement(kind: .synopsis, text: forcedText(from: line, marker: "=")))
+                currentCharacter = nil
+                index += 1
+                continue
+            }
+
+            if line.hasPrefix("!") {
+                elements.append(ScriptElement(kind: .action, text: forcedText(from: line, marker: "!")))
+                currentCharacter = nil
+                index += 1
+                continue
+            }
+
+            if line.hasPrefix("@") {
+                let characterName = forcedText(from: line, marker: "@")
+                elements.append(ScriptElement(kind: .characterCue, text: characterName))
+                appendUnique(characterName, to: &characters)
+                currentCharacter = characterName
+                index += 1
+                continue
+            }
+
+            if line.hasPrefix(">") {
+                elements.append(ScriptElement(kind: .transition, text: forcedText(from: line, marker: ">")))
+                currentCharacter = nil
+                index += 1
+                continue
+            }
+
+            if line.hasPrefix("."), isSceneHeading(String(line.dropFirst()).trimmingCharacters(in: .whitespaces)) {
+                let heading = String(line.dropFirst()).trimmingCharacters(in: .whitespaces)
+                elements.append(ScriptElement(kind: .sceneHeading, text: heading))
+                scenes.append(scene(from: heading))
+                currentCharacter = nil
+                index += 1
+                continue
+            }
+
             if isSceneHeading(line) {
                 elements.append(ScriptElement(kind: .sceneHeading, text: line))
                 scenes.append(scene(from: line))
@@ -52,6 +105,13 @@ public enum ScreenplayParser {
 
             if isTransition(line) {
                 elements.append(ScriptElement(kind: .transition, text: line))
+                currentCharacter = nil
+                index += 1
+                continue
+            }
+
+            if isShot(line) {
+                elements.append(ScriptElement(kind: .shot, text: line))
                 currentCharacter = nil
                 index += 1
                 continue
@@ -169,6 +229,17 @@ public enum ScreenplayParser {
             || uppercaseLine == "FADE OUT."
     }
 
+    private static func isShot(_ line: String) -> Bool {
+        let uppercaseLine = line.uppercased()
+        return uppercaseLine.hasSuffix(":")
+            && [
+                "CLOSE ON:",
+                "ANGLE ON:",
+                "WIDE SHOT:",
+                "INSERT:"
+            ].contains(uppercaseLine)
+    }
+
     private static func isCharacterCue(_ line: String, in lines: [String], at index: Int) -> Bool {
         guard isUppercaseLike(line), !isTransition(line), !isInvalidSceneHeading(line) else {
             return false
@@ -218,6 +289,11 @@ public enum ScreenplayParser {
         }
 
         return String(line.dropFirst(2).dropLast(2)).trimmingCharacters(in: .whitespaces)
+    }
+
+    private static func forcedText(from line: String, marker: Character) -> String {
+        String(line.dropFirst(marker == "#" ? line.prefix(while: { $0 == "#" }).count : 1))
+            .trimmingCharacters(in: .whitespaces)
     }
 
     private static func appendUnique(_ value: String, to values: inout [String]) {
