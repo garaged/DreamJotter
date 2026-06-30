@@ -83,7 +83,9 @@
       "related_data_contracts": [
         "docs/data-contracts/core-domain-model.md",
         "docs/data-contracts/screenplay-element-kinds.md",
-        "docs/data-contracts/serialization-rules.md"
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "PortableCore",
@@ -108,7 +110,9 @@
       "related_data_contracts": [
         "docs/data-contracts/core-domain-model.md",
         "docs/data-contracts/screenplay-element-kinds.md",
-        "docs/data-contracts/serialization-rules.md"
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "PortableCore",
@@ -173,7 +177,9 @@
       "related_data_contracts": [
         "docs/data-contracts/core-domain-model.md",
         "docs/data-contracts/screenplay-element-kinds.md",
-        "docs/data-contracts/serialization-rules.md"
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "ProjectPackage",
@@ -238,7 +244,9 @@
       "related_data_contracts": [
         "docs/data-contracts/core-domain-model.md",
         "docs/data-contracts/screenplay-element-kinds.md",
-        "docs/data-contracts/serialization-rules.md"
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "ProductSpecs",
@@ -268,7 +276,9 @@
       "related_data_contracts": [
         "docs/data-contracts/core-domain-model.md",
         "docs/data-contracts/screenplay-element-kinds.md",
-        "docs/data-contracts/serialization-rules.md"
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "PortableCore",
@@ -300,7 +310,9 @@
       "related_data_contracts": [
         "docs/data-contracts/core-domain-model.md",
         "docs/data-contracts/screenplay-element-kinds.md",
-        "docs/data-contracts/serialization-rules.md"
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "ProjectDashboard",
@@ -398,7 +410,9 @@
       "related_data_contracts": [
         "docs/data-contracts/core-domain-model.md",
         "docs/data-contracts/screenplay-element-kinds.md",
-        "docs/data-contracts/serialization-rules.md"
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "Revisions",
@@ -478,7 +492,9 @@
       ],
       "related_data_contracts": [
         "docs/data-contracts/screenplay-element-kinds.md",
-        "docs/data-contracts/serialization-rules.md"
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "PortableCore",
@@ -528,7 +544,9 @@
       ],
       "related_data_contracts": [
         "docs/data-contracts/core-domain-model.md",
-        "docs/data-contracts/screenplay-element-kinds.md"
+        "docs/data-contracts/screenplay-element-kinds.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
       ],
       "planned_modules": [
         "ProjectPackage",
@@ -539,6 +557,57 @@
         "Canonical .dreamjotter serialization must be UTF-8 JSON-compatible portable data with ISO-8601 dates and no SwiftData or platform object dependencies."
       ],
       "notes": "Defines portable serialization, ID, date, enum, text, migration, Codable, Equatable, and Sendable expectations."
+    },
+    {
+      "id": "STORAGE-DREAMJOTTER-PACKAGE-FORMAT",
+      "title": ".dreamjotter Package Format",
+      "milestone": "M1-M4",
+      "status": "specified",
+      "spec": "docs/storage/dreamjotter-package-format.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/storage-errors.md"
+      ],
+      "planned_modules": [
+        "ProjectPackage",
+        "StorageContracts",
+        "SnapshotStorage",
+        "ExportStorage",
+        "BackupExport"
+      ],
+      "guardrails": [
+        "The .dreamjotter package is canonical local-first storage; SwiftData, indexes, and exports are not canonical project state."
+      ],
+      "notes": "Defines package layout, manifest schema, versioning, migration, atomic writes, snapshots, attachments, exports, indexes, recovery, and acceptance scenarios."
+    },
+    {
+      "id": "STORAGE-ERRORS",
+      "title": "Storage Errors",
+      "milestone": "M1-M4",
+      "status": "specified",
+      "spec": "docs/storage/storage-errors.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/data-contracts/serialization-rules.md"
+      ],
+      "planned_modules": [
+        "StorageContracts",
+        "ProjectPackage"
+      ],
+      "guardrails": [
+        "Storage diagnostics must be portable and must not replace missing canonical package content with SwiftData cache or invented state."
+      ],
+      "notes": "Defines stable storage diagnostic codes and conservative recovery expectations."
     }
   ]
 }
