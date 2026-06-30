@@ -1,55 +1,89 @@
 # DreamJotter
 
-DreamJotter is a screenplay app for non-programmers who want to write, revise, organize, and export scripts without learning technical tooling. It should feel approachable at first launch, while still allowing optional professional customization for writers, editors, production teams, and technically advanced users.
+DreamJotter is a screenplay and movie-script writing app for non-programmers. It is designed to let beginners write, organize, and export scripts without learning technical tooling, while still leaving room for optional Pro Mode workflows such as revision colors, draft comparison, production breakdown, custom fields, export presets, and no-code routines.
 
-## Project Vision
+Implementation has not started yet. This repository currently contains the Spec Driven Development baseline through Milestone 4, plus a SwiftPM executable-spec skeleton that validates documentation and traceability. There is no production app code, Xcode project, production UI, TextKit editor, plugin runtime, real AI provider, cloud sync, or external service integration.
 
-DreamJotter helps writers create screenplay documents from semantic script elements rather than from unstructured rich text. Scenes, actions, characters, dialogue, parentheticals, transitions, notes, outline items, and future production metadata must be represented as meaningful screenplay data that can be validated, transformed, exported, searched, and automated.
+## Product Direction
 
-The product follows progressive complexity:
+DreamJotter is built around a semantic screenplay model, not plain rich text. Scenes, action, character cues, dialogue, parentheticals, transitions, notes, outline data, and future production metadata must be represented as meaningful project data that can be parsed, validated, searched, exported, analyzed, and automated.
 
-- Simple Mode: beginner-friendly workflows, constrained choices, clear defaults, and minimal visible configuration.
-- Pro Mode: specialized formatting, advanced document controls, automation surfaces, export tuning, and optional customization.
+The product uses progressive complexity:
 
-## Platform Priority
+- Simple Mode is the default beginner workflow.
+- Pro Mode exposes advanced controls only when they are useful and safe.
 
-Priority platforms are:
+## Platform Direction
+
+Priority platforms:
 
 1. macOS first.
-2. iPadOS and iOS next.
+2. iPadOS and iOS second.
 3. Linux, Windows, and Android later.
 
-The Apple experience should be native and excellent, but core domain behavior must remain portable.
+DreamJotter is Apple-native first with a portable core. Apple UI may use SwiftUI, AppKit, UIKit, and TextKit adapters later, but core domain behavior must remain independent from Apple UI frameworks.
 
-## Architecture Direction
+## Architecture Guardrails
 
-DreamJotter is Apple-native first with a portable core. Swift and SwiftUI are the expected direction for Apple UI, with TextKit/AppKit/UIKit integration later for the serious editor surface.
+Core rules:
 
-The canonical project format is a local-first `.dreamjotter` document package. SwiftData may be used later for app metadata, cache, search, or indexing, but SwiftData is not the canonical screenplay or project storage format.
+- `.dreamjotter` is the canonical local-first project package.
+- SwiftData may be used later only for app metadata, recents, cache, UI state, or rebuildable indexes.
+- SwiftData is not canonical project storage.
+- Commands are the safe mutation boundary.
+- Routines execute commands and do not mutate project internals directly.
+- Plugins are deferred beyond Milestone 4 and must not drive MVP architecture.
+- AI suggestions never mutate user text until accepted.
+- Real AI providers are out of scope through Milestone 4.
+- PDF export is currently an abstraction; real PDF rendering is future adapter work.
 
-The portable core must own the screenplay model, storage contracts, command system, routines, export behavior, and AI abstractions. UI frameworks must not leak into core specs or future core modules.
+## How Specs Are Organized
 
-Plugins are future work. MVP architecture should be driven by commands first, routines second, and plugin APIs later.
+Key SDD files:
 
-## Spec-Driven Workflow
+- `docs/constitution.md`: non-negotiable project rules.
+- `docs/vision/`: product vision, personas, principles.
+- `docs/architecture/`: architecture overview, portable core, command engine, Apple-native direction.
+- `docs/adr/`: accepted architecture decisions.
+- `docs/milestones/`: Milestone 1 through Milestone 4 specs and milestone map.
+- `docs/acceptance/`: acceptance documents, traceability matrix, consistency review notes.
+- `docs/data-contracts/`: portable core data contracts and serialization rules.
+- `docs/editor/`: screenplay engine, Fountain support, and editor behavior specs.
+- `docs/storage/`: `.dreamjotter` package format and storage errors.
+- `docs/export/`: export system behavior.
+- `docs/ai/`: AI abstraction and FakeAIProvider boundary.
+- `docs/routines/`: no-code routine system v1.
+- `docs/plugins/`: future plugin boundaries only.
+- `docs/specs/`: product requirements and analysis/table-read specs.
+- `docs/ux/`: writing experience principles.
+- `specs/registry.yml`: machine-readable spec registry.
+- `specs/fixtures/`: screenplay fixture inputs for future parser tests.
+- `Tests/DreamJotterExecutableSpecs/`: executable documentation specs.
 
-Specs are the source of truth. Implementation should follow documented product goals, architecture decisions, acceptance criteria, data contracts, and traceability.
+## Milestone Status
 
-Current SDD flow:
+| Milestone | Status | Notes |
+| --- | --- | --- |
+| Milestone 0 | Specified | SDD foundation, constitution, registry, templates, traceability, and executable-spec skeleton exist. |
+| Milestone 1 | Specified | Apple prototype foundations, semantic screenplay model, parser/Fountain/editor behavior, package format, and architecture guardrails are documented. |
+| Milestone 2 | Specified | Real MVP writer organization is documented: dashboard, characters, scene cards, notes, idea inbox, search, snapshots, package load/save, health report, templates, and mode foundation. |
+| Milestone 3 | Specified | Friendly writer tools, FakeAIProvider-only AI abstraction, continuity analysis, and table-read data model are documented. |
+| Milestone 4 | Specified | Pro foundations, command engine, routine system v1, advanced export/customization, and future plugin boundaries are documented. |
 
-1. Check the constitution in `docs/constitution.md`.
-2. Create or update the relevant spec using `docs/templates/feature-spec-template.md` when applicable.
-3. Add acceptance criteria and Given/When/Then examples.
-4. Add data contracts for persistent model or package changes.
-5. Add an ADR for architecture-changing decisions.
-6. Register the spec in `specs/registry.yml`.
-7. Run the spec checks before implementation.
-8. Add or update executable specs when behavior is ready to be tested.
-9. Implement only behavior that traces back to registry IDs.
+Implementation status: `implementation-pending`. The only Swift code currently present is `SpecSupport` for executable spec checks.
 
-## SDD Commands
+## Spec Workflow
 
-Run the spec validation checks:
+1. Read `docs/constitution.md`.
+2. Find the owning row in `docs/acceptance/traceability-matrix.md`.
+3. Check `specs/registry.yml` for the registry ID and planned modules.
+4. Update specs, acceptance criteria, data contracts, and ADRs before implementation changes.
+5. Add or update executable specs when behavior is ready to be tested.
+6. Keep implementation scoped to documented registry IDs.
+
+## Validation Commands
+
+Run registry checks:
 
 ```sh
 python3 scripts/spec-check
@@ -61,7 +95,7 @@ View traceability grouped by milestone:
 python3 scripts/spec-trace
 ```
 
-Create a new feature spec from the template:
+Create a new spec from the feature template:
 
 ```sh
 python3 scripts/spec-new PRD-EDITOR-002 "Editor Commands" M2 docs/specs/editor-commands.md
@@ -73,7 +107,7 @@ Run executable documentation specs:
 CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift test --disable-sandbox --scratch-path /private/tmp/DreamJotterSwiftPM
 ```
 
-`spec-new` creates the file only. Add the new spec to `specs/registry.yml` before implementation work starts.
+Plain `swift test` may work in a normal shell. The command above redirects SwiftPM scratch/cache paths for restricted sandbox environments.
 
 ## Repo Layout
 
@@ -113,7 +147,3 @@ DreamJotter/
     spec-new
     spec-trace
 ```
-
-## Current Status
-
-The repository contains documentation-first specs through Milestone 4 plus a SwiftPM executable-spec skeleton. No production app code, Xcode project, production UI, plugin runtime, real AI provider, cloud sync, or external service integration exists yet.

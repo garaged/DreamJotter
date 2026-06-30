@@ -1,113 +1,217 @@
 # Contributing
 
-DreamJotter uses Spec Driven Development. Specs are binding project artifacts, not supporting notes.
+DreamJotter uses Spec Driven Development. Specs are binding project artifacts, not supporting notes. Product behavior, architecture boundaries, data contracts, acceptance criteria, executable specs, and implementation modules must trace back to documented requirement IDs.
 
 ## Constitution First
 
-Read `docs/constitution.md` before changing specs or implementation. The constitution defines non-negotiable rules: Apple-native UI first, portable core always, semantic screenplay model, `.dreamjotter` canonical storage, SwiftData derived-only, commands before routines before plugins, accepted AI suggestions only, and snapshots for destructive or major automated actions.
+Read `docs/constitution.md` before changing specs or implementation.
 
-## How To Write Specs
+Non-negotiable rules include:
 
-Write specs for both product and engineering readers. Every feature spec should include:
+- Apple-native UI first.
+- Portable core always.
+- Semantic screenplay model, not rich text only.
+- `.dreamjotter` package is canonical project storage.
+- SwiftData is not canonical storage.
+- Core modules must not depend on SwiftUI, AppKit, UIKit, SwiftData, or CloudKit.
+- Commands are the safe mutation boundary.
+- Routines execute commands instead of directly mutating state.
+- Plugins are future work and must not drive Milestone 1 through Milestone 4 design.
+- AI suggestions must not mutate user text until accepted.
+- Destructive or major automated actions require snapshots.
 
-- User goal.
-- Scope.
-- Non-goals.
-- User-facing behavior.
-- Acceptance criteria.
-- Given/When/Then examples where useful.
-- Edge cases.
-- Data model implications.
-- Storage implications.
-- Command implications.
-- Testability notes.
-- Platform implications.
-- Future cross-platform implications.
+## Spec Change Workflow
 
-Use `docs/templates/feature-spec-template.md` for new feature specs unless a more specific template exists. Avoid vague terms such as "easy", "fast", or "smart" unless the spec defines observable behavior.
+For spec-only changes:
 
-Separate beginner workflows from advanced controls. Simple Mode should stay understandable for new screenplay writers. Pro Mode may expose specialized features without forcing them into the beginner path.
+1. Identify the affected feature area in `docs/acceptance/traceability-matrix.md`.
+2. Read the owning spec, related acceptance document, related data contract, and related ADRs.
+3. Update the spec before or alongside acceptance criteria.
+4. Update data contracts for persistent model, package, command, export, routine, or compatibility changes.
+5. Add or update an ADR for architecture-changing decisions.
+6. Update `specs/registry.yml` for new or moved specs.
+7. Update `docs/acceptance/traceability-matrix.md` for new requirements, changed status, or changed module ownership.
+8. Run `python3 scripts/spec-check`.
+9. Run executable specs if present.
+10. Capture future work in `TODO.md` or the relevant milestone spec.
 
-## Registry Requirements
+For implementation changes:
 
-Specs must be registered in `specs/registry.yml` before implementation begins. Each registry entry should include:
+1. Name the registry ID and traceability row being implemented.
+2. Add or update executable specs first when behavior is testable.
+3. Implement the minimum scoped behavior needed for the referenced spec.
+4. Preserve architecture guardrails.
+5. Run relevant tests and spec checks.
+6. Do not expand behavior beyond documented requirements without updating specs first.
 
-- Stable ID.
-- Title.
+## Requirement ID Rules
+
+Requirement IDs must be stable and readable.
+
+Use these prefixes:
+
+- `PRD-*` for product requirements.
+- `M1-*`, `M2-*`, `M3-*`, `M4-*` for milestone-scoped behavior.
+- `DATA-*` for data contracts.
+- `EDITOR-*` for editor/parser behavior.
+- `STORAGE-*` for `.dreamjotter` package and storage errors.
+- `COMMAND-*` for command engine behavior.
+- `ROUTINE-*` for routine system behavior.
+- `PLUGIN-*` for deferred plugin model or extension points.
+- `EXPORT-*` for export behavior.
+- `AI-*` for AI abstraction behavior.
+- `UX-*` for writing experience requirements.
+- `EXECUTABLE-SPECS-*` for executable spec scaffolding.
+- `SPEC-REVIEW-*` for consistency review artifacts.
+
+Rules:
+
+- Do not reuse an ID for different behavior.
+- Do not rename an ID without updating registry, traceability, acceptance docs, and references.
+- Prefer adding a new ID over changing the meaning of an existing accepted ID.
+- Every implementation prompt should cite one or more IDs.
+
+## Acceptance Criteria Rules
+
+Acceptance criteria are required for user-facing behavior, data persistence behavior, command/routine behavior, import/export behavior, and architecture guardrails.
+
+Acceptance criteria must include:
+
+- Observable expected behavior.
+- Given/When/Then examples where practical.
+- Edge cases and malformed input behavior.
+- Simple Mode and Pro Mode differences where relevant.
+- Platform behavior where relevant.
+- Storage and command implications where relevant.
+- Non-goals and deferred scope.
+
+Acceptance criteria must not rely only on comments, commit messages, or informal notes.
+
+## Traceability Rules
+
+Update `docs/acceptance/traceability-matrix.md` whenever a feature area, milestone, data contract, executable spec, planned module, or status changes.
+
+Each traceability row should include:
+
+- Product requirement ID.
 - Milestone.
+- Feature area.
+- Spec document.
+- Acceptance document.
+- Data contract document if applicable.
+- Future executable spec file.
+- Planned implementation module.
 - Status.
-- Spec path.
-- Acceptance path when known.
-- Related ADRs when known.
-- Related data contracts when known.
-- Planned modules.
-- Guardrails.
 - Notes.
 
-Implementation must trace back to registry IDs. Pull requests or implementation prompts should name the registry IDs they satisfy.
+Status values:
 
-## Updating Acceptance Criteria
+- `specified`: documentation exists and is ready for executable spec or implementation planning.
+- `executable-spec-pending`: behavior-specific executable specs still need to be written.
+- `implementation-pending`: executable specs or implementation can be planned next.
+- `deferred`: intentionally out of scope through Milestone 4.
 
-Acceptance criteria are required for feature behavior. They must be specific enough to become tests later. Each criterion should identify:
+## Registry Rules
 
-- The user or system action.
-- The expected observable result.
-- Any relevant data state.
-- Mode differences between Simple Mode and Pro Mode.
-- Platform differences, if any.
+Specs must be registered in `specs/registry.yml` before implementation begins.
 
-When behavior changes, update the acceptance criteria in the same change as the spec. Do not leave implementation expectations only in comments, issues, or commit messages.
+Each registry entry must include:
 
-## Data Contracts
+- `id`
+- `title`
+- `milestone`
+- `status`
+- `spec`
+- `acceptance`
+- `related_adrs`
+- `related_data_contracts`
+- `planned_modules`
+- `guardrails`
+- `notes`
 
-Data contracts are required for persistent models, `.dreamjotter` package content, import/export formats, snapshots, commands that persist state, and derived indexes that need compatibility rules.
-
-Use `docs/templates/data-contract-template.md` for new contracts. Persistent canonical data must be defined as `.dreamjotter` package data unless an ADR explicitly says otherwise. SwiftData must not become canonical storage.
-
-## ADRs
-
-An ADR is required for architecture-changing decisions, including changes to platform strategy, module boundaries, storage strategy, command/routine/plugin sequencing, AI provider boundaries, or cross-platform portability.
-
-Use `docs/templates/adr-template.md` for new ADRs.
-
-## Maintaining Traceability
-
-Update `docs/acceptance/traceability-matrix.md` and `specs/registry.yml` whenever a new requirement, milestone, ADR, data contract, or acceptance criterion is added.
-
-Traceability should answer:
-
-- Which requirement or decision introduced this behavior?
-- Which registry ID owns it?
-- Which milestone owns it?
-- Which acceptance criteria validate it?
-- Which future implementation or tests should cover it?
-
-Run before implementation:
+Run:
 
 ```sh
 python3 scripts/spec-check
 python3 scripts/spec-trace
 ```
 
-## Implementation Follows Specs
+## Executable Spec Rules
 
-Implementation should not invent product behavior that is absent from specs. If implementation reveals a missing rule, update the spec before or alongside the code change.
+Executable specs live in `Tests/DreamJotterExecutableSpecs/` and currently validate documentation and traceability. Future implementation prompts should add behavior-level executable specs before production code.
 
-The canonical project format is `.dreamjotter`. Do not make SwiftData the source of truth for projects or screenplay content. The screenplay model must be semantic, not merely rich text with formatting spans.
+Executable specs should:
 
-Plugins are future work. Build command concepts first, routine automation second, and plugin extension points only after those surfaces are proven by specs and implementation.
+- Reference requirement IDs in test names or comments when useful.
+- Use fixtures from `specs/fixtures/` where practical.
+- Test portable core behavior before Apple UI adapters.
+- Avoid creating production app features just to satisfy documentation checks.
+- Fail when required specs, traceability rows, or architecture guardrails disappear.
+
+Run executable specs with:
+
+```sh
+CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift test --disable-sandbox --scratch-path /private/tmp/DreamJotterSwiftPM
+```
+
+Plain `swift test` may be sufficient outside restricted sandbox environments.
+
+## Data Contracts
+
+Data contracts are required for:
+
+- Persistent canonical models.
+- `.dreamjotter` package content.
+- Import/export formats.
+- Snapshots.
+- Commands that persist state.
+- Routine definitions and logs.
+- Derived indexes that need compatibility rules.
+
+Persistent canonical data must be defined as `.dreamjotter` package data unless an ADR explicitly says otherwise. SwiftData must not become canonical storage.
+
+## ADRs
+
+An ADR is required for architecture-changing decisions, including changes to:
+
+- Platform strategy.
+- Module boundaries.
+- Storage strategy.
+- Command/routine/plugin sequencing.
+- AI provider boundaries.
+- Cross-platform portability.
+- Cloud sync or collaboration.
+- Real PDF/FDX adapter commitments.
+
+Use `docs/templates/adr-template.md` for new ADRs.
+
+## Implementation Boundaries
+
+Implementation should not invent product behavior that is absent from specs. If implementation reveals a missing rule, update the spec before or alongside code.
+
+Do not implement during documentation-only prompts:
+
+- Production app code.
+- Xcode project.
+- Production UI.
+- TextKit wrappers.
+- Plugin runtime.
+- Real AI provider.
+- Cloud sync.
+- Full FDX support.
+- Windows/Linux/Android app.
 
 ## Definition Of Done
 
 A change is done when:
 
-- Relevant specs or ADRs are created or updated.
+- Relevant specs, acceptance docs, data contracts, or ADRs are current.
 - Specs are registered in `specs/registry.yml`.
-- Acceptance criteria are observable and current.
+- Traceability links the change to milestone, feature area, acceptance, executable specs, and planned modules.
+- Acceptance criteria are observable.
 - Data contracts exist for persistent model changes.
-- Traceability links the change to milestones and validation.
-- Implementation, if any, follows registry IDs without expanding scope.
-- Tests or validation notes exist where appropriate.
+- Executable specs are added or updated when behavior is testable.
+- Implementation, if any, follows cited registry IDs without expanding scope.
 - `python3 scripts/spec-check` passes.
-- No production app code is introduced during documentation-only prompts.
+- Executable specs pass when present.
 - Future work is captured in `TODO.md` or the relevant milestone document.
