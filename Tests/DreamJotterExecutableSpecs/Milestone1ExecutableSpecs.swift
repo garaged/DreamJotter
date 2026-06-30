@@ -1,4 +1,5 @@
 import Foundation
+import DreamJotterCore
 import SpecSupport
 import Testing
 
@@ -137,5 +138,58 @@ struct Milestone1ExecutableSpecs {
         #expect(SpecRepository.contains(elementKinds, "Do not infer canonical meaning only from rich text"))
         #expect(SpecRepository.contains(screenplayEngine, "semantic project data"))
         #expect(SpecRepository.contains(screenplayEngine, "Malformed input must be recoverable"))
+    }
+
+    @Test("Parser output matches Milestone 1 semantic fixture expectations")
+    func parserOutputMatchesMilestone1SemanticFixtureExpectations() throws {
+        for expectation in try ScreenplayFixtureExpectations.loadAll() {
+            let source = try SpecRepository.read(expectation.fixture)
+            let document = ScreenplayParser.parse(source)
+
+            #expect(document.elements.map(\.expectedElement) == expectation.expectedElements)
+            #expect(document.scenes.map(\.expectedScene) == expectation.expectedScenes)
+            #expect(document.characters == expectation.expectedCharacters)
+            #expect(document.diagnostics.map(\.expectedDiagnostic) == expectation.expectedDiagnostics)
+        }
+    }
+
+    @Test("Empty screenplay parses without elements, scenes, characters, or diagnostics")
+    func emptyScreenplayParsesWithoutElementsScenesCharactersOrDiagnostics() {
+        let document = ScreenplayParser.parse("")
+
+        #expect(document.elements.isEmpty)
+        #expect(document.scenes.isEmpty)
+        #expect(document.characters.isEmpty)
+        #expect(document.diagnostics.isEmpty)
+    }
+}
+
+private extension ScriptElement {
+    var expectedElement: ExpectedScriptElement {
+        ExpectedScriptElement(
+            kind: kind.rawValue,
+            text: text,
+            characterName: characterName
+        )
+    }
+}
+
+private extension Scene {
+    var expectedScene: ExpectedScene {
+        ExpectedScene(
+            heading: heading,
+            location: location,
+            timeOfDay: timeOfDay
+        )
+    }
+}
+
+private extension ScreenplayDiagnostic {
+    var expectedDiagnostic: ExpectedDiagnostic {
+        ExpectedDiagnostic(
+            code: code,
+            message: message,
+            text: text
+        )
     }
 }

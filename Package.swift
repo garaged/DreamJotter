@@ -8,17 +8,27 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "DreamJotterCore",
+            targets: ["DreamJotterCore"]
+        ),
+        .library(
             name: "SpecSupport",
             targets: ["SpecSupport"]
         )
     ],
     targets: [
         .target(
+            name: "DreamJotterCore"
+        ),
+        .target(
             name: "SpecSupport"
         ),
         .testTarget(
             name: "DreamJotterExecutableSpecs",
-            dependencies: ["SpecSupport"]
+            dependencies: [
+                "DreamJotterCore",
+                "SpecSupport"
+            ]
         )
     ]
 )

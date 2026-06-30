@@ -878,7 +878,7 @@
       "id": "EXECUTABLE-SPECS-SKELETON",
       "title": "Executable Spec Skeleton",
       "milestone": "M1-M4",
-      "status": "executable-spec-ready",
+      "status": "implementation-ready",
       "spec": "Package.swift",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [
@@ -941,6 +941,7 @@
       ],
       "planned_modules": [
         "SpecSupport",
+        "DreamJotterCore",
         "ScreenplayParser",
         "ScreenplayModel",
         "FountainIO"
@@ -948,7 +949,7 @@
       "guardrails": [
         "Parser executable specs define expected semantic output from fixtures without implementing production app UI or TextKit adapters."
       ],
-      "notes": "Adds expected semantic JSON outputs for simple, multi-scene, Spanish/Unicode, and malformed Fountain fixtures plus executable checks for canonical element kinds and diagnostics."
+      "notes": "Adds expected semantic JSON outputs for simple, multi-scene, Spanish/Unicode, malformed, and empty parser inputs plus executable checks against the first portable parser implementation."
     }
   ]
 }
