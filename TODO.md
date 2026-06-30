@@ -4,7 +4,7 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 
 ## Milestone 1 Implementation
 
-- Add behavior-level executable specs for screenplay parser fixture classification.
+- Expand behavior-level executable specs beyond the initial parser, Fountain, derived data, editor behavior, project, export, Codable, and guardrail checks.
 - Extend semantic output fixtures for shots, page breaks, sections, synopsis lines, and additional malformed edge cases.
 - Expand portable core data models beyond the first project/screenplay/editor/export foundation subset.
 - Expand `ScriptElementKind` and semantic screenplay element validation beyond the first supported kinds.
@@ -15,7 +15,7 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 - Expand package-independent editor behavior reducer/controller beyond first smart Enter, Tab, scene-heading prefix, autocomplete, and TODO behaviors.
 - Implement actual `.dreamjotter` package file I/O after storage executable specs are added.
 - Implement real PDF adapter after export renderer acceptance specs are executable.
-- Keep all core modules free of SwiftUI, AppKit, UIKit, SwiftData, and CloudKit.
+- Maintain executable guardrails that keep core modules free of SwiftUI, AppKit, UIKit, SwiftData, and CloudKit.
 
 ## Milestone 2 Implementation
 
