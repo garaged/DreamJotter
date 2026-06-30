@@ -293,7 +293,7 @@
       "guardrails": [
         "Milestone 1 must not create production app code, app UI, Xcode project, SwiftData canonical storage, real AI integration, or plugin runtime."
       ],
-      "notes": "Detailed Milestone 1 scope and feature specifications."
+      "notes": "Detailed Milestone 1 scope and feature specifications. First portable core slices now cover parser, Fountain round trip, derived scene/autocomplete data, editor behavior basics, blank project creation concept, and PDF export intent."
     },
     {
       "id": "M2-REAL-MVP-WRITER-ORGANIZATION",
@@ -584,7 +584,7 @@
       "guardrails": [
         "The .dreamjotter package is canonical local-first storage; SwiftData, indexes, and exports are not canonical project state."
       ],
-      "notes": "Defines package layout, manifest schema, versioning, migration, atomic writes, snapshots, attachments, exports, indexes, recovery, and acceptance scenarios."
+      "notes": "Defines package layout, manifest schema, versioning, migration, atomic writes, snapshots, attachments, exports, indexes, recovery, and acceptance scenarios. Milestone 1 currently implements in-memory blank project/package metadata only; file I/O remains pending."
     },
     {
       "id": "STORAGE-ERRORS",
@@ -797,7 +797,7 @@
       "guardrails": [
         "Exports are projections from semantic .dreamjotter project data; export artifacts, SwiftData, and renderer state are not canonical storage."
       ],
-      "notes": "Defines Fountain, Markdown, plain text, JSON backup, PDF abstraction, presets, reader/contest/print/production/backup/archive exports, and unsupported export handling."
+      "notes": "Defines Fountain, Markdown, plain text, JSON backup, PDF abstraction, presets, reader/contest/print/production/backup/archive exports, and unsupported export handling. Milestone 1 currently implements PDF export intent only; rendering remains pending."
     },
     {
       "id": "SCRIPT-ANALYSIS-SPEC",

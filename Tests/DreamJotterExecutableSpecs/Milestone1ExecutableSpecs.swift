@@ -280,6 +280,40 @@ struct Milestone1ExecutableSpecs {
         #expect(todos == ["TODO: clarify whether this is a note"])
         #expect(document.elements.contains(ScriptElement(kind: .noteReference, text: "TODO: clarify whether this is a note")))
     }
+
+    @Test("Blank project creation produces local-first dreamjotter package concept")
+    func blankProjectCreationProducesLocalFirstDreamJotterPackageConcept() {
+        let createdAt = Date(timeIntervalSince1970: 1_782_777_600)
+        let project = ProjectFactory.createBlankProject(
+            title: "  La Noche Larga  ",
+            projectID: "project-001",
+            screenplayID: "screenplay-001",
+            createdAt: createdAt
+        )
+
+        #expect(project.metadata.id == "project-001")
+        #expect(project.metadata.title == "La Noche Larga")
+        #expect(project.metadata.createdAt == createdAt)
+        #expect(project.metadata.modifiedAt == createdAt)
+        #expect(project.metadata.schemaVersion == ProjectFactory.currentSchemaVersion)
+        #expect(project.metadata.primaryScreenplayID == "screenplay-001")
+        #expect(project.metadata.packageExtension == ".dreamjotter")
+        #expect(ProjectFactory.packageName(for: project) == "La Noche Larga.dreamjotter")
+        #expect(project.screenplay.elements.isEmpty)
+    }
+
+    @Test("PDF export intent preserves semantic order without rendering")
+    func pdfExportIntentPreservesSemanticOrderWithoutRendering() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/spanish-unicode.fountain")
+        let document = ScreenplayParser.parse(source)
+        let intent = ExportIntentBuilder.pdfIntent(for: document, title: "La Noche Larga")
+
+        #expect(intent.format == .pdf)
+        #expect(intent.documentTitle == "La Noche Larga")
+        #expect(intent.elements == document.elements)
+        #expect(intent.elements.map(\.text).contains("¿Dónde está José?"))
+        #expect(intent.diagnostics.isEmpty)
+    }
 }
 
 private extension ScriptElement {
