@@ -664,6 +664,61 @@
         "Fountain import/export is interoperability only; .dreamjotter remains canonical and round-trip expectations are semantic, not byte-for-byte."
       ],
       "notes": "Defines supported Fountain subset, import/export mapping, Unicode preservation, unsupported syntax diagnostics, and semantic round-trip expectations."
+    },
+    {
+      "id": "EDITOR-BEHAVIOR-SPEC",
+      "title": "Editor Behavior Spec",
+      "milestone": "M1-M4",
+      "status": "specified",
+      "spec": "docs/editor/editor-behavior-spec.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md",
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md"
+      ],
+      "planned_modules": [
+        "EditorBehavior",
+        "EditorController",
+        "ScreenplayParser",
+        "Autocomplete",
+        "AppleTextAdapters"
+      ],
+      "guardrails": [
+        "Editor behavior must remain platform-neutral, use semantic screenplay state, keep TextKit/AppKit/UIKit as adapters, and avoid production UI implementation in the spec phase."
+      ],
+      "notes": "Defines smart Enter, Tab cycling, autocomplete, note insertion, TODO detection, cursor assumptions, accessibility, mode behavior, and platform adapter boundaries."
+    },
+    {
+      "id": "UX-WRITING-EXPERIENCE",
+      "title": "Writing Experience Principles",
+      "milestone": "M1-M4",
+      "status": "specified",
+      "spec": "docs/ux/writing-experience-principles.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "EditorBehavior",
+        "AppleAppAdapter",
+        "ModePolicy",
+        "Accessibility"
+      ],
+      "guardrails": [
+        "Writing experience decisions must keep beginner writing central, preserve user text, support Unicode, respect Apple-native adapters, and keep the portable core independent."
+      ],
+      "notes": "Defines writing-first UX principles for suggestions, diagnostics, Simple Mode, Pro Mode, distraction-free writing, and accessibility."
     }
   ]
 }
