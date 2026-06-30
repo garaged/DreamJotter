@@ -11,7 +11,7 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 - Expand screenplay parser coverage beyond the first deterministic fixture subset.
 - Expand Fountain import/export beyond the first semantic fixture round-trip subset.
 - Expand derived scene list, character suggestion, and location suggestion coverage beyond the first semantic fixture subset.
-- Implement package-independent editor behavior reducer/controller tests.
+- Expand package-independent editor behavior reducer/controller beyond first smart Enter, Tab, scene-heading prefix, autocomplete, and TODO behaviors.
 - Keep all core modules free of SwiftUI, AppKit, UIKit, SwiftData, and CloudKit.
 
 ## Milestone 2 Implementation

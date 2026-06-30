@@ -693,7 +693,7 @@
       "guardrails": [
         "Editor behavior must remain platform-neutral, use semantic screenplay state, keep TextKit/AppKit/UIKit as adapters, and avoid production UI implementation in the spec phase."
       ],
-      "notes": "Defines smart Enter, Tab cycling, autocomplete, note insertion, TODO detection, cursor assumptions, accessibility, mode behavior, and platform adapter boundaries. First portable scene list, character suggestion, and location suggestion derivations are implemented in DreamJotterCore."
+      "notes": "Defines smart Enter, Tab cycling, autocomplete, note insertion, TODO detection, cursor assumptions, accessibility, mode behavior, and platform adapter boundaries. First portable scene list, character suggestion, location suggestion, smart Enter, Tab cycle, scene-prefix, and TODO detection behaviors are implemented in DreamJotterCore."
     },
     {
       "id": "UX-WRITING-EXPERIENCE",

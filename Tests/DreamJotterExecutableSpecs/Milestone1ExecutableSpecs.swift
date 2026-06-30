@@ -243,6 +243,43 @@ struct Milestone1ExecutableSpecs {
             AutocompleteSuggestion(displayText: "CAR", normalizedKey: "CAR", sourceCount: 1)
         ])
     }
+
+    @Test("Smart Enter predicts next semantic kind without UI dependencies")
+    func smartEnterPredictsNextSemanticKindWithoutUIDependencies() {
+        #expect(EditorBehavior.nextKindAfterReturn(from: nil) == .sceneHeading)
+        #expect(EditorBehavior.nextKindAfterReturn(from: .sceneHeading) == .action)
+        #expect(EditorBehavior.nextKindAfterReturn(from: .characterCue) == .dialogue)
+        #expect(EditorBehavior.nextKindAfterReturn(from: .parenthetical) == .dialogue)
+        #expect(EditorBehavior.nextKindAfterReturn(from: .dialogue, mode: .simple) == .action)
+        #expect(EditorBehavior.nextKindAfterReturn(from: .dialogue, mode: .pro) == .characterCue)
+        #expect(EditorBehavior.nextKindAfterReturn(from: .transition) == .sceneHeading)
+    }
+
+    @Test("Tab cycles screenplay element kind deterministically")
+    func tabCyclesScreenplayElementKindDeterministically() {
+        #expect(EditorBehavior.cycleKindAfterTab(from: .action) == .sceneHeading)
+        #expect(EditorBehavior.cycleKindAfterTab(from: .sceneHeading) == .characterCue)
+        #expect(EditorBehavior.cycleKindAfterTab(from: .noteReference) == .action)
+        #expect(EditorBehavior.cycleKindAfterTab(from: .unknown) == .action)
+    }
+
+    @Test("Scene heading prefix detection supports common prefixes")
+    func sceneHeadingPrefixDetectionSupportsCommonPrefixes() {
+        #expect(EditorBehavior.isSceneHeadingPrefix("INT."))
+        #expect(EditorBehavior.isSceneHeadingPrefix("EXT."))
+        #expect(EditorBehavior.isSceneHeadingPrefix("INT./EXT."))
+        #expect(!EditorBehavior.isSceneHeadingPrefix("CUT TO:"))
+    }
+
+    @Test("TODO detection is advisory and preserves text")
+    func todoDetectionIsAdvisoryAndPreservesText() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/malformed.fountain")
+        let document = ScreenplayParser.parse(source)
+        let todos = EditorBehavior.todoNotes(in: document)
+
+        #expect(todos == ["TODO: clarify whether this is a note"])
+        #expect(document.elements.contains(ScriptElement(kind: .noteReference, text: "TODO: clarify whether this is a note")))
+    }
 }
 
 private extension ScriptElement {
