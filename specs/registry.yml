@@ -233,6 +233,49 @@
       "planned_modules": ["AIAbstractions", "FakeAIProvider", "CommandSystem", "Snapshots"],
       "guardrails": ["AI providers must never mutate project data directly; FakeAIProvider is the only Milestone 3 provider and no external service calls are allowed."],
       "notes": "Provider-neutral AI boundary, suggestion lifecycle, disabled mode, fake provider, and snapshot-before-rewrite policy."
+    },
+    {
+      "id": "M4-PRO-FOUNDATIONS",
+      "title": "Milestone 4 Pro Apple Version Foundations",
+      "milestone": "M4",
+      "status": "specified",
+      "spec": "docs/milestones/milestone-4-pro-foundations.md",
+      "acceptance": "docs/acceptance/milestone-4-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": ["Revisions", "DraftVersions", "DraftComparison", "ProductionBreakdown", "ExportPresets", "CustomFields", "Routines", "CommandEngine", "ModePolicy", "FutureExtensions"],
+      "guardrails": ["Milestone 4 must keep Simple Mode usable, keep .dreamjotter canonical, require routines to execute commands, and defer plugin runtime and arbitrary scripting."],
+      "notes": "Detailed Milestone 4 scope for pro features, routine foundations, and future extension boundaries."
+    },
+    {
+      "id": "ROUTINE-SYSTEM-V1",
+      "title": "Routine System v1 Spec",
+      "milestone": "M4",
+      "status": "specified",
+      "spec": "docs/routines/routine-system-v1-spec.md",
+      "acceptance": "docs/acceptance/milestone-4-acceptance.md",
+      "related_adrs": ["docs/adr/0003-commands-before-routines-before-plugins.md"],
+      "related_data_contracts": [],
+      "planned_modules": ["Routines", "RoutineRunner", "CommandEngine", "Snapshots", "RoutineLogs"],
+      "guardrails": ["Routines are no-code definitions that must execute commands through CommandEngine and must not directly mutate project internals."],
+      "notes": "Routine triggers, conditions, actions, run logs, safety rules, and command boundary."
+    },
+    {
+      "id": "PLUGIN-EXTENSION-POINTS-FUTURE",
+      "title": "Future Plugin Extension Points",
+      "milestone": "M4",
+      "status": "deferred",
+      "spec": "docs/plugins/future-plugin-extension-points.md",
+      "acceptance": "docs/acceptance/milestone-4-acceptance.md",
+      "related_adrs": ["docs/adr/0003-commands-before-routines-before-plugins.md"],
+      "related_data_contracts": [],
+      "planned_modules": ["FutureExtensions", "CommandEngine"],
+      "guardrails": ["Plugin runtime, arbitrary scripting, marketplace, third-party code execution, and plugin-required project readability are explicitly deferred."],
+      "notes": "Documents possible future extension points without implementing plugin runtime."
     }
   ]
 }
