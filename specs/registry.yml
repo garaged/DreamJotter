@@ -608,6 +608,62 @@
         "Storage diagnostics must be portable and must not replace missing canonical package content with SwiftData cache or invented state."
       ],
       "notes": "Defines stable storage diagnostic codes and conservative recovery expectations."
+    },
+    {
+      "id": "EDITOR-SCREENPLAY-ENGINE",
+      "title": "Screenplay Engine Spec",
+      "milestone": "M1-M4",
+      "status": "specified",
+      "spec": "docs/editor/screenplay-engine-spec.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md",
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md"
+      ],
+      "planned_modules": [
+        "ScreenplayModel",
+        "ScreenplayParser",
+        "FountainIO",
+        "Diagnostics"
+      ],
+      "guardrails": [
+        "Screenplay parsing must produce semantic ScriptElement records, preserve malformed text, support Unicode, and avoid Apple UI, SwiftData, AI, routine, or plugin dependencies."
+      ],
+      "notes": "Defines deterministic screenplay element classification, malformed input handling, fixture strategy, and future FDX boundary."
+    },
+    {
+      "id": "EDITOR-FOUNTAIN-SUPPORT",
+      "title": "Fountain Support Spec",
+      "milestone": "M1-M4",
+      "status": "specified",
+      "spec": "docs/editor/fountain-support-spec.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md",
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md"
+      ],
+      "planned_modules": [
+        "FountainIO",
+        "ScreenplayParser",
+        "ScreenplayModel",
+        "Diagnostics"
+      ],
+      "guardrails": [
+        "Fountain import/export is interoperability only; .dreamjotter remains canonical and round-trip expectations are semantic, not byte-for-byte."
+      ],
+      "notes": "Defines supported Fountain subset, import/export mapping, Unicode preservation, unsupported syntax diagnostics, and semantic round-trip expectations."
     }
   ]
 }
