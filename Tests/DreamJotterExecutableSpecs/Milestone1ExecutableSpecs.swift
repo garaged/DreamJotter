@@ -197,6 +197,52 @@ struct Milestone1ExecutableSpecs {
             #expect(reimported.diagnostics.map(\.expectedDiagnostic) == expectation.expectedDiagnostics)
         }
     }
+
+    @Test("Scene list derives ordered scenes from semantic document")
+    func sceneListDerivesOrderedScenesFromSemanticDocument() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/multi-scene.fountain")
+        let document = ScreenplayParser.parse(source)
+        let sceneList = ScreenplayDerivedData.sceneList(from: document)
+
+        #expect(sceneList.map(\.index) == [0, 1])
+        #expect(sceneList.map(\.heading) == ["EXT. PARK - MORNING", "INT. CAR - CONTINUOUS"])
+        #expect(sceneList.map(\.location) == ["PARK", "CAR"])
+        #expect(sceneList.map(\.timeOfDay) == ["MORNING", "CONTINUOUS"])
+    }
+
+    @Test("Character autocomplete collapses duplicates and preserves Unicode display names")
+    func characterAutocompleteCollapsesDuplicatesAndPreservesUnicodeDisplayNames() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/spanish-unicode.fountain")
+        let document = ScreenplayParser.parse(source)
+        let suggestions = ScreenplayDerivedData.characterSuggestions(from: document)
+
+        #expect(suggestions == [
+            AutocompleteSuggestion(displayText: "NIÑA", normalizedKey: "NINA", sourceCount: 1)
+        ])
+    }
+
+    @Test("Character autocomplete excludes ambiguous uppercase action and transitions")
+    func characterAutocompleteExcludesAmbiguousUppercaseActionAndTransitions() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/malformed.fountain")
+        let document = ScreenplayParser.parse(source)
+        let suggestions = ScreenplayDerivedData.characterSuggestions(from: document)
+
+        #expect(suggestions == [
+            AutocompleteSuggestion(displayText: "JOSE", normalizedKey: "JOSE", sourceCount: 1)
+        ])
+    }
+
+    @Test("Location autocomplete derives unique locations from scene headings")
+    func locationAutocompleteDerivesUniqueLocationsFromSceneHeadings() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/multi-scene.fountain")
+        let document = ScreenplayParser.parse(source)
+        let suggestions = ScreenplayDerivedData.locationSuggestions(from: document)
+
+        #expect(suggestions == [
+            AutocompleteSuggestion(displayText: "PARK", normalizedKey: "PARK", sourceCount: 1),
+            AutocompleteSuggestion(displayText: "CAR", normalizedKey: "CAR", sourceCount: 1)
+        ])
+    }
 }
 
 private extension ScriptElement {
