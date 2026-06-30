@@ -719,6 +719,57 @@
         "Writing experience decisions must keep beginner writing central, preserve user text, support Unicode, respect Apple-native adapters, and keep the portable core independent."
       ],
       "notes": "Defines writing-first UX principles for suggestions, diagnostics, Simple Mode, Pro Mode, distraction-free writing, and accessibility."
+    },
+    {
+      "id": "COMMAND-ENGINE-SPEC",
+      "title": "Command Engine Spec",
+      "milestone": "M1-M4",
+      "status": "specified",
+      "spec": "docs/architecture/command-engine-spec.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/serialization-rules.md",
+        "docs/storage/dreamjotter-package-format.md"
+      ],
+      "planned_modules": [
+        "CommandEngine",
+        "CommandValidation",
+        "CommandHistory",
+        "Snapshots",
+        "RoutineSystem",
+        "FutureExtensions"
+      ],
+      "guardrails": [
+        "Commands are the safe mutation boundary; routines, AI acceptance, editor actions, and future plugins must request approved commands instead of mutating project internals."
+      ],
+      "notes": "Defines command execution, validation, CommandResult, CommandHistoryEntry, undo and snapshot strategy, required commands, error handling, and future plugin compatibility."
+    },
+    {
+      "id": "PLUGIN-FUTURE-MODEL",
+      "title": "Future Plugin Model",
+      "milestone": "Beyond M4",
+      "status": "deferred",
+      "spec": "docs/plugins/future-plugin-model.md",
+      "acceptance": "docs/acceptance/traceability-matrix.md",
+      "related_adrs": [
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": [
+        "FutureExtensions",
+        "CommandEngine",
+        "PermissionModel"
+      ],
+      "guardrails": [
+        "Plugin runtime, arbitrary code execution, marketplace, direct file mutation, and plugin-required project readability are deferred beyond Milestone 4."
+      ],
+      "notes": "Defines future plugin safety model: approved commands only, declared permissions, disableability, project file safety, and marketplace deferral."
     }
   ]
 }
