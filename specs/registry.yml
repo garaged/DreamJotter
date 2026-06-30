@@ -203,6 +203,36 @@
       "planned_modules": ["ProjectDashboard", "ProjectPackage", "CharacterManager", "SceneCards", "Notes", "IdeaInbox", "Search", "Snapshots", "HealthReport", "Templates", "ExportPresets", "ModePolicy"],
       "guardrails": ["Milestone 2 must preserve .dreamjotter as canonical storage, keep SwiftData derived-only, keep Simple Mode default, and keep Pro Mode/plugin/routine behavior hidden, disabled, or deferred."],
       "notes": "Detailed Milestone 2 scope for real MVP writer organization beyond the text editor."
+    },
+    {
+      "id": "M3-FRIENDLY-WRITER-TOOLS",
+      "title": "Milestone 3 Friendly Writer Tools",
+      "milestone": "M3",
+      "status": "specified",
+      "spec": "docs/milestones/milestone-3-friendly-writer-tools.md",
+      "acceptance": "docs/acceptance/milestone-3-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": ["StorySetup", "LoglineBuilder", "SynopsisBuilder", "BeatSheets", "SceneStarters", "AIAbstractions", "ContinuityChecks", "CharacterConsistency", "ReadAloudModel", "WarningLanguage", "CommandSystem", "Snapshots"],
+      "guardrails": ["Milestone 3 must not call external AI services, must keep AI optional and disableable, must require accepted-only mutations, and must create snapshots before AI rewrites."],
+      "notes": "Detailed Milestone 3 scope for beginner-friendly story tools and safe AI-assisted workflows."
+    },
+    {
+      "id": "AI-ABSTRACTION-001",
+      "title": "AI Abstraction Spec",
+      "milestone": "M3",
+      "status": "specified",
+      "spec": "docs/ai/ai-abstraction-spec.md",
+      "acceptance": "docs/acceptance/milestone-3-acceptance.md",
+      "related_adrs": ["docs/adr/0003-commands-before-routines-before-plugins.md"],
+      "related_data_contracts": [],
+      "planned_modules": ["AIAbstractions", "FakeAIProvider", "CommandSystem", "Snapshots"],
+      "guardrails": ["AI providers must never mutate project data directly; FakeAIProvider is the only Milestone 3 provider and no external service calls are allowed."],
+      "notes": "Provider-neutral AI boundary, suggestion lifecycle, disabled mode, fake provider, and snapshot-before-rewrite policy."
     }
   ]
 }
