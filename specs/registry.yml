@@ -186,6 +186,23 @@
       "planned_modules": ["PortableCore", "ScreenplayModel", "ScreenplayParser", "FountainIO", "ProjectPackage", "EditorBehavior", "ExportCore", "AppleAppShell"],
       "guardrails": ["Milestone 1 must not create production app code, app UI, Xcode project, SwiftData canonical storage, real AI integration, or plugin runtime."],
       "notes": "Detailed Milestone 1 scope and feature specifications."
+    },
+    {
+      "id": "M2-REAL-MVP-WRITER-ORGANIZATION",
+      "title": "Milestone 2 Real MVP Writer Organization",
+      "milestone": "M2",
+      "status": "specified",
+      "spec": "docs/milestones/milestone-2-real-mvp.md",
+      "acceptance": "docs/acceptance/milestone-2-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0003-commands-before-routines-before-plugins.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": ["ProjectDashboard", "ProjectPackage", "CharacterManager", "SceneCards", "Notes", "IdeaInbox", "Search", "Snapshots", "HealthReport", "Templates", "ExportPresets", "ModePolicy"],
+      "guardrails": ["Milestone 2 must preserve .dreamjotter as canonical storage, keep SwiftData derived-only, keep Simple Mode default, and keep Pro Mode/plugin/routine behavior hidden, disabled, or deferred."],
+      "notes": "Detailed Milestone 2 scope for real MVP writer organization beyond the text editor."
     }
   ]
 }
