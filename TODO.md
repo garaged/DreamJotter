@@ -8,6 +8,7 @@ This file tracks future implementation work after the Milestone 0-4 spec baselin
 - Extend semantic output fixtures for shots, page breaks, sections, synopsis lines, and additional malformed edge cases.
 - Expand portable core data models beyond the first project/screenplay/editor/export foundation subset.
 - Expand `ScriptElementKind` and semantic screenplay element validation beyond the first supported kinds.
+- Expand Codable contract tests as persistent models are added.
 - Expand screenplay parser coverage beyond the first deterministic fixture subset.
 - Expand Fountain import/export beyond the first semantic fixture round-trip subset.
 - Expand derived scene list, character suggestion, and location suggestion coverage beyond the first semantic fixture subset.

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ScreenplayDocument: Equatable, Sendable {
+public struct ScreenplayDocument: Codable, Equatable, Sendable {
     public let elements: [ScriptElement]
     public let scenes: [Scene]
     public let characters: [String]
@@ -19,7 +19,7 @@ public struct ScreenplayDocument: Equatable, Sendable {
     }
 }
 
-public struct ScriptElement: Equatable, Sendable {
+public struct ScriptElement: Codable, Equatable, Sendable {
     public let kind: ScriptElementKind
     public let text: String
     public let characterName: String?
@@ -31,7 +31,7 @@ public struct ScriptElement: Equatable, Sendable {
     }
 }
 
-public enum ScriptElementKind: String, Equatable, Sendable {
+public enum ScriptElementKind: String, Codable, Equatable, Sendable {
     case titlePage
     case sceneHeading
     case action
@@ -47,7 +47,7 @@ public enum ScriptElementKind: String, Equatable, Sendable {
     case unknown
 }
 
-public struct Scene: Equatable, Sendable {
+public struct Scene: Codable, Equatable, Sendable {
     public let heading: String
     public let location: String
     public let timeOfDay: String?
@@ -59,7 +59,7 @@ public struct Scene: Equatable, Sendable {
     }
 }
 
-public struct ScreenplayDiagnostic: Equatable, Sendable {
+public struct ScreenplayDiagnostic: Codable, Equatable, Sendable {
     public let code: String
     public let message: String
     public let text: String

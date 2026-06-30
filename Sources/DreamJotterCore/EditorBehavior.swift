@@ -1,6 +1,6 @@
 import Foundation
 
-public enum EditorMode: String, Equatable, Sendable {
+public enum EditorMode: String, Codable, Equatable, Sendable {
     case simple
     case pro
 }

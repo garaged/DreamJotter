@@ -314,6 +314,47 @@ struct Milestone1ExecutableSpecs {
         #expect(intent.elements.map(\.text).contains("¿Dónde está José?"))
         #expect(intent.diagnostics.isEmpty)
     }
+
+    @Test("Portable core value types support Codable round trip")
+    func portableCoreValueTypesSupportCodableRoundTrip() throws {
+        let source = try SpecRepository.read("specs/fixtures/screenplay/spanish-unicode.fountain")
+        let document = ScreenplayParser.parse(source)
+        let encodedDocument = try JSONEncoder().encode(document)
+        let decodedDocument = try JSONDecoder().decode(ScreenplayDocument.self, from: encodedDocument)
+
+        let project = ProjectFactory.createBlankProject(
+            title: "Codable Project",
+            projectID: "project-codable",
+            screenplayID: "screenplay-codable",
+            createdAt: Date(timeIntervalSince1970: 1_782_777_600)
+        )
+        let encodedProject = try JSONEncoder().encode(project)
+        let decodedProject = try JSONDecoder().decode(DreamJotterProject.self, from: encodedProject)
+
+        #expect(decodedDocument == document)
+        #expect(decodedProject == project)
+    }
+
+    @Test("Portable core source avoids Apple UI storage and cloud framework imports")
+    func portableCoreSourceAvoidsAppleUIStorageAndCloudFrameworkImports() throws {
+        let sourceFiles = [
+            "Sources/DreamJotterCore/EditorBehavior.swift",
+            "Sources/DreamJotterCore/ExportIntent.swift",
+            "Sources/DreamJotterCore/FountainIO.swift",
+            "Sources/DreamJotterCore/ProjectFoundation.swift",
+            "Sources/DreamJotterCore/ScreenplayDerivedData.swift",
+            "Sources/DreamJotterCore/ScreenplayModel.swift",
+            "Sources/DreamJotterCore/ScreenplayParser.swift"
+        ]
+        let forbiddenImports = ["SwiftUI", "AppKit", "UIKit", "SwiftData", "CloudKit"]
+
+        for sourceFile in sourceFiles {
+            let source = try SpecRepository.read(sourceFile)
+            for forbiddenImport in forbiddenImports {
+                #expect(!source.contains("import \(forbiddenImport)"), "\(sourceFile) imports \(forbiddenImport)")
+            }
+        }
+    }
 }
 
 private extension ScriptElement {

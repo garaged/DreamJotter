@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ProjectMetadata: Equatable, Sendable {
+public struct ProjectMetadata: Codable, Equatable, Sendable {
     public let id: String
     public let title: String
     public let createdAt: Date
@@ -28,7 +28,7 @@ public struct ProjectMetadata: Equatable, Sendable {
     }
 }
 
-public struct DreamJotterProject: Equatable, Sendable {
+public struct DreamJotterProject: Codable, Equatable, Sendable {
     public let metadata: ProjectMetadata
     public let screenplay: ScreenplayDocument
 

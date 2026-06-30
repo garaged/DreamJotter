@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SceneListItem: Equatable, Sendable {
+public struct SceneListItem: Codable, Equatable, Sendable {
     public let index: Int
     public let heading: String
     public let displayTitle: String
@@ -16,7 +16,7 @@ public struct SceneListItem: Equatable, Sendable {
     }
 }
 
-public struct AutocompleteSuggestion: Equatable, Sendable {
+public struct AutocompleteSuggestion: Codable, Equatable, Sendable {
     public let displayText: String
     public let normalizedKey: String
     public let sourceCount: Int

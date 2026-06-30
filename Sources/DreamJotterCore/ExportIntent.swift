@@ -1,11 +1,11 @@
 import Foundation
 
-public enum ExportFormat: String, Equatable, Sendable {
+public enum ExportFormat: String, Codable, Equatable, Sendable {
     case pdf
     case fountain
 }
 
-public struct ExportIntent: Equatable, Sendable {
+public struct ExportIntent: Codable, Equatable, Sendable {
     public let format: ExportFormat
     public let documentTitle: String
     public let elements: [ScriptElement]
