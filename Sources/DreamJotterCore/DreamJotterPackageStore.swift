@@ -104,6 +104,7 @@ public enum DreamJotterPackageStore {
         "sceneCards": PackageSection(path: "scene-cards.json", required: false),
         "exportPresets": PackageSection(path: "export-presets.json", required: false),
         "story": PackageSection(path: "story.json", required: false),
+        "pro": PackageSection(path: "pro.json", required: false),
         "fountainProjection": PackageSection(path: "script.fountain", required: false)
     ]
 
@@ -133,6 +134,7 @@ public enum DreamJotterPackageStore {
         try write(project.sceneCards, to: packageURL.appendingPathComponent("scene-cards.json"))
         try write(project.exportPresets, to: packageURL.appendingPathComponent("export-presets.json"))
         try write(project.story, to: packageURL.appendingPathComponent("story.json"))
+        try write(project.pro, to: packageURL.appendingPathComponent("pro.json"))
         try FountainIO.exportScreenplay(project.screenplay).write(to: packageURL.appendingPathComponent("script.fountain"), atomically: true, encoding: .utf8)
         try saveSnapshots(project.snapshots, to: packageURL.appendingPathComponent("snapshots", isDirectory: true))
         try write(manifest, to: packageURL.appendingPathComponent("manifest.json"))
@@ -195,6 +197,7 @@ public enum DreamJotterPackageStore {
         let sceneCards = decodeOptional([SceneCard].self, from: packageURL, section: manifest.sections["sceneCards"], name: "sceneCards", diagnostics: &diagnostics) ?? []
         let exportPresets = decodeOptional([ExportPreset].self, from: packageURL, section: manifest.sections["exportPresets"], name: "exportPresets", diagnostics: &diagnostics) ?? ExportPresetCatalog.builtInPresets()
         let story = decodeOptional(StoryDevelopmentState.self, from: packageURL, section: manifest.sections["story"], name: "story", diagnostics: &diagnostics) ?? StoryDevelopmentState()
+        let pro = decodeOptional(ProProjectState.self, from: packageURL, section: manifest.sections["pro"], name: "pro", diagnostics: &diagnostics) ?? ProProjectState()
         let snapshots = loadSnapshots(from: packageURL.appendingPathComponent(manifest.snapshotsPath, isDirectory: true), diagnostics: &diagnostics)
 
         let project = DreamJotterProject(
@@ -207,7 +210,8 @@ public enum DreamJotterPackageStore {
             sceneCards: sceneCards,
             snapshots: snapshots,
             exportPresets: exportPresets,
-            story: story
+            story: story,
+            pro: pro
         )
         return PackageLoadResult(project: project, manifest: manifest, diagnostics: diagnostics)
     }
@@ -222,6 +226,7 @@ public enum DreamJotterPackageStore {
             try write(snapshot.project.characters, to: snapshotDirectory.appendingPathComponent("characters.json"))
             try write(snapshot.project.notes, to: snapshotDirectory.appendingPathComponent("notes.json"))
             try write(snapshot.project.story, to: snapshotDirectory.appendingPathComponent("story.json"))
+            try write(snapshot.project.pro, to: snapshotDirectory.appendingPathComponent("pro.json"))
         }
     }
 

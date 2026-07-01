@@ -40,6 +40,7 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
     public let snapshots: [SnapshotRecord]
     public let exportPresets: [ExportPreset]
     public let story: StoryDevelopmentState
+    public let pro: ProProjectState
 
     public init(
         metadata: ProjectMetadata,
@@ -52,7 +53,8 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         sceneCards: [SceneCard] = [],
         snapshots: [SnapshotRecord] = [],
         exportPresets: [ExportPreset] = ExportPresetCatalog.builtInPresets(),
-        story: StoryDevelopmentState = StoryDevelopmentState()
+        story: StoryDevelopmentState = StoryDevelopmentState(),
+        pro: ProProjectState = ProProjectState()
     ) {
         self.metadata = metadata
         self.screenplay = screenplay
@@ -65,6 +67,7 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         self.snapshots = snapshots
         self.exportPresets = exportPresets
         self.story = story
+        self.pro = pro
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -79,6 +82,7 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         case snapshots
         case exportPresets
         case story
+        case pro
     }
 
     public init(from decoder: Decoder) throws {
@@ -94,6 +98,7 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         snapshots = try container.decodeIfPresent([SnapshotRecord].self, forKey: .snapshots) ?? []
         exportPresets = try container.decodeIfPresent([ExportPreset].self, forKey: .exportPresets) ?? ExportPresetCatalog.builtInPresets()
         story = try container.decodeIfPresent(StoryDevelopmentState.self, forKey: .story) ?? StoryDevelopmentState()
+        pro = try container.decodeIfPresent(ProProjectState.self, forKey: .pro) ?? ProProjectState()
     }
 }
 

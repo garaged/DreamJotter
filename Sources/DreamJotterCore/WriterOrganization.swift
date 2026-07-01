@@ -177,6 +177,7 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
     public let sceneCards: [SceneCard]
     public let exportPresets: [ExportPreset]
     public let story: StoryDevelopmentState
+    public let pro: ProProjectState
 
     public init(project: DreamJotterProject) {
         metadata = project.metadata
@@ -189,6 +190,7 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
         sceneCards = project.sceneCards
         exportPresets = project.exportPresets
         story = project.story
+        pro = project.pro
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -202,6 +204,7 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
         case sceneCards
         case exportPresets
         case story
+        case pro
     }
 
     public init(from decoder: Decoder) throws {
@@ -216,6 +219,7 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
         sceneCards = try container.decodeIfPresent([SceneCard].self, forKey: .sceneCards) ?? []
         exportPresets = try container.decodeIfPresent([ExportPreset].self, forKey: .exportPresets) ?? ExportPresetCatalog.builtInPresets()
         story = try container.decodeIfPresent(StoryDevelopmentState.self, forKey: .story) ?? StoryDevelopmentState()
+        pro = try container.decodeIfPresent(ProProjectState.self, forKey: .pro) ?? ProProjectState()
     }
 }
 
@@ -536,7 +540,8 @@ public enum SnapshotManager {
             sceneCards: snapshot.project.sceneCards,
             snapshots: snapshots,
             exportPresets: snapshot.project.exportPresets,
-            story: snapshot.project.story
+            story: snapshot.project.story,
+            pro: snapshot.project.pro
         )
     }
 }
