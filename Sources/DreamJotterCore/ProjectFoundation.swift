@@ -39,6 +39,7 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
     public let sceneCards: [SceneCard]
     public let snapshots: [SnapshotRecord]
     public let exportPresets: [ExportPreset]
+    public let story: StoryDevelopmentState
 
     public init(
         metadata: ProjectMetadata,
@@ -50,7 +51,8 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         inboxItems: [InboxItem] = [],
         sceneCards: [SceneCard] = [],
         snapshots: [SnapshotRecord] = [],
-        exportPresets: [ExportPreset] = ExportPresetCatalog.builtInPresets()
+        exportPresets: [ExportPreset] = ExportPresetCatalog.builtInPresets(),
+        story: StoryDevelopmentState = StoryDevelopmentState()
     ) {
         self.metadata = metadata
         self.screenplay = screenplay
@@ -62,6 +64,36 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         self.sceneCards = sceneCards
         self.snapshots = snapshots
         self.exportPresets = exportPresets
+        self.story = story
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case metadata
+        case screenplay
+        case mode
+        case template
+        case characters
+        case notes
+        case inboxItems
+        case sceneCards
+        case snapshots
+        case exportPresets
+        case story
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        metadata = try container.decode(ProjectMetadata.self, forKey: .metadata)
+        screenplay = try container.decode(ScreenplayDocument.self, forKey: .screenplay)
+        mode = try container.decodeIfPresent(EditorMode.self, forKey: .mode) ?? .simple
+        template = try container.decodeIfPresent(ProjectTemplateMetadata.self, forKey: .template)
+        characters = try container.decodeIfPresent([CharacterRecord].self, forKey: .characters) ?? []
+        notes = try container.decodeIfPresent([ProjectNote].self, forKey: .notes) ?? []
+        inboxItems = try container.decodeIfPresent([InboxItem].self, forKey: .inboxItems) ?? []
+        sceneCards = try container.decodeIfPresent([SceneCard].self, forKey: .sceneCards) ?? []
+        snapshots = try container.decodeIfPresent([SnapshotRecord].self, forKey: .snapshots) ?? []
+        exportPresets = try container.decodeIfPresent([ExportPreset].self, forKey: .exportPresets) ?? ExportPresetCatalog.builtInPresets()
+        story = try container.decodeIfPresent(StoryDevelopmentState.self, forKey: .story) ?? StoryDevelopmentState()
     }
 }
 

@@ -176,6 +176,7 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
     public let inboxItems: [InboxItem]
     public let sceneCards: [SceneCard]
     public let exportPresets: [ExportPreset]
+    public let story: StoryDevelopmentState
 
     public init(project: DreamJotterProject) {
         metadata = project.metadata
@@ -187,6 +188,34 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
         inboxItems = project.inboxItems
         sceneCards = project.sceneCards
         exportPresets = project.exportPresets
+        story = project.story
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case metadata
+        case screenplay
+        case mode
+        case template
+        case characters
+        case notes
+        case inboxItems
+        case sceneCards
+        case exportPresets
+        case story
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        metadata = try container.decode(ProjectMetadata.self, forKey: .metadata)
+        screenplay = try container.decode(ScreenplayDocument.self, forKey: .screenplay)
+        mode = try container.decodeIfPresent(EditorMode.self, forKey: .mode) ?? .simple
+        template = try container.decodeIfPresent(ProjectTemplateMetadata.self, forKey: .template)
+        characters = try container.decodeIfPresent([CharacterRecord].self, forKey: .characters) ?? []
+        notes = try container.decodeIfPresent([ProjectNote].self, forKey: .notes) ?? []
+        inboxItems = try container.decodeIfPresent([InboxItem].self, forKey: .inboxItems) ?? []
+        sceneCards = try container.decodeIfPresent([SceneCard].self, forKey: .sceneCards) ?? []
+        exportPresets = try container.decodeIfPresent([ExportPreset].self, forKey: .exportPresets) ?? ExportPresetCatalog.builtInPresets()
+        story = try container.decodeIfPresent(StoryDevelopmentState.self, forKey: .story) ?? StoryDevelopmentState()
     }
 }
 
@@ -506,7 +535,8 @@ public enum SnapshotManager {
             inboxItems: snapshot.project.inboxItems,
             sceneCards: snapshot.project.sceneCards,
             snapshots: snapshots,
-            exportPresets: snapshot.project.exportPresets
+            exportPresets: snapshot.project.exportPresets,
+            story: snapshot.project.story
         )
     }
 }
