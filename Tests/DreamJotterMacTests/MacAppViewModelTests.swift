@@ -75,11 +75,25 @@ struct MacAppViewModelTests {
         let packageURL = temporaryDirectory(named: "DreamJotterMacSaveAs").appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
 
-        try app.saveCurrentProject(to: packageURL, now: now)
+        _ = try app.saveCurrentProject(to: packageURL, now: now)
 
         #expect(app.currentDocument?.packageURL == packageURL)
         #expect(app.currentDocument?.isDirty == false)
         #expect(app.recentProjectURLs == [packageURL])
+    }
+
+    @Test("Canceling Save As preserves unsaved dirty state")
+    func cancelingSaveAsPreservesDirtyState() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+
+        let result = app.cancelSaveAs()
+
+        #expect(result == .canceled)
+        #expect(app.currentDocument?.packageURL == nil)
+        #expect(app.currentDocument?.isDirty == true)
+        #expect(app.recentProjectURLs.isEmpty)
     }
 
     @Test("Saving an existing package updates that package and clears dirty state")
@@ -88,7 +102,7 @@ struct MacAppViewModelTests {
         app.createBlankProject(title: "First Draft", now: now)
         let packageURL = temporaryDirectory(named: "DreamJotterMacExistingSave").appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
-        try app.saveCurrentProject(to: packageURL, now: now)
+        _ = try app.saveCurrentProject(to: packageURL, now: now)
         app.currentDocument?.updateScriptText("EXT. STREET - DAY")
 
         let result = try app.saveCurrentProject(now: now)
@@ -96,6 +110,30 @@ struct MacAppViewModelTests {
         #expect(result == .saved)
         #expect(app.currentDocument?.packageURL == packageURL)
         #expect(app.currentDocument?.isDirty == false)
+    }
+
+    @Test("Failed Save As preserves dirty state and package URL")
+    func failedSaveAsPreservesDirtyStateAndPackageURL() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+        let blockingFile = temporaryDirectory(named: "DreamJotterBlockedParent")
+        try "not a directory".write(to: blockingFile, atomically: true, encoding: .utf8)
+        defer { try? FileManager.default.removeItem(at: blockingFile) }
+        let packageURL = blockingFile.appendingPathComponent("Blocked.dreamjotter", isDirectory: true)
+
+        do {
+            _ = try app.saveCurrentProject(to: packageURL, now: now)
+            Issue.record("Expected save to fail")
+        } catch let error as AppError {
+            #expect(error.category == .saveAsFailed || error.category == .permissionDenied)
+        } catch {
+            Issue.record("Expected AppError, got \(error)")
+        }
+
+        #expect(app.currentDocument?.packageURL == nil)
+        #expect(app.currentDocument?.isDirty == true)
+        #expect(app.recentProjectURLs.isEmpty)
     }
 
     @Test("Opening a package loads clean state and records recent project")
@@ -126,10 +164,26 @@ struct MacAppViewModelTests {
         do {
             _ = try app.requestOpenPackage(at: invalidURL)
             Issue.record("Expected open to fail")
+        } catch let error as AppError {
+            #expect(error.category == .invalidPackage)
+            #expect(error.localizedDescription.isEmpty == false)
+            #expect(!error.localizedDescription.contains("Swift"))
         } catch {
             #expect(error.localizedDescription.isEmpty == false)
             #expect(!error.localizedDescription.contains("Swift"))
         }
+    }
+
+    @Test("Recent project duplicates collapse to a single latest entry")
+    func recentProjectDuplicatesCollapseToSingleEntry() throws {
+        let packageURL = temporaryDirectory(named: "DreamJotterDuplicateRecent").appendingPathComponent("Recent.dreamjotter", isDirectory: true)
+        let app = MacAppViewModel(recentProjectStore: .memory(initialURLs: [
+            packageURL,
+            packageURL.standardizedFileURL,
+            packageURL
+        ]))
+
+        #expect(app.recentProjectURLs == [packageURL.standardizedFileURL])
     }
 
     @Test("Export does not mark project dirty")
@@ -140,7 +194,7 @@ struct MacAppViewModelTests {
         let packageURL = temporaryDirectory(named: "DreamJotterExportDirty").appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
         let exportURL = packageURL.deletingLastPathComponent().appendingPathComponent("First Draft.fountain")
         defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
-        try app.saveCurrentProject(to: packageURL, now: now)
+        _ = try app.saveCurrentProject(to: packageURL, now: now)
 
         try app.exportCurrentProject(to: exportURL)
 
@@ -161,6 +215,39 @@ struct MacAppViewModelTests {
         try app.confirmPendingReplacement(now: now)
         #expect(app.currentDocument?.dashboard.title == "Second Draft")
         #expect(app.currentDocument?.isDirty == false)
+    }
+
+    @Test("Saving before replacement requires Save As for unsaved projects")
+    func savingBeforeReplacementRequiresSaveAsForUnsavedProject() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+        _ = app.requestNewProject(title: "Second Draft", now: now)
+
+        let result = try app.saveAndConfirmPendingReplacement(now: now)
+
+        #expect(result == .requiresSaveAs)
+        #expect(app.pendingReplacement == .newProject(title: "Second Draft"))
+        #expect(app.currentDocument?.dashboard.title == "First Draft")
+        #expect(app.currentDocument?.isDirty == true)
+    }
+
+    @Test("Saving before replacement applies pending action after Save As succeeds")
+    func saveAsBeforeReplacementAppliesPendingAction() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+        _ = app.requestNewProject(title: "Second Draft", now: now)
+        let packageURL = temporaryDirectory(named: "DreamJotterSaveBeforeReplace").appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
+
+        _ = try app.saveCurrentProject(to: packageURL, now: now)
+        try app.confirmPendingReplacementAfterExternalSave(now: now)
+
+        #expect(app.pendingReplacement == nil)
+        #expect(app.currentDocument?.dashboard.title == "Second Draft")
+        #expect(app.currentDocument?.isDirty == false)
+        #expect(app.recentProjectURLs == [packageURL])
     }
 
     @Test("Closing a dirty window requires confirmation")

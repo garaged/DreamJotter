@@ -47,6 +47,14 @@ Status: foundation complete.
 - Keep Pro metadata persisted through `.dreamjotter` `pro.json` package storage.
 - Keep plugin runtime, marketplace, arbitrary scripting, and third-party code loading deferred.
 
+## Milestone 6 Document Lifecycle
+
+Status: implemented.
+
+- Maintain executable specs for Save As cancel behavior, failed save preserving dirty state, recent-project duplicate collapse, storage-error to `AppError` mapping, and Save / Discard / Cancel protection.
+- Decide whether reopen-last-project is automatic, prompted, or deferred to native document behavior.
+- Keep recent-project storage as app metadata only.
+
 ## Apple UI
 
 - Maintain the SwiftPM-generated `DreamJotterMac` macOS app scheme.

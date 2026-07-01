@@ -16,7 +16,7 @@ struct AppRootView: View {
                         set: { appModel.currentDocument = $0 }
                     ),
                     saveAction: saveProject,
-                    saveAsAction: saveProjectAs,
+                    saveAsAction: { _ = saveProjectAs() },
                     openAction: openProject,
                     exportAction: exportFountain,
                     closeAction: closeProject
@@ -43,7 +43,7 @@ struct AppRootView: View {
             saveProject()
         }
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterSaveProjectAs)) { _ in
-            saveProjectAs()
+            _ = saveProjectAs()
         }
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterExportFountain)) { _ in
             exportFountain()
@@ -60,8 +60,11 @@ struct AppRootView: View {
             get: { replacementConfirmationMessage != nil },
             set: { if !$0 { replacementConfirmationMessage = nil } }
         )) {
+            Button("Save") {
+                saveAndConfirmPendingReplacement()
+            }
             Button("Discard Changes", role: .destructive) {
-                confirmPendingReplacement()
+                discardPendingReplacement()
             }
             Button("Cancel", role: .cancel) {
                 appModel.cancelPendingReplacement()
@@ -101,7 +104,7 @@ struct AppRootView: View {
             presentReplacementDecision(decision)
         } catch {
             appModel.forgetInvalidRecentProject(url)
-            errorMessage = error.localizedDescription
+            present(error, operation: .recentProjectOpen)
         }
     }
 
@@ -112,7 +115,7 @@ struct AppRootView: View {
                 saveProjectAs()
             }
         } catch {
-            errorMessage = error.localizedDescription
+            present(error, operation: .save)
         }
     }
 
@@ -138,37 +141,76 @@ struct AppRootView: View {
         }
     }
 
-    private func confirmPendingReplacement() {
+    private func saveAndConfirmPendingReplacement() {
+        let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
         do {
-            let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
-            try appModel.confirmPendingReplacement()
-            replacementConfirmationMessage = nil
-            if shouldCloseWindow {
-                allowWindowClose = true
-                NSApp.keyWindow?.performClose(nil)
+            let result = try appModel.saveAndConfirmPendingReplacement()
+            if result == .requiresSaveAs {
+                _ = saveProjectAs {
+                    finishPendingReplacementAfterSave(shouldCloseWindow: shouldCloseWindow)
+                }
+                return
             }
+            replacementConfirmationMessage = nil
+            closeWindowIfNeeded(shouldCloseWindow)
         } catch {
             replacementConfirmationMessage = nil
-            errorMessage = error.localizedDescription
+            present(error, operation: .save)
         }
     }
 
-    private func saveProjectAs() {
-        guard let document = appModel.currentDocument else { return }
+    private func discardPendingReplacement() {
+        do {
+            let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
+            try appModel.discardPendingReplacement()
+            replacementConfirmationMessage = nil
+            closeWindowIfNeeded(shouldCloseWindow)
+        } catch {
+            replacementConfirmationMessage = nil
+            present(error, operation: .unknown)
+        }
+    }
+
+    private func finishPendingReplacementAfterSave(shouldCloseWindow: Bool) {
+        do {
+            try appModel.confirmPendingReplacementAfterExternalSave()
+            replacementConfirmationMessage = nil
+            closeWindowIfNeeded(shouldCloseWindow)
+        } catch {
+            replacementConfirmationMessage = nil
+            present(error, operation: .save)
+        }
+    }
+
+    private func closeWindowIfNeeded(_ shouldCloseWindow: Bool) {
+        if shouldCloseWindow {
+            allowWindowClose = true
+            NSApp.keyWindow?.performClose(nil)
+        }
+    }
+
+    @discardableResult
+    private func saveProjectAs(afterSuccessfulSave: (() -> Void)? = nil) -> SaveAsRequestResult {
+        guard let document = appModel.currentDocument else { return .canceled }
         let panel = NSSavePanel()
         panel.title = "Save DreamJotter Package"
         panel.nameFieldStringValue = "\(document.project.metadata.title).dreamjotter"
         panel.canCreateDirectories = true
 
-        guard panel.runModal() == .OK, let selectedURL = panel.url else { return }
+        guard panel.runModal() == .OK, let selectedURL = panel.url else {
+            return appModel.cancelSaveAs()
+        }
         let packageURL = selectedURL.pathExtension == "dreamjotter"
             ? selectedURL
             : selectedURL.appendingPathExtension("dreamjotter")
 
         do {
-            try appModel.saveCurrentProject(to: packageURL)
+            let result = try appModel.saveCurrentProject(to: packageURL)
+            afterSuccessfulSave?()
+            return result
         } catch {
-            errorMessage = error.localizedDescription
+            present(error, operation: .saveAs)
+            return .canceled
         }
     }
 
@@ -187,8 +229,12 @@ struct AppRootView: View {
         do {
             try appModel.exportCurrentProject(to: exportURL)
         } catch {
-            errorMessage = error.localizedDescription
+            present(error, operation: .export)
         }
+    }
+
+    private func present(_ error: Error, operation: AppErrorSourceOperation) {
+        errorMessage = AppError.wrap(error, operation: operation).localizedDescription
     }
 }
 

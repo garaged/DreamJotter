@@ -45,7 +45,7 @@ Key SDD files:
 - `docs/vision/`: product vision, personas, principles.
 - `docs/architecture/`: architecture overview, portable core, command engine, Apple-native direction.
 - `docs/adr/`: accepted architecture decisions.
-- `docs/milestones/`: Milestone 1 through Milestone 5 specs and milestone map.
+- `docs/milestones/`: Milestone 1 through Milestone 6 specs and milestone map.
 - `docs/acceptance/`: acceptance documents, traceability matrix, consistency review notes.
 - `docs/data-contracts/`: portable core data contracts and serialization rules.
 - `docs/editor/`: screenplay engine, Fountain support, and editor behavior specs.
@@ -71,7 +71,7 @@ Key SDD files:
 | Milestone 3 | Accepted | Friendly writer tools are implemented and executable-spec verified: guided setup, manual logline/synopsis builders, beat sheets, FakeAIProvider-only suggestions, accepted-only mutation, snapshot-before-rewrite, continuity analysis, friendly warnings, table-read plans, and story package persistence. |
 | Milestone 4 | Accepted | Pro foundations are implemented and executable-spec verified: revision metadata, draft versions, semantic comparison, production breakdown, advanced export presets, custom fields, no-code routines, CommandEngine boundary, Pro Mode visibility, Pro metadata package persistence, and deferred plugin policy. |
 | Milestone 5 | Implemented | First macOS SwiftUI vertical slice exists as the `DreamJotterMac` package executable: Project Library, editable title/logline/synopsis, temporary TextEditor screenplay editing, parsed scenes/characters, notes, dashboard, package save/open, Fountain export, health report, and simple error alerts. |
-| Milestone 6 | Implemented | Document lifecycle is implemented for the macOS app: dirty state, Save/Save As routing, recent projects, dirty replacement confirmation, visible save status, basic commands, and export without dirtying the project. |
+| Milestone 6 | Implemented | Document lifecycle is implemented for the macOS app: dirty state, Save/Save As routing, Save As cancel preservation, failed-save dirty preservation, recent-project deduplication, app errors, Save / Discard / Cancel protection, basic commands, and export without dirtying the project. |
 
 Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5 and Milestone 6 app foundations are implemented. Real renderers, real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
 

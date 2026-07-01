@@ -495,13 +495,12 @@
       "spec": "docs/milestones/milestone-6-document-lifecycle.md",
       "acceptance": "docs/acceptance/milestone-6-acceptance.md",
       "related_adrs": [
-        "docs/adr/0001-apple-native-first-portable-core.md",
-        "docs/adr/0002-local-first-dreamjotter-package.md"
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
       ],
       "related_data_contracts": [
-        "docs/data-contracts/core-domain-model.md",
-        "docs/storage/dreamjotter-package-format.md",
-        "docs/storage/storage-errors.md"
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/recent-projects.md",
+        "docs/data-contracts/app-error.md"
       ],
       "planned_modules": [
         "DreamJotterMac",
@@ -512,9 +511,344 @@
         "FountainIO"
       ],
       "guardrails": [
-        "Document lifecycle behavior stays in app support and view models; .dreamjotter remains canonical storage and DreamJotterCore remains platform-neutral."
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
       ],
-      "notes": "Adds dirty state, Save/Save As routing, recent projects, dirty replacement confirmation state, basic macOS commands, and export-without-dirtying behavior."
+      "notes": "Specifies Mac document lifecycle stabilization before additional editor polish, iOS expansion, AI, plugins, or cloud sync."
+    },
+    {
+      "id": "APP-DOCUMENT-LIFECYCLE",
+      "title": "App Document Lifecycle",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/document-lifecycle.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/app-error.md"
+      ],
+      "planned_modules": [
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "DreamJotterPackageStore"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Defines the umbrella lifecycle state machine for project ownership, save state, safe replacement, and export behavior."
+    },
+    {
+      "id": "APP-NEW-PROJECT",
+      "title": "New Project Workflow",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/document-lifecycle.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md"
+      ],
+      "planned_modules": [
+        "MacAppViewModel",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "New blank projects use portable core models, start without package URLs, and route Save to Save As."
+    },
+    {
+      "id": "APP-OPEN-PROJECT",
+      "title": "Open Project Workflow",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/document-lifecycle.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/app-error.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
+      ],
+      "planned_modules": [
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "DreamJotterPackageStore"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Opening valid packages loads through storage; invalid packages produce friendly errors and preserve current state."
+    },
+    {
+      "id": "APP-SAVE",
+      "title": "Save Workflow",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/document-lifecycle.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/app-error.md",
+        "docs/storage/dreamjotter-package-format.md"
+      ],
+      "planned_modules": [
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "DreamJotterPackageStore"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Save updates existing package URLs, routes unsaved projects to Save As, clears dirty state only on success, and preserves dirty state on failure."
+    },
+    {
+      "id": "APP-SAVE-AS",
+      "title": "Save As Workflow",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/document-lifecycle.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/recent-projects.md",
+        "docs/data-contracts/app-error.md"
+      ],
+      "planned_modules": [
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "DreamJotterPackageStore",
+        "RecentProjectStore"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Save As chooses a .dreamjotter destination, updates package URL on success, records recents, and preserves safe state on cancel or failure."
+    },
+    {
+      "id": "APP-DIRTY-STATE",
+      "title": "Dirty State Tracking",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/document-lifecycle.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md"
+      ],
+      "planned_modules": [
+        "ProjectDocumentViewModel",
+        "MacAppViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Script, title, logline, synopsis, and note edits mark dirty; save clears dirty; export does not dirty."
+    },
+    {
+      "id": "APP-RECENT-PROJECTS",
+      "title": "Recent Projects",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/recent-projects.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/recent-projects.md",
+        "docs/data-contracts/app-error.md"
+      ],
+      "planned_modules": [
+        "RecentProjectStore",
+        "MacAppViewModel",
+        "ProjectLibraryView"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Recent projects are convenience metadata recorded after open/save and deduplicated by package path."
+    },
+    {
+      "id": "APP-ERROR-HANDLING",
+      "title": "App Error Handling",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/app-error-handling.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-error.md"
+      ],
+      "planned_modules": [
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "DreamJotterMac"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Maps storage/export failures to human-readable app errors and keeps current project state safe."
+    },
+    {
+      "id": "APP-MENU-COMMANDS",
+      "title": "Mac Menu Commands",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/mac-menu-commands.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md"
+      ],
+      "planned_modules": [
+        "DreamJotterMacApp",
+        "AppRootView",
+        "MacAppViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Basic Mac commands and keyboard shortcuts route through shared lifecycle actions rather than duplicating business logic in views."
+    },
+    {
+      "id": "APP-EXPORT-FOUNTAIN",
+      "title": "App Fountain Export",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/document-lifecycle.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/app-error.md"
+      ],
+      "planned_modules": [
+        "ProjectDocumentViewModel",
+        "MacAppViewModel",
+        "FountainIO"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Fountain export remains read-only, uses existing core export behavior, and never marks the project dirty."
+    },
+    {
+      "id": "APP-UNSAVED-CHANGES-PROTECTION",
+      "title": "Unsaved Changes Protection",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/specs/app/document-lifecycle.spec.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/app-error.md"
+      ],
+      "planned_modules": [
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "WindowCloseGuardView"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone"
+      ],
+      "notes": "Dirty close, open, replace, and return-to-library workflows require confirmation or a save-first safe state transition."
     },
     {
       "id": "ROUTINE-SYSTEM-V1",
