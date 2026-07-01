@@ -7,6 +7,10 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
+        .executable(
+            name: "DreamJotterMac",
+            targets: ["DreamJotterMac"]
+        ),
         .library(
             name: "DreamJotterCore",
             targets: ["DreamJotterCore"]
@@ -23,11 +27,25 @@ let package = Package(
         .target(
             name: "SpecSupport"
         ),
+        .executableTarget(
+            name: "DreamJotterMac",
+            dependencies: [
+                "DreamJotterCore"
+            ],
+            path: "Apps/DreamJotterMac"
+        ),
         .testTarget(
             name: "DreamJotterExecutableSpecs",
             dependencies: [
                 "DreamJotterCore",
                 "SpecSupport"
+            ]
+        ),
+        .testTarget(
+            name: "DreamJotterMacTests",
+            dependencies: [
+                "DreamJotterCore",
+                "DreamJotterMac"
             ]
         )
     ]

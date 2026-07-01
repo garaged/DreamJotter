@@ -49,12 +49,13 @@ Status: foundation complete.
 
 ## Apple UI
 
-- Create Xcode project only after portable core executable specs are passing.
-- Build macOS app shell first.
+- Maintain the SwiftPM-generated `DreamJotterMac` macOS app scheme.
+- Keep Project Library, temporary editor, dashboard, scene/character lists, package save/open, Fountain export, and health report wired to portable core.
 - Add iPadOS/iOS app shell after macOS foundations are stable.
 - Keep Apple UI adapters thin over portable core behavior.
 - Do not make SwiftData canonical storage.
 - Preserve Simple Mode as the first-run experience.
+- Defer production-grade navigation, recents, autosave, and command-menu polish.
 
 ## TextKit Editor
 

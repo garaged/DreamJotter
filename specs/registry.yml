@@ -432,6 +432,35 @@
       "notes": "Accepted portable-core implementation for pro foundations: revision metadata, draft versions, semantic draft comparison, production breakdown, advanced export preset validation, custom fields, no-code routines, CommandEngine boundary, Pro Mode visibility, pro package persistence, and deferred plugin runtime policy."
     },
     {
+      "id": "M5-APPLE-APP-SHELL",
+      "title": "Milestone 5 Apple App Shell / Usable Vertical Slice",
+      "milestone": "M5",
+      "status": "implemented",
+      "spec": "docs/milestones/milestone-5-apple-app-shell.md",
+      "acceptance": "docs/acceptance/milestone-5-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/storage/dreamjotter-package-format.md"
+      ],
+      "planned_modules": [
+        "DreamJotterMac",
+        "ProjectLibraryView",
+        "ProjectDocumentViewModel",
+        "DreamJotterPackageStore",
+        "ScreenplayParser",
+        "FountainIO",
+        "HealthReport"
+      ],
+      "guardrails": [
+        "SwiftUI and AppKit stay in the macOS app target; DreamJotterCore remains platform-neutral and TextKit is deferred."
+      ],
+      "notes": "Launchable SwiftUI macOS app shell with project creation, temporary TextEditor screenplay editing, parsed scene/character lists, dashboard, package save/open, Fountain export, health report, and simple error alerts."
+    },
+    {
       "id": "ROUTINE-SYSTEM-V1",
       "title": "Routine System v1 Spec",
       "milestone": "M4",
