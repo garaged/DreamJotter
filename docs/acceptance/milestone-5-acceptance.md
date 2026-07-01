@@ -20,9 +20,15 @@ Traceability: M5-APPLE-APP-SHELL, M1-APPLE-PROTOTYPE-FOUNDATIONS.
 
 ### A-M5-EDITOR-001: Temporary TextEditor Parses Screenplay
 
-Given an editable project is open, when the user types Fountain-like screenplay text, then `ScreenplayParser` reparses it and scene and character lists update from semantic core data.
+Given an editable project is open, when the user types Fountain-like screenplay text in either the TextKit editor or SwiftUI fallback editor, then `ScreenplayParser` reparses it and scene and character lists update from semantic core data.
 
 Traceability: M5-APPLE-APP-SHELL, M1-APPLE-PROTOTYPE-FOUNDATIONS.
+
+### A-M5-TEXTKIT-001: TextKit Is An Adapter
+
+Given the user switches to the TextKit editor, when text changes, then the app updates the existing document view model with plain text. The canonical screenplay remains semantic project data, not `NSTextView` or `NSAttributedString` state.
+
+Traceability: EDITOR-TEXTKIT-ADAPTER-MAC, M5-APPLE-APP-SHELL.
 
 ### A-M5-DASHBOARD-001: Dashboard Summary
 

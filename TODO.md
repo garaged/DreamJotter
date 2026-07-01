@@ -51,6 +51,7 @@ Status: foundation complete.
 
 - Maintain the SwiftPM-generated `DreamJotterMac` macOS app scheme.
 - Keep Project Library, temporary editor, editable title/logline/synopsis, notes, dashboard, scene/character lists, package save/open, Fountain export, and health report wired to portable core.
+- Keep the Script pane editor switch available while TextKit matures.
 - Add document-based app behavior for native package open/save lifecycle.
 - Add autosave after document ownership and snapshot policy are specified.
 - Add recent projects using derived app metadata, never canonical storage.
@@ -63,7 +64,8 @@ Status: foundation complete.
 
 ## TextKit Editor
 
-- Replace the temporary SwiftUI `TextEditor` with a TextKit editor when editor-adapter specs are ready.
+- Maintain the initial TextKit/AppKit `NSTextView` adapter as UI-only editing infrastructure.
+- Keep SwiftUI `TextEditor` available as fallback until TextKit selection, undo, and formatting behavior are mature.
 - Design TextKit/AppKit adapter for macOS editor surface.
 - Design TextKit/UIKit adapter for iPadOS/iOS editor surface.
 - Bridge selection and cursor state to platform-neutral editor state.

@@ -79,7 +79,8 @@ Implementation status: Milestone 1 through Milestone 4 portable-core foundations
 - Launches as the `DreamJotterMac` macOS SwiftUI app.
 - Creates a blank screenplay project from the Project Library.
 - Lets the writer edit project title, logline, and synopsis.
-- Provides a temporary SwiftUI `TextEditor` for screenplay text.
+- Provides a TextKit/AppKit `NSTextView` screenplay editor foundation.
+- Keeps a SwiftUI `TextEditor` fallback available from the Script pane editor switch.
 - Parses screenplay text into semantic core elements.
 - Shows derived scene and character lists.
 - Adds project notes and can link a note to the first parsed scene.
@@ -96,6 +97,8 @@ open Package.swift
 ```
 
 Select the `DreamJotterMac` scheme and a macOS run destination, then run. The app opens a Project Library window where you can create a blank project, type screenplay text, save/open `.dreamjotter` packages, export Fountain, and inspect scenes, characters, dashboard data, notes, and health findings.
+
+In the Script pane, use the segmented `Editor` control to switch between `TextKit` and `TextEditor`. Both paths edit the same project text and feed the same semantic parser, save, reopen, and Fountain export behavior.
 
 Command-line validation for the app target:
 

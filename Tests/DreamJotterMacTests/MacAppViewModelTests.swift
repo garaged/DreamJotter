@@ -35,6 +35,23 @@ struct MacAppViewModelTests {
         #expect(document.characters.first?.displayName == "MARA")
     }
 
+    @Test("Editor adapter text updates use the shared semantic view model path")
+    func editorAdapterTextUpdatesUseSharedViewModelPath() {
+        var document = ProjectDocumentViewModel(project: project())
+
+        document.updateScriptText("""
+        EXT. STREET - NIGHT
+
+        LUIS
+        Keep walking.
+        """)
+
+        #expect(document.scriptText.contains("Keep walking."))
+        #expect(document.scenes.first?.heading == "EXT. STREET - NIGHT")
+        #expect(document.characters.map(\.displayName) == ["LUIS"])
+        #expect(document.fountainExportText.contains("LUIS"))
+    }
+
     @Test("Explicit parse refresh keeps derived scene list current")
     func refreshParseGeneratesSceneList() {
         var document = ProjectDocumentViewModel(project: project())

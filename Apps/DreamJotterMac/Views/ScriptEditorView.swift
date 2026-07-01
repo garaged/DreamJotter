@@ -1,7 +1,15 @@
 import SwiftUI
 
+enum ScreenplayEditorAdapter: String, CaseIterable, Identifiable {
+    case textKit = "TextKit"
+    case textEditor = "TextEditor"
+
+    var id: String { rawValue }
+}
+
 struct ScriptEditorView: View {
     @Binding var document: ProjectDocumentViewModel
+    @State private var editorAdapter: ScreenplayEditorAdapter = .textKit
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -10,6 +18,14 @@ struct ScriptEditorView: View {
                     .font(.title2.weight(.semibold))
 
                 Spacer()
+
+                Picker("Editor", selection: $editorAdapter) {
+                    ForEach(ScreenplayEditorAdapter.allCases) { adapter in
+                        Text(adapter.rawValue).tag(adapter)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 180)
 
                 Button("Refresh Parse") {
                     document.refreshParse()
@@ -21,9 +37,24 @@ struct ScriptEditorView: View {
                     .foregroundStyle(.secondary)
             }
 
+            editorView
+        }
+        .padding()
+    }
+
+    @ViewBuilder
+    private var editorView: some View {
+        switch editorAdapter {
+        case .textKit:
+            TextKitScreenplayEditorView(text: Binding(
+                get: { document.scriptText },
+                set: { document.updateScriptText($0) }
+            ))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+        case .textEditor:
             TextEditor(text: Binding(
                 get: { document.scriptText },
-                set: { document.scriptText = $0 }
+                set: { document.updateScriptText($0) }
             ))
             .font(.system(.body, design: .monospaced))
             .scrollContentBackground(.hidden)
@@ -31,6 +62,5 @@ struct ScriptEditorView: View {
             .background(Color(nsColor: .textBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
-        .padding()
     }
 }

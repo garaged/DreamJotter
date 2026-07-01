@@ -32,6 +32,18 @@ The platform-neutral editor owns an `EditorDocumentState` concept with these res
 
 The text buffer is an editing projection. The canonical project remains semantic screenplay data inside the `.dreamjotter` package.
 
+## Apple Editor Adapter Boundary
+
+The macOS app may use SwiftUI `TextEditor` or a TextKit/AppKit `NSTextView` wrapper as editing surfaces. Both are adapters over the same plain text buffer and semantic parser flow.
+
+Requirements:
+
+- `NSTextView` and `NSAttributedString` must not become canonical screenplay storage.
+- The semantic screenplay model remains source of truth after parsing.
+- TextKit callbacks must update the app view model instead of mutating core project internals directly.
+- SwiftUI `TextEditor` remains available as a fallback while the TextKit adapter matures.
+- Advanced TextKit concerns such as pagination, revision colors, and production layout remain deferred.
+
 ## Text Buffer To Semantic Screenplay Conversion
 
 The editor reducer may request conversion from text buffer to semantic elements after meaningful edits, explicit parse commands, save, import, or cursor-context changes. Conversion must use the screenplay engine rules in `docs/editor/screenplay-engine-spec.md`.

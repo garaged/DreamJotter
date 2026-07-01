@@ -80,6 +80,10 @@ struct ProjectDocumentViewModel: Equatable {
         try fountainExportText.write(to: fileURL, atomically: true, encoding: .utf8)
     }
 
+    mutating func updateScriptText(_ text: String) {
+        scriptText = text
+    }
+
     mutating func refreshParse(now: Date = Date()) {
         reparseScript(modifiedAt: now)
     }

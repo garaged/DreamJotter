@@ -450,15 +450,42 @@
         "DreamJotterMac",
         "ProjectLibraryView",
         "ProjectDocumentViewModel",
+        "TextKitScreenplayEditorView",
         "DreamJotterPackageStore",
         "ScreenplayParser",
         "FountainIO",
         "HealthReport"
       ],
       "guardrails": [
-        "SwiftUI and AppKit stay in the macOS app target; DreamJotterCore remains platform-neutral and TextKit is deferred."
+        "SwiftUI and AppKit stay in the macOS app target; DreamJotterCore remains platform-neutral and TextKit remains an adapter."
       ],
-      "notes": "Launchable SwiftUI macOS app shell with project creation, temporary TextEditor screenplay editing, parsed scene/character lists, dashboard, package save/open, Fountain export, health report, and simple error alerts."
+      "notes": "Launchable SwiftUI macOS app shell with project creation, temporary TextEditor fallback, TextKit editor foundation, parsed scene/character lists, dashboard, package save/open, Fountain export, health report, and simple error alerts."
+    },
+    {
+      "id": "EDITOR-TEXTKIT-ADAPTER-MAC",
+      "title": "TextKit/AppKit Editor Adapter Plan",
+      "milestone": "M5",
+      "status": "implemented",
+      "spec": "docs/editor/textkit-adapter-plan.md",
+      "acceptance": "docs/acceptance/milestone-5-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "DreamJotterMac",
+        "TextKitScreenplayEditorView",
+        "ProjectDocumentViewModel",
+        "ScreenplayParser",
+        "FountainIO"
+      ],
+      "guardrails": [
+        "TextKit is a macOS UI adapter only; NSTextView, NSAttributedString, and TextKit selection state are not canonical storage."
+      ],
+      "notes": "Adds a macOS NSTextView adapter foundation with SwiftUI TextEditor fallback while preserving semantic screenplay parsing, .dreamjotter package storage, and Fountain export through portable core."
     },
     {
       "id": "ROUTINE-SYSTEM-V1",

@@ -12,7 +12,8 @@ Milestone 5 is Apple-specific at the app boundary only. SwiftUI views and macOS 
 - Project Library screen.
 - Blank project creation.
 - Project title entry and later title editing.
-- Temporary screenplay editor using SwiftUI `TextEditor`.
+- TextKit/AppKit screenplay editor foundation using `NSTextView`.
+- SwiftUI `TextEditor` fallback during the editor transition.
 - Live and explicit screenplay parse refresh using existing parser core.
 - Scene and character lists derived from parsed screenplay text.
 - Dashboard summary for title, logline, synopsis, scenes, characters, and notes.
@@ -49,6 +50,7 @@ Milestone 5 is Apple-specific at the app boundary only. SwiftUI views and macOS 
 - `DreamJotterMac` SwiftPM executable target provides the macOS app shell.
 - `DreamJotterMacTests` covers view-model behavior without launching UI.
 - Xcode can generate a runnable `DreamJotterMac` scheme from `Package.swift`.
+- `TextKitScreenplayEditorView` provides the first macOS `NSTextView` adapter while preserving the same document view-model binding as the fallback editor.
 
 ## Acceptance Summary
 
@@ -56,6 +58,7 @@ Milestone 5 is Apple-specific at the app boundary only. SwiftUI views and macOS 
 - User can create a blank project.
 - User can enter and edit the project title, logline, and synopsis.
 - User can type screenplay text into the temporary editor.
+- User can switch between TextKit and SwiftUI fallback editor surfaces.
 - Parsed scene and character data update from the screenplay text.
 - User can add a note linked to the project or first parsed scene.
 - Dashboard updates from portable core state.

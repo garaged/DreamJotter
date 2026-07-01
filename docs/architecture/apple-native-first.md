@@ -13,7 +13,7 @@ DreamJotter prioritizes a native Apple experience before other platforms.
 The Apple app may use:
 
 - Swift and SwiftUI for app structure and general UI.
-- AppKit, UIKit, and TextKit wrappers later for the serious screenplay editor.
+- AppKit, UIKit, and TextKit wrappers for serious screenplay editor adapters.
 - Apple document APIs where they help present and manage local `.dreamjotter` packages.
 - SwiftData later for app metadata, cache, and search indexing only.
 
@@ -22,6 +22,8 @@ The Apple app may use:
 Apple-native does not mean Apple-only core. UI and platform adapters should remain outside the portable domain model and storage contracts.
 
 The first UI should feel excellent on Mac, iPad, and iPhone, but project data should remain portable and local-first.
+
+TextKit is an Apple UI adapter only. `NSTextView`, `NSAttributedString`, layout managers, text containers, and selection objects must not become canonical screenplay storage. The semantic screenplay model in `DreamJotterCore` remains the source of truth, and the SwiftUI `TextEditor` fallback remains available while the TextKit adapter matures.
 
 ## MVP Constraint
 
