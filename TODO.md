@@ -14,15 +14,13 @@ Status: foundation complete.
 
 ## Milestone 2 Implementation
 
-- Implement `.dreamjotter` package create/save/load validation against storage specs.
-- Implement storage error types and recovery diagnostics.
-- Implement project dashboard data flows for blank, short film, and feature film templates.
-- Implement scene list and scene cards from semantic scene data.
-- Implement character manager foundation from detected cues and managed records.
-- Implement notes and idea inbox records.
-- Implement search over script, notes, characters, scenes, and inbox items using rebuildable indexes only.
-- Implement snapshots and restore behavior with acceptance tests.
-- Implement read-only script health report metrics.
+Status: foundation complete.
+
+- Maintain `.dreamjotter` package create/save/load validation against storage specs.
+- Maintain storage diagnostics for missing manifests, missing required files, invalid JSON, invalid schema, and unsupported versions.
+- Keep dashboard summaries derived from project/package metadata rather than canonical app cache.
+- Keep scene cards, characters, notes, inbox items, search, snapshots, templates, health report, export presets, and mode policy covered by executable specs.
+- Expand Milestone 2 data contracts only when later milestones require richer fields or command-backed mutation.
 - Keep Simple Mode as the default and keep Pro Mode hidden or disabled.
 
 ## Milestone 3 Implementation

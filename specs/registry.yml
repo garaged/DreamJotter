@@ -265,7 +265,7 @@
       "id": "M1-APPLE-PROTOTYPE-FOUNDATIONS",
       "title": "Milestone 1 Apple Prototype Foundations",
       "milestone": "M1",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/milestones/milestone-1-apple-prototype-foundations.md",
       "acceptance": "docs/acceptance/milestone-1-acceptance.md",
       "related_adrs": [
@@ -299,7 +299,7 @@
       "id": "M2-REAL-MVP-WRITER-ORGANIZATION",
       "title": "Milestone 2 Real MVP Writer Organization",
       "milestone": "M2",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/milestones/milestone-2-real-mvp.md",
       "acceptance": "docs/acceptance/milestone-2-acceptance.md",
       "related_adrs": [
@@ -331,7 +331,7 @@
       "guardrails": [
         "Milestone 2 must preserve .dreamjotter as canonical storage, keep SwiftData derived-only, keep Simple Mode default, and keep Pro Mode/plugin/routine behavior hidden, disabled, or deferred."
       ],
-      "notes": "Detailed Milestone 2 scope for real MVP writer organization beyond the text editor."
+      "notes": "Accepted portable-core implementation for writer organization: dashboard summaries, templates, characters, scene cards, notes, inbox, search, snapshots, package save/load, health report, export presets, and mode policy."
     },
     {
       "id": "M3-FRIENDLY-WRITER-TOOLS",
@@ -562,7 +562,7 @@
       "id": "STORAGE-DREAMJOTTER-PACKAGE-FORMAT",
       "title": ".dreamjotter Package Format",
       "milestone": "M1-M4",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/storage/dreamjotter-package-format.md",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [
@@ -584,13 +584,13 @@
       "guardrails": [
         "The .dreamjotter package is canonical local-first storage; SwiftData, indexes, and exports are not canonical project state."
       ],
-      "notes": "Defines package layout, manifest schema, versioning, migration, atomic writes, snapshots, attachments, exports, indexes, recovery, and acceptance scenarios. Milestone 1 currently implements in-memory blank project/package metadata only; file I/O remains pending."
+      "notes": "Defines and implements package layout, manifest schema, required files, optional M2 sections, snapshots, recovery diagnostics, and save/load without SwiftData."
     },
     {
       "id": "STORAGE-ERRORS",
       "title": "Storage Errors",
       "milestone": "M1-M4",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/storage/storage-errors.md",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [
@@ -878,7 +878,7 @@
       "id": "EXECUTABLE-SPECS-SKELETON",
       "title": "Executable Spec Skeleton",
       "milestone": "M1-M4",
-      "status": "implementation-ready",
+      "status": "implemented",
       "spec": "Package.swift",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [
@@ -927,7 +927,7 @@
       "id": "M1-PARSER-EXECUTABLE-SPECS",
       "title": "Milestone 1 Parser Executable Specs",
       "milestone": "M1",
-      "status": "implementation-ready",
+      "status": "accepted",
       "spec": "Tests/DreamJotterExecutableSpecs/Milestone1ExecutableSpecs.swift",
       "acceptance": "docs/acceptance/milestone-1-acceptance.md",
       "related_adrs": [

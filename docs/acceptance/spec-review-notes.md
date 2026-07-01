@@ -6,7 +6,7 @@ Review date: 2026-06-30
 
 ## Purpose
 
-This document records the consistency review before DreamJotter implementation begins. It captures contradictions found, corrections made, remaining open questions, implementation risks, and the recommended implementation order.
+This document records the consistency review as DreamJotter moves from specs into portable-core implementation. It captures contradictions found, corrections made, remaining open questions, implementation risks, and the recommended implementation order.
 
 ## Consistency Issues Found
 
@@ -105,7 +105,7 @@ Decision: Editor behavior is specified as platform-neutral state and reducer/con
 
 ## Remaining Open Questions
 
-- Parser expected-output fixtures now exist for the initial four Fountain inputs; additional fixtures are still needed for shots, page breaks, sections, synopsis lines, and future FDX boundaries.
+- Milestone 1 parser expected-output fixtures now cover empty, simple, multi-scene, Spanish/Unicode, malformed, and advanced Fountain subset inputs; future fixtures are still needed for non-M1 formats such as FDX.
 - Exact partial-reparse strategy for the editor is deferred until parser performance is measurable.
 - Exact undo model for each command remains command-specific and needs executable specs before implementation.
 - Snapshot storage retention and cleanup policy remains open.
@@ -126,20 +126,14 @@ Decision: Editor behavior is specified as platform-neutral state and reducer/con
 
 ## Recommended Implementation Order After Specs
 
-1. Use the Milestone 1 parser fixture expectations to drive parser implementation, then add more fixture coverage for shots, page breaks, sections, synopsis lines, and malformed edge cases.
-2. Implement portable core data models from `docs/data-contracts/core-domain-model.md` and `docs/data-contracts/screenplay-element-kinds.md`.
-3. Implement screenplay parser against `specs/fixtures/screenplay/` and expected semantic outputs.
-4. Implement Fountain import/export on top of semantic elements.
-5. Implement `.dreamjotter` package read/write contracts with storage error handling.
-6. Implement CommandEngine skeleton with validation, CommandResult, CommandHistoryEntry, and snapshot policy.
-7. Implement editor behavior reducer/controller without UI frameworks.
-8. Implement script analysis, continuity analysis, and table-read plan generation as read-only portable modules.
-9. Implement export core for Fountain, Markdown, plain text, JSON backup, and PDF intent abstraction.
-10. Add Apple app shell and TextKit adapters only after the portable core contracts pass executable specs.
-11. Add Milestone 2 writer organization features: dashboard, notes, scene cards, characters, search, snapshots, and templates.
-12. Add Milestone 3 friendly tools and FakeAIProvider-backed suggestion flows.
-13. Add Milestone 4 Pro Mode features, routines through CommandEngine, and advanced export/custom field surfaces.
-14. Revisit deferred plugin and real AI provider work only after Milestone 4 foundations are implemented and accepted.
+1. Keep the accepted Milestone 1 and Milestone 2 portable-core foundations green as later work expands the model.
+2. Implement CommandEngine skeleton with validation, CommandResult, CommandHistoryEntry, and snapshot policy.
+3. Extend editor behavior into command-backed reducer/controller behavior without UI frameworks.
+4. Implement Milestone 3 story setup, logline, synopsis, beat sheet, FakeAIProvider, continuity, character consistency, and table-read plan generation as portable modules.
+5. Implement export core for Markdown, plain text, JSON backup, and later renderer handoff while preserving the accepted PDF intent boundary.
+6. Add Apple app shell and TextKit adapters only after portable core contracts remain green.
+7. Add Milestone 4 Pro Mode features, routines through CommandEngine, and advanced export/custom field surfaces.
+8. Revisit deferred plugin and real AI provider work only after Milestone 4 foundations are implemented and accepted.
 
 ## Validation Expectations
 

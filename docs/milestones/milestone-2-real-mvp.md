@@ -4,11 +4,11 @@
 
 Make DreamJotter useful as a real writing app, not just a screenplay text editor. Milestone 2 expands the Milestone 1 semantic screenplay foundation into local project organization, writer-facing navigation, notes, search, snapshots, starter templates, script health checks, export preset foundations, and Simple Mode boundaries.
 
-Milestone 2 remains documentation-first in this prompt. It does not implement production code, create app UI, create a Swift package, create an Xcode project, or introduce plugins.
+Milestone 2 implements portable writer-organization foundations and executable specs. It does not implement production app UI, create an Xcode project, add TextKit/AppKit/UIKit wrappers, implement cloud sync, real AI providers, routines, plugins, or full PDF rendering.
 
 ## Scope Summary
 
-Milestone 2 includes specifications for:
+Milestone 2 includes specification and portable-core implementation for:
 
 - Project dashboard.
 - Character manager foundation.
@@ -490,9 +490,7 @@ Future cross-platform notes: Pro Mode gating should be represented as capabiliti
 
 ## Milestone 2 Exit Criteria
 
-Milestone 2 is ready for implementation only when future prompts have produced data contracts for project package layout, notes, characters, scene metadata, snapshots, templates, export presets, and health findings.
-
-Milestone 2 is complete when future implementation can demonstrate:
+Milestone 2 is accepted when executable specs demonstrate:
 
 - Creating a blank screenplay project.
 - Creating projects from short film and feature film templates.

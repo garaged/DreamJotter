@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This file defines acceptance examples for Milestone 2: Real MVP Writer Organization. These examples are intended for future executable specs and tests. They do not require production code in this prompt.
+This file defines acceptance examples for Milestone 2: Real MVP Writer Organization. These examples are covered by portable-core executable specs and do not require production app UI, TextKit integration, an Xcode project, cloud sync, real AI providers, routines, plugins, or full PDF rendering.
 
 ## Acceptance Fixture Set
 
@@ -344,7 +344,7 @@ Traceability: M2-EXPORTPRESETS-001, PRD-PDF-001, PRD-FOUNTAIN-001.
 - Simple Mode must be the default and must not fork project format.
 - Pro Mode features through Milestone 2 are hidden, disabled, or preserved read-only where encountered.
 - Search, health reports, dashboard summaries, and indexes are derived from canonical project data.
-- Notes, characters, inbox items, scene cards, snapshots, and templates require future data contracts before implementation.
+- Notes, characters, inbox items, scene cards, snapshots, and templates are implemented as portable core records and may need expanded contracts as later milestones add behavior.
 - Destructive or major automated actions require snapshot policy before execution.
 - Missing or malformed package files must produce diagnostics rather than invented state.
 

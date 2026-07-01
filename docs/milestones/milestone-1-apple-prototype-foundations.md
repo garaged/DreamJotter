@@ -6,7 +6,7 @@ Prove the core writing experience and portable architecture foundations before a
 
 ## Scope Summary
 
-Milestone 1 includes specification for:
+Milestone 1 includes specification and portable-core implementation for:
 
 - Portable core module plan.
 - Semantic screenplay model.
@@ -21,7 +21,7 @@ Milestone 1 includes specification for:
 - macOS/iPad/iPhone app shell expectations, not detailed UI implementation.
 - Architecture guardrails.
 
-Milestone 1 does not implement production code, create app UI, create an Xcode project, create a Swift package, or introduce plugin architecture.
+Milestone 1 implements only portable core foundations and executable specs. It does not implement production app UI, create an Xcode project, add TextKit/AppKit/UIKit wrappers, render real PDFs, implement real package file I/O, or introduce plugin architecture.
 
 ## Feature Specifications
 
@@ -392,9 +392,7 @@ Non-goals:
 
 ## Milestone 1 Exit Criteria
 
-Milestone 1 is ready for implementation only when later prompts have produced detailed contracts or executable fixtures for the semantic model, parser, Fountain subset, `.dreamjotter` package concept, and model-level editor behavior.
-
-Milestone 1 is complete when future implementation can demonstrate:
+Milestone 1 is accepted when executable specs demonstrate:
 
 - Empty screenplay handling.
 - One-scene screenplay handling.

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This file defines acceptance examples for Milestone 1: Apple Prototype Foundations. These examples are written for future executable specs and tests. They do not require production code, app UI, a Swift package, or an Xcode project in this prompt.
+This file defines acceptance examples for Milestone 1: Apple Prototype Foundations. These examples are covered by executable specs for the portable core. They do not require production app code, app UI, TextKit integration, or an Xcode project.
 
 ## Acceptance Fixture Set
 

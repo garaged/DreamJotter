@@ -2,7 +2,7 @@
 
 DreamJotter is a screenplay and movie-script writing app for non-programmers. It is designed to let beginners write, organize, and export scripts without learning technical tooling, while still leaving room for optional Pro Mode workflows such as revision colors, draft comparison, production breakdown, custom fields, export presets, and no-code routines.
 
-Implementation has not started yet. This repository currently contains the Spec Driven Development baseline through Milestone 4, plus a SwiftPM executable-spec skeleton that validates documentation and traceability. There is no production app code, Xcode project, production UI, TextKit editor, plugin runtime, real AI provider, cloud sync, or external service integration.
+Milestone 1 and Milestone 2 portable-core foundations are implemented and covered by executable specs. This repository also contains the Spec Driven Development baseline through Milestone 4. There is no production app UI, Xcode project, TextKit editor, plugin runtime, real AI provider, cloud sync, or external service integration.
 
 ## Product Direction
 
@@ -65,12 +65,12 @@ Key SDD files:
 | Milestone | Status | Notes |
 | --- | --- | --- |
 | Milestone 0 | Specified | SDD foundation, constitution, registry, templates, traceability, and executable-spec skeleton exist. |
-| Milestone 1 | Specified | Apple prototype foundations, semantic screenplay model, parser/Fountain/editor behavior, package format, and architecture guardrails are documented. |
-| Milestone 2 | Specified | Real MVP writer organization is documented: dashboard, characters, scene cards, notes, idea inbox, search, snapshots, package load/save, health report, templates, and mode foundation. |
+| Milestone 1 | Accepted | Portable-core foundations are implemented and executable-spec verified: semantic screenplay model, parser, supported Fountain import/export, editor behavior model basics, scene/autocomplete derivations, blank project package concept, export intent, semantic validation, and architecture guardrails. |
+| Milestone 2 | Accepted | Portable writer organization is implemented and executable-spec verified: dashboard summaries, templates, characters, scene cards, notes, idea inbox, search, snapshots, `.dreamjotter` package save/load, health report, export presets, and Simple Mode policy. |
 | Milestone 3 | Specified | Friendly writer tools, FakeAIProvider-only AI abstraction, continuity analysis, and table-read data model are documented. |
 | Milestone 4 | Specified | Pro foundations, command engine, routine system v1, advanced export/customization, and future plugin boundaries are documented. |
 
-Implementation status: `implementation-pending`. The only Swift code currently present is `SpecSupport` for executable spec checks.
+Implementation status: Milestone 1 and Milestone 2 portable-core foundations are `accepted`; Milestones 3 and 4 remain `specified` and pending implementation.
 
 ## Spec Workflow
 
@@ -119,6 +119,7 @@ DreamJotter/
   TODO.md
   Package.swift
   Sources/
+    DreamJotterCore/
     SpecSupport/
   Tests/
     DreamJotterExecutableSpecs/
