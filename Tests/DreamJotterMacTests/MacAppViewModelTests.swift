@@ -154,6 +154,43 @@ struct MacAppViewModelTests {
         #expect(app.recentProjectURLs == [packageURL])
     }
 
+    @Test("Opening a package can recover editor text from nonempty Fountain projection")
+    func openPackageRecoversEditorTextFromFountainProjection() throws {
+        let packageURL = temporaryDirectory(named: "DreamJotterFountainProjectionOpen").appendingPathComponent("Projection.dreamjotter", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
+        try FileManager.default.createDirectory(at: packageURL, withIntermediateDirectories: true)
+        for directory in ["snapshots", "attachments", "exports", "indexes"] {
+            try FileManager.default.createDirectory(at: packageURL.appendingPathComponent(directory, isDirectory: true), withIntermediateDirectories: true)
+        }
+
+        let metadata = ProjectMetadata(
+            id: "project-projection",
+            title: "Projection",
+            createdAt: now,
+            modifiedAt: now,
+            schemaVersion: ProjectFactory.currentSchemaVersion,
+            primaryScreenplayID: "screenplay-projection"
+        )
+        let manifest = PackageManifest(packageId: metadata.id, createdAt: now, updatedAt: now)
+        try writeJSON(metadata, to: packageURL.appendingPathComponent("project.json"))
+        try writeJSON(ScreenplayDocument(), to: packageURL.appendingPathComponent("screenplay.json"))
+        try writeJSON([CharacterRecord](), to: packageURL.appendingPathComponent("characters.json"))
+        try writeJSON([ProjectNote](), to: packageURL.appendingPathComponent("notes.json"))
+        try writeJSON([InboxItem](), to: packageURL.appendingPathComponent("inbox.json"))
+        try writeJSON([SceneCard](), to: packageURL.appendingPathComponent("scene-cards.json"))
+        try writeJSON(ExportPresetCatalog.builtInPresets(), to: packageURL.appendingPathComponent("export-presets.json"))
+        try writeJSON(StoryDevelopmentState(), to: packageURL.appendingPathComponent("story.json"))
+        try writeJSON(ProProjectState(), to: packageURL.appendingPathComponent("pro.json"))
+        try writeJSON(manifest, to: packageURL.appendingPathComponent("manifest.json"))
+        try "INT. ROOM - DAY\n\nELENA\nWe can see this.".write(to: packageURL.appendingPathComponent("script.fountain"), atomically: true, encoding: .utf8)
+
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        try app.openPackage(at: packageURL)
+
+        #expect(app.currentDocument?.scriptText.contains("ELENA") == true)
+        #expect(app.currentDocument?.scenes.first?.heading == "INT. ROOM - DAY")
+    }
+
     @Test("Failed open returns human readable error")
     func failedOpenReturnsHumanReadableError() throws {
         let invalidURL = temporaryDirectory(named: "DreamJotterInvalidOpen").appendingPathComponent("Broken.dreamjotter", isDirectory: true)
@@ -274,6 +311,169 @@ struct MacAppViewModelTests {
 
         #expect(document.scenes.map(\.heading) == ["INT. APARTMENT - NIGHT"])
         #expect(document.dashboard.sceneCount == 1)
+        #expect(document.editorParseState.sceneCount == 1)
+        #expect(document.editorParseState.lastParsedTextRevision == document.editorParseState.currentTextRevision)
+    }
+
+    @Test("Editor usability state is exposed through the document view model")
+    func editorUsabilityStateIsExposedThroughDocumentViewModel() {
+        var document = ProjectDocumentViewModel(project: project())
+        document.updateScriptText("""
+        INT. COFFEE SHOP - DAY
+
+        ELENA
+        We start here.
+
+        EXT. STREET - NIGHT
+
+        They leave.
+        """)
+
+        #expect(document.smartEnterNextKind(from: .characterCue) == .dialogue)
+        #expect(document.tabCycleNextKind(from: .action) == .characterCue)
+
+        let characterSuggestions = document.characterSuggestions(
+            prefix: "ele",
+            replacementRange: EditorTextRange(location: 0, length: 3)
+        )
+        #expect(characterSuggestions.first?.replacementText == "ELENA")
+
+        let sceneSuggestions = document.sceneHeadingSuggestions(
+            prefix: "INT. cof",
+            replacementRange: EditorTextRange(location: 5, length: 3)
+        )
+        #expect(sceneSuggestions.first(where: { $0.type == .location })?.replacementText == "COFFEE SHOP")
+
+        document.requestNavigation(toSceneAt: 1)
+        #expect(document.editorNavigationState.selectedSceneID == "scene-2")
+        #expect(document.editorNavigationState.scrollTarget?.kind == .scene)
+
+        let cursorLocation = (document.scriptText as NSString).range(of: "They leave.").location
+        document.updateSelectedSceneForCursor(location: cursorLocation)
+        #expect(document.editorNavigationState.selectedSceneID == "scene-2")
+    }
+
+    @Test("Smart Enter action mutates text through the document model and marks dirty")
+    func smartEnterActionMutatesTextThroughDocumentModelAndMarksDirty() {
+        var document = ProjectDocumentViewModel(project: project(), scriptText: "INT. ROOM - DAY", isDirty: false)
+
+        document.performSmartEnter(at: (document.scriptText as NSString).length)
+
+        #expect(document.scriptText == "INT. ROOM - DAY\n\n")
+        #expect(document.isDirty)
+        #expect(document.editorNavigationState.scrollTarget?.kind == .textRange)
+        #expect(document.editorNavigationState.cursorTextRange?.location == (document.scriptText as NSString).length)
+    }
+
+    @Test("Tab cycling mutates the current line through the document model and marks dirty")
+    func tabCyclingMutatesCurrentLineThroughDocumentModelAndMarksDirty() {
+        var document = ProjectDocumentViewModel(project: project(), scriptText: "niña cruza la estación", isDirty: false)
+
+        document.performTabCycle(at: 0)
+
+        #expect(document.scriptText == "NIÑA CRUZA LA ESTACIÓN")
+        #expect(document.isDirty)
+        #expect(document.editorNavigationState.cursorTextRange?.location == (document.scriptText as NSString).length)
+    }
+
+    @Test("Accepting a character suggestion updates text and ignoring suggestions preserves text")
+    func acceptingCharacterSuggestionUpdatesTextAndIgnoringPreservesText() throws {
+        var document = ProjectDocumentViewModel(project: project())
+        document.updateScriptText("""
+        ELENA
+        We begin.
+
+        ELE
+        """)
+        document.refreshEditorSuggestions(cursorLocation: (document.scriptText as NSString).length)
+        let suggestion = try #require(document.editorSuggestions.first { $0.type == .character })
+
+        document.acceptEditorSuggestion(suggestion)
+
+        #expect(document.scriptText.hasSuffix("ELENA"))
+        #expect(document.isDirty)
+
+        let textAfterAccept = document.scriptText
+        document.refreshEditorSuggestions(cursorLocation: (document.scriptText as NSString).length)
+        document.ignoreEditorSuggestions()
+
+        #expect(document.scriptText == textAfterAccept)
+        #expect(document.editorSuggestions.isEmpty)
+    }
+
+    @Test("Accepting a location suggestion preserves scene heading prefix")
+    func acceptingLocationSuggestionPreservesSceneHeadingPrefix() throws {
+        var document = ProjectDocumentViewModel(project: project())
+        document.updateScriptText("""
+        INT. COFFEE SHOP - DAY
+
+        Quiet.
+
+        INT. COF
+        """)
+        document.refreshEditorSuggestions(cursorLocation: (document.scriptText as NSString).length)
+        let suggestion = try #require(document.editorSuggestions.first { $0.type == .location })
+
+        document.acceptEditorSuggestion(suggestion)
+
+        #expect(document.scriptText.hasSuffix("INT. COFFEE SHOP"))
+    }
+
+    @Test("Duplicate scene headings navigate by parsed position")
+    func duplicateSceneHeadingsNavigateByParsedPosition() {
+        var document = ProjectDocumentViewModel(project: project())
+        document.updateScriptText("""
+        INT. ROOM - DAY
+
+        First.
+
+        INT. ROOM - DAY
+
+        Second.
+        """)
+
+        document.requestNavigation(toSceneAt: 1)
+
+        let expectedRange = (document.scriptText as NSString).range(
+            of: "INT. ROOM - DAY",
+            options: [],
+            range: NSRange(location: 1, length: (document.scriptText as NSString).length - 1)
+        )
+        #expect(document.editorNavigationState.selectedSceneID == "scene-2")
+        #expect(document.editorNavigationState.scrollTarget?.textRange?.location == expectedRange.location)
+    }
+
+    @Test("TextKit line styling is adapter-only and export remains plain Fountain")
+    func textKitLineStylingIsAdapterOnlyAndExportRemainsPlainFountain() {
+        var document = ProjectDocumentViewModel(project: project())
+        document.updateScriptText("""
+        INT. ROOM - DAY
+
+        ELENA
+        Hello.
+
+        CUT TO:
+
+        [[Fix this]]
+        """)
+
+        #expect(document.editorStyleRuns.map(\.kind).contains(.sceneHeading))
+        #expect(document.editorStyleRuns.map(\.kind).contains(.characterCue))
+        #expect(document.editorStyleRuns.map(\.kind).contains(.transition))
+        #expect(document.editorStyleRuns.map(\.kind).contains(.noteReference))
+        #expect(!document.fountainExportText.contains("NSAttributedString"))
+        #expect(document.fountainExportText.contains("INT. ROOM - DAY"))
+    }
+
+    @Test("Empty editor guidance is visible only for blank scripts")
+    func emptyEditorGuidanceIsVisibleOnlyForBlankScripts() {
+        var document = ProjectDocumentViewModel(project: project())
+
+        #expect(document.isEmptyEditorGuidanceVisible)
+
+        document.updateScriptText("INT. ROOM - DAY")
+
+        #expect(!document.isEmptyEditorGuidanceVisible)
     }
 
     @Test("Project title logline synopsis and notes update dashboard state")
@@ -357,5 +557,12 @@ struct MacAppViewModelTests {
 
     private func temporaryDirectory(named name: String) -> URL {
         URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(name)-\(UUID().uuidString)", isDirectory: true)
+    }
+
+    private func writeJSON<T: Encodable>(_ value: T, to url: URL) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        try encoder.encode(value).write(to: url, options: .atomic)
     }
 }

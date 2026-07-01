@@ -216,6 +216,16 @@ public enum DreamJotterPackageStore {
         return PackageLoadResult(project: project, manifest: manifest, diagnostics: diagnostics)
     }
 
+    public static func fountainProjectionText(from packageURL: URL) -> String? {
+        let fountainURL = packageURL.appendingPathComponent("script.fountain")
+        guard FileManager.default.fileExists(atPath: fountainURL.path),
+              let text = try? String(contentsOf: fountainURL, encoding: .utf8),
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return nil
+        }
+        return text
+    }
+
     private static func saveSnapshots(_ snapshots: [SnapshotRecord], to snapshotsURL: URL) throws {
         for snapshot in snapshots {
             let snapshotDirectory = snapshotsURL.appendingPathComponent(snapshot.id, isDirectory: true)

@@ -55,6 +55,22 @@ Status: implemented.
 - Decide whether reopen-last-project is automatic, prompted, or deferred to native document behavior.
 - Keep recent-project storage as app metadata only.
 
+## Milestone 7 Screenplay Editor Usability
+
+Status: implemented.
+
+- Maintain executable specs for Smart Enter behavior across scene heading, action, character, dialogue, parenthetical, transition, and malformed text contexts.
+- Maintain adapter-neutral element-kind cycling that preserves Unicode text and remains consistent after save/reopen.
+- Keep non-destructive character, location, scene heading, and time-of-day suggestions flowing through `EditorSuggestion`.
+- Keep controlled/debounced parse state in `EditorParseState` without making typing unstable.
+- Keep scene navigation sync in `EditorNavigationState` and keep duplicate/deleted scenes safe.
+- Maintain TextKit keyboard handling for Smart Enter and Tab cycling.
+- Maintain suggestions UI so suggestions do not mutate text until accepted.
+- Maintain scene list clicks and editor cursor changes as visible TextKit selection/scroll behavior.
+- Maintain basic TextKit line styling as adapter-only presentation while keeping SwiftUI TextEditor fallback functional.
+- Maintain passive empty editor guidance that disappears or stops obstructing once typing starts.
+- Preserve Milestone 6 dirty state, save/reopen, recent projects, and Fountain export in every editor path.
+
 ## Apple UI
 
 - Maintain the SwiftPM-generated `DreamJotterMac` macOS app scheme.

@@ -332,8 +332,8 @@ struct Milestone1ExecutableSpecs {
 
     @Test("Tab cycles screenplay element kind deterministically")
     func tabCyclesScreenplayElementKindDeterministically() {
-        #expect(EditorBehavior.cycleKindAfterTab(from: .action) == .sceneHeading)
-        #expect(EditorBehavior.cycleKindAfterTab(from: .sceneHeading) == .characterCue)
+        #expect(EditorBehavior.cycleKindAfterTab(from: .action) == .characterCue)
+        #expect(EditorBehavior.cycleKindAfterTab(from: .sceneHeading) == .action)
         #expect(EditorBehavior.cycleKindAfterTab(from: .noteReference) == .action)
         #expect(EditorBehavior.cycleKindAfterTab(from: .unknown) == .action)
     }

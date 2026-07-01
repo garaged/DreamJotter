@@ -8,7 +8,6 @@ public enum EditorMode: String, Codable, Equatable, Sendable {
 public enum EditorBehavior {
     public static let tabCycle: [ScriptElementKind] = [
         .action,
-        .sceneHeading,
         .characterCue,
         .dialogue,
         .parenthetical,

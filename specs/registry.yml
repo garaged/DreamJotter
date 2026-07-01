@@ -851,6 +851,354 @@
       "notes": "Dirty close, open, replace, and return-to-library workflows require confirmation or a save-first safe state transition."
     },
     {
+      "id": "M7-SCREENPLAY-EDITOR-USABILITY",
+      "title": "Milestone 7 Screenplay Editor Usability v1",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/milestones/milestone-7-screenplay-editor-usability.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-navigation-state.md",
+        "docs/data-contracts/editor-suggestion.md",
+        "docs/data-contracts/editor-parse-state.md"
+      ],
+      "planned_modules": [
+        "EditorBehavior",
+        "ProjectDocumentViewModel",
+        "TextKitScreenplayEditorView",
+        "ScriptEditorView",
+        "SceneListView",
+        "ScreenplayParser"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Implemented Mac editor usability v1 with TextKit Smart Enter, Tab cycling, suggestions, scene navigation/cursor sync, adapter-only styling, empty guidance, and preserved M6 lifecycle."
+    },
+    {
+      "id": "EDITOR-SMART-ENTER",
+      "title": "Smart Enter Behavior",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/smart-enter.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-navigation-state.md",
+        "docs/data-contracts/editor-parse-state.md"
+      ],
+      "planned_modules": [
+        "EditorBehavior",
+        "ProjectDocumentViewModel",
+        "TextKitScreenplayEditorView"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Implemented through adapter-neutral EditorUsabilityService, ProjectDocumentViewModel actions, and TextKit keyboard interception."
+    },
+    {
+      "id": "EDITOR-ELEMENT-KIND-CYCLING",
+      "title": "Element Kind Cycling",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/element-kind-cycling.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-suggestion.md",
+        "docs/data-contracts/editor-parse-state.md"
+      ],
+      "planned_modules": [
+        "EditorBehavior",
+        "ProjectDocumentViewModel",
+        "ScreenplayParser"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Implemented adapter-neutral element-kind cycle excluding scene headings, wired to TextKit Tab handling, with executable specs proving text and Unicode preservation."
+    },
+    {
+      "id": "EDITOR-SCENE-HEADING-SUGGESTIONS",
+      "title": "Scene Heading Suggestions",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/character-location-autocomplete.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-suggestion.md",
+        "docs/data-contracts/editor-parse-state.md"
+      ],
+      "planned_modules": [
+        "EditorBehavior",
+        "ProjectDocumentViewModel",
+        "ScreenplayParser"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Implemented adapter-neutral scene heading prefix, parsed-location, and time-of-day suggestions without mutating text."
+    },
+    {
+      "id": "EDITOR-CHARACTER-AUTOCOMPLETE",
+      "title": "Character Autocomplete",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/character-location-autocomplete.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-suggestion.md"
+      ],
+      "planned_modules": [
+        "EditorBehavior",
+        "ProjectDocumentViewModel",
+        "CharacterManager"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Implemented adapter-neutral case-insensitive character suggestions with duplicate collapse and canonical spelling."
+    },
+    {
+      "id": "EDITOR-LOCATION-AUTOCOMPLETE",
+      "title": "Location Autocomplete",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/character-location-autocomplete.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-suggestion.md"
+      ],
+      "planned_modules": [
+        "EditorBehavior",
+        "ProjectDocumentViewModel",
+        "ScreenplayParser"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Implemented adapter-neutral parsed-location suggestions while typing scene headings."
+    },
+    {
+      "id": "EDITOR-DEBOUNCED-PARSING",
+      "title": "Debounced Parsing",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/debounced-parsing.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-parse-state.md"
+      ],
+      "planned_modules": [
+        "ProjectDocumentViewModel",
+        "ScreenplayParser",
+        "ScriptEditorView"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Implemented adapter-neutral parse state, revision tracking, and debounce decision helper; the document view model records parse state while preserving current immediate parse behavior."
+    },
+    {
+      "id": "EDITOR-SCENE-NAVIGATION-SYNC",
+      "title": "Scene Navigation Sync",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/scene-navigation-sync.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-navigation-state.md",
+        "docs/data-contracts/editor-parse-state.md"
+      ],
+      "planned_modules": [
+        "ProjectDocumentViewModel",
+        "SceneListView",
+        "TextKitScreenplayEditorView"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Implemented adapter-neutral scene-to-editor and cursor-to-scene navigation state using parsed scene order and text ranges."
+    },
+    {
+      "id": "EDITOR-BASIC-LINE-STYLING",
+      "title": "Basic Screenplay Line Styling",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/basic-screenplay-line-styling.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/editor-parse-state.md"
+      ],
+      "planned_modules": [
+        "TextKitScreenplayEditorView",
+        "ProjectDocumentViewModel",
+        "ScreenplayParser"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "TextKit visually distinguishes scene headings, character cues, transitions, and notes as adapter-only styling absent from canonical package/export data."
+    },
+    {
+      "id": "EDITOR-EMPTY-STATE-GUIDANCE",
+      "title": "Editor Empty State Guidance",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/basic-screenplay-line-styling.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [],
+      "planned_modules": [
+        "ScriptEditorView",
+        "TextKitScreenplayEditorView"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "Blank scripts show passive starter guidance in the Script pane and the guidance disappears once writing begins."
+    },
+    {
+      "id": "EDITOR-DOCUMENT-WORKFLOW-PRESERVATION",
+      "title": "Editor Document Workflow Preservation",
+      "milestone": "M7",
+      "status": "implemented",
+      "spec": "docs/specs/editor/basic-screenplay-line-styling.spec.md",
+      "acceptance": "docs/acceptance/milestone-7-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0002-local-first-dreamjotter-package.md",
+        "docs/adr/0004-macos-document-lifecycle-before-ios.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/editor-parse-state.md"
+      ],
+      "planned_modules": [
+        "ProjectDocumentViewModel",
+        "MacAppViewModel",
+        "TextKitScreenplayEditorView",
+        "ScriptEditorView",
+        "DreamJotterPackageStore",
+        "FountainIO"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "textkit-adapter-only",
+        "no-rich-text-canonical-storage",
+        "dreamjotter-package-canonical",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle"
+      ],
+      "notes": "TextKit and fallback document workflow remain covered while M7 keyboard, suggestion, navigation, styling, and guidance behavior preserve canonical save/export behavior."
+    },
+    {
       "id": "ROUTINE-SYSTEM-V1",
       "title": "Routine System v1 Spec",
       "milestone": "M4",

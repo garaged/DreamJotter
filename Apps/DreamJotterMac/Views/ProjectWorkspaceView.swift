@@ -94,7 +94,14 @@ struct ProjectWorkspaceView: View {
             ScriptEditorView(document: $document)
         case .scenes:
             ScrollView {
-                SceneListView(scenes: document.scenes)
+                SceneListView(
+                    scenes: document.scenes,
+                    selectedSceneID: document.editorNavigationState.selectedSceneID,
+                    selectAction: { index in
+                        document.requestNavigation(toSceneAt: index)
+                        selectedSection = .script
+                    }
+                )
                     .padding()
             }
         case .characters:

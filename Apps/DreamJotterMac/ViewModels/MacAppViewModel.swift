@@ -176,7 +176,11 @@ struct MacAppViewModel {
         let normalizedURL = Self.normalizedFileURL(packageURL)
         let result = DreamJotterPackageStore.load(from: normalizedURL)
         if let project = result.project {
-            currentDocument = ProjectDocumentViewModel(project: project, packageURL: normalizedURL)
+            let canonicalText = FountainIO.exportScreenplay(project.screenplay)
+            let scriptText = canonicalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? DreamJotterPackageStore.fountainProjectionText(from: normalizedURL)
+                : nil
+            currentDocument = ProjectDocumentViewModel(project: project, packageURL: normalizedURL, scriptText: scriptText)
             recordRecentProject(normalizedURL)
             return
         }
