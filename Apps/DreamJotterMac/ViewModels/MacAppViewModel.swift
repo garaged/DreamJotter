@@ -15,6 +15,7 @@ enum PendingProjectReplacement: Equatable {
     case newProject(title: String)
     case openPackage(URL)
     case closeProject
+    case closeWindow
 }
 
 struct RecentProjectStore {
@@ -115,6 +116,16 @@ struct MacAppViewModel {
         return .replaced
     }
 
+    mutating func requestCloseWindow() -> ProjectReplacementDecision {
+        guard canReplaceCurrentProject else {
+            pendingReplacement = .closeWindow
+            return .requiresConfirmation("The current project has unsaved changes. Save it before closing this window, or discard those changes.")
+        }
+
+        closeProject()
+        return .replaced
+    }
+
     mutating func confirmPendingReplacement(now: Date = Date()) throws {
         guard let pendingReplacement else { return }
         self.pendingReplacement = nil
@@ -125,6 +136,8 @@ struct MacAppViewModel {
         case .openPackage(let packageURL):
             try openPackage(at: packageURL)
         case .closeProject:
+            closeProject()
+        case .closeWindow:
             closeProject()
         }
     }

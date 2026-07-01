@@ -163,6 +163,21 @@ struct MacAppViewModelTests {
         #expect(app.currentDocument?.isDirty == false)
     }
 
+    @Test("Closing a dirty window requires confirmation")
+    func closingDirtyWindowRequiresConfirmation() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+
+        let decision = app.requestCloseWindow()
+
+        #expect(decision != .replaced)
+        #expect(app.pendingReplacement == .closeWindow)
+
+        try app.confirmPendingReplacement(now: now)
+        #expect(app.currentDocument == nil)
+    }
+
     @Test("Explicit parse refresh keeps derived scene list current")
     func refreshParseGeneratesSceneList() {
         var document = ProjectDocumentViewModel(project: project())

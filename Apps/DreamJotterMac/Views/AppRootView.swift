@@ -5,6 +5,7 @@ struct AppRootView: View {
     @State private var appModel = MacAppViewModel()
     @State private var errorMessage: String?
     @State private var replacementConfirmationMessage: String?
+    @State private var allowWindowClose = false
 
     var body: some View {
         Group {
@@ -31,6 +32,7 @@ struct AppRootView: View {
         }
         .navigationTitle(windowTitle)
         .frame(minWidth: 1100, minHeight: 720)
+        .background(WindowCloseGuardView(allowClose: $allowWindowClose, shouldClose: requestWindowClose))
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterNewProject)) { _ in
             createProject("Untitled")
         }
@@ -119,6 +121,17 @@ struct AppRootView: View {
         presentReplacementDecision(decision)
     }
 
+    private func requestWindowClose() -> Bool {
+        let decision = appModel.requestCloseWindow()
+        switch decision {
+        case .replaced:
+            return true
+        case .requiresConfirmation(let message):
+            replacementConfirmationMessage = message
+            return false
+        }
+    }
+
     private func presentReplacementDecision(_ decision: ProjectReplacementDecision) {
         if case .requiresConfirmation(let message) = decision {
             replacementConfirmationMessage = message
@@ -127,8 +140,13 @@ struct AppRootView: View {
 
     private func confirmPendingReplacement() {
         do {
+            let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
             try appModel.confirmPendingReplacement()
             replacementConfirmationMessage = nil
+            if shouldCloseWindow {
+                allowWindowClose = true
+                NSApp.keyWindow?.performClose(nil)
+            }
         } catch {
             replacementConfirmationMessage = nil
             errorMessage = error.localizedDescription

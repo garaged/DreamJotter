@@ -48,6 +48,12 @@ Given the current project has unsaved changes, when the user tries to open anoth
 
 Traceability: M6-DOCUMENT-LIFECYCLE.
 
+### A-M6-WINDOW-CLOSE-001: Dirty Window Close Requires Confirmation
+
+Given the current project has unsaved changes, when the user closes the macOS app window, then the app blocks the immediate close and presents an unsaved-changes confirmation before allowing discard-and-close.
+
+Traceability: M6-DOCUMENT-LIFECYCLE.
+
 ### A-M6-RECENTS-001: Recent Projects
 
 Given the user successfully opens or saves a package, when they return to the Project Library, then the package appears in Recent Projects. Invalid recent entries are handled gracefully when opened.

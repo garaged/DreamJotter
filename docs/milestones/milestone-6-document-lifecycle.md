@@ -20,6 +20,7 @@ Milestone 6 does not change canonical storage. The `.dreamjotter` package remain
 - Opening a package loads through `DreamJotterPackageStore`.
 - Failed opens produce human-readable errors.
 - Dirty replacement requests are centralized and require confirmation before discarding changes.
+- Closing the macOS window with dirty edits requires confirmation before the window closes.
 - Recent project URLs are recorded after successful open/save and displayed in the Project Library.
 - Basic Mac commands are wired for New Project, Open, Save, Save As, and Export Fountain.
 - Fountain export remains read-only and does not dirty the document.
@@ -53,6 +54,7 @@ Milestone 6 does not change canonical storage. The `.dreamjotter` package remain
 - Opening a package restores clean state and records the recent project.
 - Invalid recent packages fail with readable errors and can be removed from the recent list.
 - Opening, closing, or creating over dirty state requires a discard confirmation path.
+- Closing the app window with dirty state shows the same unsaved-change warning before allowing close.
 - Export Fountain writes an export artifact without dirtying the project.
 - Menu commands and keyboard shortcuts call the same app actions as toolbar/library controls.
 
