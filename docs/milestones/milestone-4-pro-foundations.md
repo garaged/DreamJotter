@@ -4,7 +4,7 @@
 
 Define pro features without compromising beginner usability or portable core architecture. Milestone 4 establishes professional screenplay workflows, command-driven routines, and future extension boundaries while preserving Simple Mode as the default and keeping plugins deferred.
 
-Milestone 4 remains documentation-first in this prompt. It does not implement production code, create app UI, create a Swift package, create an Xcode project, implement a plugin runtime, allow arbitrary scripting, or execute external services.
+Milestone 4 portable-core behavior is implemented and executable-spec verified. It does not create app UI, create an Xcode project, implement a plugin runtime, allow arbitrary scripting, or execute external services.
 
 ## Scope Summary
 

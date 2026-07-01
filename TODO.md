@@ -37,15 +37,14 @@ Status: foundation complete.
 
 ## Milestone 4 Implementation
 
-- Implement revision color metadata.
-- Implement draft version records and snapshot links.
-- Implement semantic draft comparison.
-- Implement production breakdown categories.
-- Implement advanced export preset data and validation.
-- Implement custom field definitions and values.
-- Implement CommandEngine validation, CommandResult, and CommandHistoryEntry.
-- Implement Routine System v1 as no-code command orchestration.
-- Implement routine logs and failure handling.
+Status: foundation complete.
+
+- Maintain revision color, draft version, semantic comparison, production breakdown, advanced export preset, and custom field executable specs.
+- Maintain CommandEngine as the safe mutation boundary for routines and future automation.
+- Maintain Routine System v1 as no-code command orchestration with logs and failure handling.
+- Maintain snapshot-before-destructive-routine-action behavior.
+- Keep Pro Mode authoring controls hidden in Simple Mode while preserving Pro metadata.
+- Keep Pro metadata persisted through `.dreamjotter` `pro.json` package storage.
 - Keep plugin runtime, marketplace, arbitrary scripting, and third-party code loading deferred.
 
 ## Apple UI

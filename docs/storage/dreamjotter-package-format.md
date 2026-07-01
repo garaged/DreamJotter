@@ -35,6 +35,7 @@ MyMovie.dreamjotter/
   inbox.json
   scene-cards.json
   story.json
+  pro.json
   routines.json
   custom-fields.json
   snapshots/
@@ -59,7 +60,8 @@ All listed top-level files and directories are reserved names. Early packages ma
 | `inbox.json` | Idea inbox records and archive state. | Yes |
 | `scene-cards.json` | Scene card summaries and planning notes linked to semantic scenes. | Yes |
 | `story.json` | Guided setup, logline, synopsis, beat sheets, and accepted/pending AI suggestion records. | Yes |
-| `routines.json` | Routine definitions and optionally bounded routine run logs. | Yes for routines; logs policy unresolved. |
+| `pro.json` | Revision sets, draft versions, production breakdown, advanced custom fields, routine definitions, and routine logs. | Yes |
+| `routines.json` | Future split routine definitions and optionally bounded routine run logs if `pro.json` is decomposed. | Yes for routines; logs policy unresolved. |
 | `custom-fields.json` | Custom field definitions and values. | Yes |
 | `snapshots/` | Snapshot manifests and captured project states. | Yes for snapshot metadata/content. |
 | `attachments/` | User-added binary or external files copied into package. | Yes for attached assets. |
@@ -105,6 +107,7 @@ Example:
     "inbox": { "path": "inbox.json", "required": false },
     "sceneCards": { "path": "scene-cards.json", "required": false },
     "story": { "path": "story.json", "required": false },
+    "pro": { "path": "pro.json", "required": false },
     "routines": { "path": "routines.json", "required": false },
     "customFields": { "path": "custom-fields.json", "required": false },
     "fountainProjection": { "path": "script.fountain", "required": false }
@@ -173,6 +176,7 @@ snapshots/
     locations.json
     notes.json
     story.json
+    pro.json
     routines.json
     custom-fields.json
 ```

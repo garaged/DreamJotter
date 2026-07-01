@@ -1,6 +1,6 @@
 # Routine System v1 Spec
 
-Status: specified
+Status: implemented
 Milestone: M4
 Traceability IDs: M4-ROUTINES-001, M4-ROUTINE-RUNNER-001, ROUTINE-SYSTEM-001
 

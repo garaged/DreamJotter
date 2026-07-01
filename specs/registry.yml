@@ -399,7 +399,7 @@
       "id": "M4-PRO-FOUNDATIONS",
       "title": "Milestone 4 Pro Apple Version Foundations",
       "milestone": "M4",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/milestones/milestone-4-pro-foundations.md",
       "acceptance": "docs/acceptance/milestone-4-acceptance.md",
       "related_adrs": [
@@ -429,13 +429,13 @@
       "guardrails": [
         "Milestone 4 must keep Simple Mode usable, keep .dreamjotter canonical, require routines to execute commands, and defer plugin runtime and arbitrary scripting."
       ],
-      "notes": "Detailed Milestone 4 scope for pro features, routine foundations, and future extension boundaries."
+      "notes": "Accepted portable-core implementation for pro foundations: revision metadata, draft versions, semantic draft comparison, production breakdown, advanced export preset validation, custom fields, no-code routines, CommandEngine boundary, Pro Mode visibility, pro package persistence, and deferred plugin runtime policy."
     },
     {
       "id": "ROUTINE-SYSTEM-V1",
       "title": "Routine System v1 Spec",
       "milestone": "M4",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/routines/routine-system-v1-spec.md",
       "acceptance": "docs/acceptance/milestone-4-acceptance.md",
       "related_adrs": [
@@ -456,7 +456,7 @@
       "guardrails": [
         "Routines are no-code definitions that must execute commands through CommandEngine and must not directly mutate project internals."
       ],
-      "notes": "Routine triggers, conditions, actions, run logs, safety rules, and command boundary."
+      "notes": "Implemented no-code routine definitions, supported trigger/action enums, command request compilation, disabled routine skips, run logs, and snapshot-failure blocking through CommandEngine."
     },
     {
       "id": "PLUGIN-EXTENSION-POINTS-FUTURE",
@@ -724,7 +724,7 @@
       "id": "COMMAND-ENGINE-SPEC",
       "title": "Command Engine Spec",
       "milestone": "M1-M4",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/architecture/command-engine-spec.md",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [

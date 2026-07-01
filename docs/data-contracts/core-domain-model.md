@@ -50,7 +50,12 @@ Purpose: Root canonical project record for a `.dreamjotter` package.
 | `synopsis` | `Synopsis` | No | Manual or accepted-suggestion synopsis record. |
 | `beatSheets` | `[BeatSheet]` | No | Optional story-planning beats linked to scenes where available. |
 | `aiSuggestions` | `[AISuggestion]` | No | Suggestion lifecycle records; pending/rejected suggestions do not mutate screenplay text. |
+| `revisionSets` | `[RevisionSet]` | No | Pro revision color metadata linked to semantic elements. |
+| `draftVersions` | `[DraftVersion]` | No | Named draft metadata and optional snapshot references. |
 | `productionBreakdown` | `[ProductionBreakdown]` | No | Optional Pro data. |
+| `customFieldDefinitions` | `[CustomFieldDefinition]` | No | Optional Pro field schema. |
+| `customFieldValues` | `[CustomFieldValue]` | No | Typed custom field values. |
+| `routines` | `[RoutineDefinition]` | No | No-code command-orchestration definitions. |
 | `customFieldDefinitions` | `[CustomFieldDefinition]` | No | Optional Pro schema. |
 | `customFieldValues` | `[CustomFieldValue]` | No | Optional Pro values. |
 | `routines` | `[Routine]` | No | Optional Pro routines. |
@@ -91,7 +96,12 @@ JSON example:
   "synopsis": null,
   "beatSheets": [],
   "aiSuggestions": [],
+  "revisionSets": [],
+  "draftVersions": [],
   "productionBreakdown": [],
+  "customFieldDefinitions": [],
+  "customFieldValues": [],
+  "routines": [],
   "customFieldDefinitions": [],
   "customFieldValues": [],
   "routines": [],

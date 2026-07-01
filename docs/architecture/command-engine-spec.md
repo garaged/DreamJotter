@@ -1,6 +1,6 @@
 # Command Engine Spec
 
-Status: specified
+Status: implemented
 Milestone: M1-M4
 Traceability ID: COMMAND-ENGINE-001
 

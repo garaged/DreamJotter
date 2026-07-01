@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This file defines acceptance examples for Milestone 4: Pro Apple Version Foundations. These examples are intended for future executable specs and tests. They do not require production code, plugin runtime, arbitrary scripting, or app UI in this prompt.
+This file defines acceptance examples for Milestone 4: Pro Apple Version Foundations. These examples are covered by executable specs for the portable core. They do not require plugin runtime, arbitrary scripting, external services, or app UI.
 
 ## Acceptance Fixture Set
 
