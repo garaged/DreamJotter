@@ -11,9 +11,13 @@ Milestone 5 is Apple-specific at the app boundary only. SwiftUI views and macOS 
 - macOS SwiftUI app entry point.
 - Project Library screen.
 - Blank project creation.
+- Project title entry and later title editing.
 - Temporary screenplay editor using SwiftUI `TextEditor`.
-- Scene list derived from parsed screenplay text.
-- Dashboard summary for title, logline, scenes, characters, and notes.
+- Live and explicit screenplay parse refresh using existing parser core.
+- Scene and character lists derived from parsed screenplay text.
+- Dashboard summary for title, logline, synopsis, scenes, characters, and notes.
+- Editable project logline and synopsis stored in existing story-development records.
+- Project notes with project links by default and first-scene links when a parsed scene exists.
 - `.dreamjotter` package save and open using existing storage code.
 - Fountain export using existing export code.
 - Script health report using existing analysis code.
@@ -50,8 +54,10 @@ Milestone 5 is Apple-specific at the app boundary only. SwiftUI views and macOS 
 
 - App launches as a real macOS app window from the `DreamJotterMac` scheme.
 - User can create a blank project.
+- User can enter and edit the project title, logline, and synopsis.
 - User can type screenplay text into the temporary editor.
 - Parsed scene and character data update from the screenplay text.
+- User can add a note linked to the project or first parsed scene.
 - Dashboard updates from portable core state.
 - User can save and reopen `.dreamjotter` packages.
 - User can export Fountain text.

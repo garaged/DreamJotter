@@ -50,15 +50,20 @@ Status: foundation complete.
 ## Apple UI
 
 - Maintain the SwiftPM-generated `DreamJotterMac` macOS app scheme.
-- Keep Project Library, temporary editor, dashboard, scene/character lists, package save/open, Fountain export, and health report wired to portable core.
-- Add iPadOS/iOS app shell after macOS foundations are stable.
+- Keep Project Library, temporary editor, editable title/logline/synopsis, notes, dashboard, scene/character lists, package save/open, Fountain export, and health report wired to portable core.
+- Add document-based app behavior for native package open/save lifecycle.
+- Add autosave after document ownership and snapshot policy are specified.
+- Add recent projects using derived app metadata, never canonical storage.
+- Add iPad app after macOS foundations are stable.
+- Add iPhone app after the iPad workflow is specified.
 - Keep Apple UI adapters thin over portable core behavior.
 - Do not make SwiftData canonical storage.
 - Preserve Simple Mode as the first-run experience.
-- Defer production-grade navigation, recents, autosave, and command-menu polish.
+- Defer visual polish until the vertical slice workflow is stable.
 
 ## TextKit Editor
 
+- Replace the temporary SwiftUI `TextEditor` with a TextKit editor when editor-adapter specs are ready.
 - Design TextKit/AppKit adapter for macOS editor surface.
 - Design TextKit/UIKit adapter for iPadOS/iOS editor surface.
 - Bridge selection and cursor state to platform-neutral editor state.
@@ -77,6 +82,7 @@ Status: foundation complete.
 ## Real PDF Adapter
 
 - Deferred until export core and semantic screenplay layout contracts are stable.
+- Add a real PDF adapter for macOS export after layout and pagination specs are executable.
 - Define page layout and pagination rules before renderer implementation.
 - Add platform adapter boundary for Apple PDF generation.
 - Keep PDF artifacts as exports, not canonical storage.

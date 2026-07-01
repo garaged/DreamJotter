@@ -10,7 +10,7 @@ struct HealthReportView: View {
                 .font(.headline)
 
             if findings.isEmpty {
-                Text("No findings.")
+                Text("No findings. As you write, screenplay health checks will show advisory issues here without changing your text.")
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(Array(findings.enumerated()), id: \.offset) { _, finding in

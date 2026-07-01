@@ -26,7 +26,19 @@ Traceability: M5-APPLE-APP-SHELL, M1-APPLE-PROTOTYPE-FOUNDATIONS.
 
 ### A-M5-DASHBOARD-001: Dashboard Summary
 
-Given a project is open, when screenplay text or project data changes, then the dashboard shows title, logline when present, scene count, character count, and note count.
+Given a project is open, when screenplay text or project data changes, then the dashboard shows title, logline when present, synopsis when present, scene count, character count, and note count.
+
+Traceability: M5-APPLE-APP-SHELL, M2-REAL-MVP-WRITER-ORGANIZATION.
+
+### A-M5-STORY-001: Editable Project Planning Fields
+
+Given a project is open, when the user edits the title, logline, or synopsis, then the app stores those changes in existing project metadata and story-development records.
+
+Traceability: M5-APPLE-APP-SHELL, M3-FRIENDLY-WRITER-TOOLS.
+
+### A-M5-NOTES-001: Add Project Or Scene Note
+
+Given a project is open, when the user writes a note, then the app adds a `ProjectNote` linked to the project by default. When a parsed scene exists and the user chooses scene linking, then the note links to that scene heading.
 
 Traceability: M5-APPLE-APP-SHELL, M2-REAL-MVP-WRITER-ORGANIZATION.
 

@@ -1,7 +1,19 @@
 import SwiftUI
 
+enum WorkspaceSection: String, CaseIterable, Identifiable {
+    case dashboard = "Dashboard"
+    case script = "Script"
+    case scenes = "Scenes"
+    case characters = "Characters"
+    case notes = "Notes"
+    case healthReport = "Health Report"
+
+    var id: String { rawValue }
+}
+
 struct ProjectWorkspaceView: View {
     @Binding var document: ProjectDocumentViewModel
+    @State private var selectedSection: WorkspaceSection? = .dashboard
 
     let saveAction: () -> Void
     let saveAsAction: () -> Void
@@ -11,25 +23,24 @@ struct ProjectWorkspaceView: View {
 
     var body: some View {
         NavigationSplitView {
-            List {
-                Section("Scenes") {
-                    SceneListView(scenes: document.scenes)
-                }
-
-                Section("Characters") {
-                    CharacterListView(characters: document.characters)
+            List(selection: $selectedSection) {
+                Section("Project") {
+                    ForEach(WorkspaceSection.allCases) { section in
+                        Text(section.rawValue)
+                            .tag(section)
+                    }
                 }
             }
             .navigationSplitViewColumnWidth(min: 220, ideal: 260)
         } content: {
-            ScriptEditorView(document: $document)
+            contentView
                 .navigationSplitViewColumnWidth(min: 520, ideal: 680)
         } detail: {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    ProjectDashboardView(snapshot: document.dashboard)
+                    ProjectDashboardView(document: $document)
                     HealthReportView(findings: document.healthFindings)
-                    NotesView(notes: document.notes)
+                    NotesListView(notes: document.notes)
                 }
                 .padding()
             }
@@ -57,6 +68,39 @@ struct ProjectWorkspaceView: View {
                 Button("Export Fountain") {
                     exportAction()
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var contentView: some View {
+        switch selectedSection ?? .dashboard {
+        case .dashboard:
+            ScrollView {
+                ProjectDashboardView(document: $document)
+                    .padding()
+            }
+        case .script:
+            ScriptEditorView(document: $document)
+        case .scenes:
+            ScrollView {
+                SceneListView(scenes: document.scenes)
+                    .padding()
+            }
+        case .characters:
+            ScrollView {
+                CharacterListView(characters: document.characters)
+                    .padding()
+            }
+        case .notes:
+            ScrollView {
+                NotesView(document: $document)
+                    .padding()
+            }
+        case .healthReport:
+            ScrollView {
+                HealthReportView(findings: document.healthFindings)
+                    .padding()
             }
         }
     }

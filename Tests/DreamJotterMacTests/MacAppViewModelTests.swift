@@ -35,10 +35,45 @@ struct MacAppViewModelTests {
         #expect(document.characters.first?.displayName == "MARA")
     }
 
+    @Test("Explicit parse refresh keeps derived scene list current")
+    func refreshParseGeneratesSceneList() {
+        var document = ProjectDocumentViewModel(project: project())
+        document.scriptText = "INT. APARTMENT - NIGHT"
+
+        document.refreshParse(now: now)
+
+        #expect(document.scenes.map(\.heading) == ["INT. APARTMENT - NIGHT"])
+        #expect(document.dashboard.sceneCount == 1)
+    }
+
+    @Test("Project title logline synopsis and notes update dashboard state")
+    func planningFieldsAndNotesUpdateProject() throws {
+        var document = ProjectDocumentViewModel(project: project())
+        document.scriptText = "INT. ROOM - DAY"
+
+        document.updateTitle("New Title", now: now)
+        document.updateLogline("A writer finds the right ending.", now: now)
+        document.updateSynopsis("The writer drafts, doubts, and finishes.", now: now)
+        document.addNote(
+            title: "Opening",
+            body: "Make the first image specific.",
+            target: .scene(try #require(document.scenes.first)),
+            now: now
+        )
+
+        #expect(document.dashboard.title == "New Title")
+        #expect(document.dashboard.logline == "A writer finds the right ending.")
+        #expect(document.dashboard.synopsis == "The writer drafts, doubts, and finishes.")
+        #expect(document.dashboard.noteCount == 1)
+        #expect(document.notes.first?.links.first == NoteLink(targetKind: .scene, targetID: "INT. ROOM - DAY"))
+    }
+
     @Test("Project saves and opens through dreamjotter package storage")
     func saveAndOpenPackage() throws {
         var document = ProjectDocumentViewModel(project: project())
         document.scriptText = "INT. ROOM - DAY"
+        document.updateLogline("A saved logline.", now: now)
+        document.addNote(title: "", body: "A saved note.", target: .project, now: now)
         let root = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("DreamJotterMacTests-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let packageURL = root.appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
@@ -49,6 +84,8 @@ struct MacAppViewModelTests {
 
         let reopened = try #require(app.currentDocument)
         #expect(reopened.dashboard.sceneCount == 1)
+        #expect(reopened.dashboard.logline == "A saved logline.")
+        #expect(reopened.dashboard.noteCount == 1)
         #expect(reopened.packageURL == packageURL)
     }
 
@@ -65,6 +102,18 @@ struct MacAppViewModelTests {
 
         let exported = try String(contentsOf: exportURL, encoding: .utf8)
         #expect(exported == "INT. ROOM - DAY")
+    }
+
+    @Test("Health report action returns advisory findings without mutating text")
+    func healthReportIsReadOnly() {
+        var document = ProjectDocumentViewModel(project: project())
+        document.scriptText = "MARAA\nHello."
+
+        let textBefore = document.scriptText
+        let findings = document.healthFindings
+
+        #expect(!findings.isEmpty)
+        #expect(document.scriptText == textBefore)
     }
 
     private func project() -> DreamJotterProject {

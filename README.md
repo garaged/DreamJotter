@@ -2,7 +2,7 @@
 
 DreamJotter is a screenplay and movie-script writing app for non-programmers. It is designed to let beginners write, organize, and export scripts without learning technical tooling, while still leaving room for optional Pro Mode workflows such as revision colors, draft comparison, production breakdown, custom fields, export presets, and no-code routines.
 
-Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI app shell as a package executable target. There is no TextKit editor, plugin runtime, real AI provider, cloud sync, or external service integration.
+Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. There is no TextKit editor, plugin runtime, real AI provider, cloud sync, or external service integration.
 
 ## Product Direction
 
@@ -70,9 +70,22 @@ Key SDD files:
 | Milestone 2 | Accepted | Portable writer organization is implemented and executable-spec verified: dashboard summaries, templates, characters, scene cards, notes, idea inbox, search, snapshots, `.dreamjotter` package save/load, health report, export presets, and Simple Mode policy. |
 | Milestone 3 | Accepted | Friendly writer tools are implemented and executable-spec verified: guided setup, manual logline/synopsis builders, beat sheets, FakeAIProvider-only suggestions, accepted-only mutation, snapshot-before-rewrite, continuity analysis, friendly warnings, table-read plans, and story package persistence. |
 | Milestone 4 | Accepted | Pro foundations are implemented and executable-spec verified: revision metadata, draft versions, semantic comparison, production breakdown, advanced export presets, custom fields, no-code routines, CommandEngine boundary, Pro Mode visibility, Pro metadata package persistence, and deferred plugin policy. |
-| Milestone 5 | Implemented | First macOS SwiftUI app shell exists as the `DreamJotterMac` package executable: Project Library, temporary TextEditor screenplay editing, parsed scenes/characters, dashboard, package save/open, Fountain export, health report, and simple error alerts. |
+| Milestone 5 | Implemented | First macOS SwiftUI vertical slice exists as the `DreamJotterMac` package executable: Project Library, editable title/logline/synopsis, temporary TextEditor screenplay editing, parsed scenes/characters, notes, dashboard, package save/open, Fountain export, health report, and simple error alerts. |
 
 Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5 app shell is implemented. TextKit adapters, real renderers, real AI providers, cloud sync, and plugin runtime remain deferred.
+
+## Current App Capabilities
+
+- Launches as the `DreamJotterMac` macOS SwiftUI app.
+- Creates a blank screenplay project from the Project Library.
+- Lets the writer edit project title, logline, and synopsis.
+- Provides a temporary SwiftUI `TextEditor` for screenplay text.
+- Parses screenplay text into semantic core elements.
+- Shows derived scene and character lists.
+- Adds project notes and can link a note to the first parsed scene.
+- Saves and opens canonical `.dreamjotter` packages.
+- Exports parser-backed Fountain text.
+- Shows a read-only script health report.
 
 ## Running The macOS App
 
@@ -87,7 +100,7 @@ Select the `DreamJotterMac` scheme and a macOS run destination, then run. The ap
 Command-line validation for the app target:
 
 ```sh
-xcodebuild -packagePath . -scheme DreamJotterMac -destination 'platform=macOS' build
+CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift build --product DreamJotterMac --disable-sandbox --scratch-path /private/tmp/DreamJotterSwiftPM
 ```
 
 ## Spec Workflow

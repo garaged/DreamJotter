@@ -1,26 +1,45 @@
 import SwiftUI
 
 struct ProjectDashboardView: View {
-    let snapshot: ProjectDashboardSnapshot
+    @Binding var document: ProjectDocumentViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Dashboard")
                 .font(.headline)
 
-            Text(snapshot.title)
-                .font(.title3.weight(.semibold))
+            TextField("Project title", text: Binding(
+                get: { document.dashboard.title },
+                set: { document.updateTitle($0) }
+            ))
+            .font(.title3.weight(.semibold))
+            .textFieldStyle(.roundedBorder)
 
-            if let logline = snapshot.logline {
-                Text(logline)
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Logline")
+                    .font(.caption.weight(.semibold))
+                TextField("Add a one-sentence logline.", text: Binding(
+                    get: { document.loglineText },
+                    set: { document.updateLogline($0) }
+                ), axis: .vertical)
+                .lineLimit(2...4)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Synopsis")
+                    .font(.caption.weight(.semibold))
+                TextField("Add a short synopsis for the project.", text: Binding(
+                    get: { document.synopsisText },
+                    set: { document.updateSynopsis($0) }
+                ), axis: .vertical)
+                .lineLimit(4...8)
             }
 
             Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 8) {
                 GridRow {
-                    metric("Scenes", snapshot.sceneCount)
-                    metric("Characters", snapshot.characterCount)
-                    metric("Notes", snapshot.noteCount)
+                    metric("Scenes", document.dashboard.sceneCount)
+                    metric("Characters", document.dashboard.characterCount)
+                    metric("Notes", document.dashboard.noteCount)
                 }
             }
         }
