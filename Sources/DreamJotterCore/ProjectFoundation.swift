@@ -31,10 +31,37 @@ public struct ProjectMetadata: Codable, Equatable, Sendable {
 public struct DreamJotterProject: Codable, Equatable, Sendable {
     public let metadata: ProjectMetadata
     public let screenplay: ScreenplayDocument
+    public let mode: EditorMode
+    public let template: ProjectTemplateMetadata?
+    public let characters: [CharacterRecord]
+    public let notes: [ProjectNote]
+    public let inboxItems: [InboxItem]
+    public let sceneCards: [SceneCard]
+    public let snapshots: [SnapshotRecord]
+    public let exportPresets: [ExportPreset]
 
-    public init(metadata: ProjectMetadata, screenplay: ScreenplayDocument) {
+    public init(
+        metadata: ProjectMetadata,
+        screenplay: ScreenplayDocument,
+        mode: EditorMode = .simple,
+        template: ProjectTemplateMetadata? = nil,
+        characters: [CharacterRecord] = [],
+        notes: [ProjectNote] = [],
+        inboxItems: [InboxItem] = [],
+        sceneCards: [SceneCard] = [],
+        snapshots: [SnapshotRecord] = [],
+        exportPresets: [ExportPreset] = ExportPresetCatalog.builtInPresets()
+    ) {
         self.metadata = metadata
         self.screenplay = screenplay
+        self.mode = mode
+        self.template = template
+        self.characters = characters
+        self.notes = notes
+        self.inboxItems = inboxItems
+        self.sceneCards = sceneCards
+        self.snapshots = snapshots
+        self.exportPresets = exportPresets
     }
 }
 

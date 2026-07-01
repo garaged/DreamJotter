@@ -141,6 +141,68 @@ struct Milestone1ExecutableSpecs {
         #expect(expectation.expectedElements.contains(ExpectedScriptElement(kind: "dialogue", text: "Welcome to México.", characterName: "McClane")))
     }
 
+    @Test("Character dialogue detection handles parentheticals")
+    func characterDialogueDetectionHandlesParentheticals() {
+        let source = """
+        INT. ROOM - NIGHT
+
+        JOSE
+        (sotto)
+        We have one chance.
+        """
+        let document = ScreenplayParser.parse(source)
+
+        #expect(document.elements == [
+            ScriptElement(kind: .sceneHeading, text: "INT. ROOM - NIGHT"),
+            ScriptElement(kind: .characterCue, text: "JOSE"),
+            ScriptElement(kind: .parenthetical, text: "(sotto)", characterName: "JOSE"),
+            ScriptElement(kind: .dialogue, text: "We have one chance.", characterName: "JOSE")
+        ])
+        #expect(document.characters == ["JOSE"])
+        #expect(ScreenplayDerivedData.characterSuggestions(from: document) == [
+            AutocompleteSuggestion(displayText: "JOSE", normalizedKey: "JOSE", sourceCount: 1)
+        ])
+    }
+
+    @Test("Mixed interior exterior scene headings derive locations")
+    func mixedInteriorExteriorSceneHeadingsDeriveLocations() {
+        let source = """
+        INT./EXT. TRAIN - SUNSET
+
+        The doors slide open.
+        """
+        let document = ScreenplayParser.parse(source)
+        let sceneList = ScreenplayDerivedData.sceneList(from: document)
+
+        #expect(document.elements == [
+            ScriptElement(kind: .sceneHeading, text: "INT./EXT. TRAIN - SUNSET"),
+            ScriptElement(kind: .action, text: "The doors slide open.")
+        ])
+        #expect(sceneList.map(\.location) == ["TRAIN"])
+        #expect(ScreenplayDerivedData.locationSuggestions(from: document) == [
+            AutocompleteSuggestion(displayText: "TRAIN", normalizedKey: "TRAIN", sourceCount: 1)
+        ])
+    }
+
+    @Test("Supported standalone transitions are not character suggestions")
+    func supportedStandaloneTransitionsAreNotCharacterSuggestions() {
+        let source = """
+        INT. OFFICE - DAY
+
+        The phone rings.
+
+        FADE OUT.
+        """
+        let document = ScreenplayParser.parse(source)
+
+        #expect(document.elements == [
+            ScriptElement(kind: .sceneHeading, text: "INT. OFFICE - DAY"),
+            ScriptElement(kind: .action, text: "The phone rings."),
+            ScriptElement(kind: .transition, text: "FADE OUT.")
+        ])
+        #expect(ScreenplayDerivedData.characterSuggestions(from: document).isEmpty)
+    }
+
     @Test("Semantic screenplay model remains independent from rich text storage")
     func semanticScreenplayModelRemainsIndependentFromRichTextStorage() throws {
         let elementKinds = try SpecRepository.read("docs/data-contracts/screenplay-element-kinds.md")

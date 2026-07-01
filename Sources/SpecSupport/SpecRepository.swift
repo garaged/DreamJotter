@@ -41,7 +41,26 @@ public struct SpecRegistryItem: Decodable, Sendable {
 }
 
 public enum SpecRepository {
-    public static func root(startingAt start: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)) throws -> URL {
+    public static func root(
+        startingAt start: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath),
+        sourceFile: String = #filePath
+    ) throws -> URL {
+        let candidates = [
+            ProcessInfo.processInfo.environment["DREAMJOTTER_ROOT"].map { URL(fileURLWithPath: $0) },
+            URL(fileURLWithPath: sourceFile).deletingLastPathComponent(),
+            start
+        ].compactMap { $0 }
+
+        for candidate in candidates {
+            if let root = findRoot(startingAt: candidate) {
+                return root
+            }
+        }
+
+        throw SpecRepositoryError.rootNotFound(start.path)
+    }
+
+    private static func findRoot(startingAt start: URL) -> URL? {
         var candidate = start
         let fileManager = FileManager.default
 
@@ -54,7 +73,7 @@ public enum SpecRepository {
 
             let parent = candidate.deletingLastPathComponent()
             if parent.path == candidate.path {
-                throw SpecRepositoryError.rootNotFound(start.path)
+                return nil
             }
             candidate = parent
         }
