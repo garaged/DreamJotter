@@ -3,8 +3,10 @@ import SwiftUI
 struct ProjectLibraryView: View {
     @State private var title = "Untitled"
 
+    let recentProjectURLs: [URL]
     let createAction: (String) -> Void
     let openAction: () -> Void
+    let openRecentAction: (URL) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -29,6 +31,32 @@ struct ProjectLibraryView: View {
 
             Text("Create or open a local .dreamjotter package.")
                 .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Recent Projects")
+                    .font(.headline)
+
+                if recentProjectURLs.isEmpty {
+                    Text("Saved or opened projects will appear here.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(recentProjectURLs, id: \.self) { url in
+                        Button {
+                            openRecentAction(url)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(url.deletingPathExtension().lastPathComponent)
+                                Text(url.path)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(.top, 12)
         }
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

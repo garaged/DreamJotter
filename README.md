@@ -2,7 +2,7 @@
 
 DreamJotter is a screenplay and movie-script writing app for non-programmers. It is designed to let beginners write, organize, and export scripts without learning technical tooling, while still leaving room for optional Pro Mode workflows such as revision colors, draft comparison, production breakdown, custom fields, export presets, and no-code routines.
 
-Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. There is no TextKit editor, plugin runtime, real AI provider, cloud sync, or external service integration.
+Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. Milestone 6 stabilizes document lifecycle behavior for saving, dirty state, recent projects, replacement protection, and basic commands. There is no plugin runtime, real AI provider, cloud sync, or external service integration.
 
 ## Product Direction
 
@@ -71,8 +71,9 @@ Key SDD files:
 | Milestone 3 | Accepted | Friendly writer tools are implemented and executable-spec verified: guided setup, manual logline/synopsis builders, beat sheets, FakeAIProvider-only suggestions, accepted-only mutation, snapshot-before-rewrite, continuity analysis, friendly warnings, table-read plans, and story package persistence. |
 | Milestone 4 | Accepted | Pro foundations are implemented and executable-spec verified: revision metadata, draft versions, semantic comparison, production breakdown, advanced export presets, custom fields, no-code routines, CommandEngine boundary, Pro Mode visibility, Pro metadata package persistence, and deferred plugin policy. |
 | Milestone 5 | Implemented | First macOS SwiftUI vertical slice exists as the `DreamJotterMac` package executable: Project Library, editable title/logline/synopsis, temporary TextEditor screenplay editing, parsed scenes/characters, notes, dashboard, package save/open, Fountain export, health report, and simple error alerts. |
+| Milestone 6 | Implemented | Document lifecycle is implemented for the macOS app: dirty state, Save/Save As routing, recent projects, dirty replacement confirmation, visible save status, basic commands, and export without dirtying the project. |
 
-Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5 app shell is implemented. TextKit adapters, real renderers, real AI providers, cloud sync, and plugin runtime remain deferred.
+Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5 and Milestone 6 app foundations are implemented. Real renderers, real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
 
 ## Current App Capabilities
 
@@ -85,8 +86,13 @@ Implementation status: Milestone 1 through Milestone 4 portable-core foundations
 - Shows derived scene and character lists.
 - Adds project notes and can link a note to the first parsed scene.
 - Saves and opens canonical `.dreamjotter` packages.
+- Tracks dirty state and shows unsaved status in the app UI.
+- Routes Save to Save As when a project has no package URL.
+- Records recently opened or saved packages in the Project Library.
+- Requires confirmation before replacing a project with unsaved changes.
 - Exports parser-backed Fountain text.
 - Shows a read-only script health report.
+- Provides basic commands and shortcuts for New Project, Open, Save, Save As, and Export Fountain.
 
 ## Running The macOS App
 

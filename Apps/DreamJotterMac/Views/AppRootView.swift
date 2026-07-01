@@ -4,6 +4,7 @@ import SwiftUI
 struct AppRootView: View {
     @State private var appModel = MacAppViewModel()
     @State private var errorMessage: String?
+    @State private var replacementConfirmationMessage: String?
 
     var body: some View {
         Group {
@@ -17,16 +18,34 @@ struct AppRootView: View {
                     saveAsAction: saveProjectAs,
                     openAction: openProject,
                     exportAction: exportFountain,
-                    closeAction: { appModel.closeProject() }
+                    closeAction: closeProject
                 )
             } else {
                 ProjectLibraryView(
+                    recentProjectURLs: appModel.recentProjectURLs,
                     createAction: createProject,
-                    openAction: openProject
+                    openAction: openProject,
+                    openRecentAction: openRecentProject
                 )
             }
         }
+        .navigationTitle(windowTitle)
         .frame(minWidth: 1100, minHeight: 720)
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterNewProject)) { _ in
+            createProject("Untitled")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterOpenProject)) { _ in
+            openProject()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterSaveProject)) { _ in
+            saveProject()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterSaveProjectAs)) { _ in
+            saveProjectAs()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterExportFountain)) { _ in
+            exportFountain()
+        }
         .alert("DreamJotter", isPresented: Binding(
             get: { errorMessage != nil },
             set: { if !$0 { errorMessage = nil } }
@@ -35,10 +54,32 @@ struct AppRootView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+        .alert("Unsaved Changes", isPresented: Binding(
+            get: { replacementConfirmationMessage != nil },
+            set: { if !$0 { replacementConfirmationMessage = nil } }
+        )) {
+            Button("Discard Changes", role: .destructive) {
+                confirmPendingReplacement()
+            }
+            Button("Cancel", role: .cancel) {
+                appModel.cancelPendingReplacement()
+                replacementConfirmationMessage = nil
+            }
+        } message: {
+            Text(replacementConfirmationMessage ?? "")
+        }
+    }
+
+    private var windowTitle: String {
+        guard let document = appModel.currentDocument else { return "DreamJotter" }
+        let unsavedMarker = document.isDirty ? " *" : ""
+        let location = document.packageURL == nil ? " - Unsaved" : ""
+        return "\(document.project.metadata.title)\(unsavedMarker)\(location)"
     }
 
     private func createProject(_ title: String) {
-        appModel.createBlankProject(title: title)
+        let decision = appModel.requestNewProject(title: title)
+        presentReplacementDecision(decision)
     }
 
     private func openProject() {
@@ -49,29 +90,53 @@ struct AppRootView: View {
         panel.allowsMultipleSelection = false
 
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        openRecentProject(url)
+    }
+
+    private func openRecentProject(_ url: URL) {
         do {
-            try appModel.openPackage(at: url)
+            let decision = try appModel.requestOpenPackage(at: url)
+            presentReplacementDecision(decision)
         } catch {
+            appModel.forgetInvalidRecentProject(url)
             errorMessage = error.localizedDescription
         }
     }
 
     private func saveProject() {
-        guard var document = appModel.currentDocument else { return }
-        if let packageURL = document.packageURL {
-            do {
-                try document.save(to: packageURL)
-                appModel.currentDocument = document
-            } catch {
-                errorMessage = error.localizedDescription
+        do {
+            let result = try appModel.saveCurrentProject()
+            if result == .requiresSaveAs {
+                saveProjectAs()
             }
-        } else {
-            saveProjectAs()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func closeProject() {
+        let decision = appModel.requestCloseProject()
+        presentReplacementDecision(decision)
+    }
+
+    private func presentReplacementDecision(_ decision: ProjectReplacementDecision) {
+        if case .requiresConfirmation(let message) = decision {
+            replacementConfirmationMessage = message
+        }
+    }
+
+    private func confirmPendingReplacement() {
+        do {
+            try appModel.confirmPendingReplacement()
+            replacementConfirmationMessage = nil
+        } catch {
+            replacementConfirmationMessage = nil
+            errorMessage = error.localizedDescription
         }
     }
 
     private func saveProjectAs() {
-        guard var document = appModel.currentDocument else { return }
+        guard let document = appModel.currentDocument else { return }
         let panel = NSSavePanel()
         panel.title = "Save DreamJotter Package"
         panel.nameFieldStringValue = "\(document.project.metadata.title).dreamjotter"
@@ -83,8 +148,7 @@ struct AppRootView: View {
             : selectedURL.appendingPathExtension("dreamjotter")
 
         do {
-            try document.save(to: packageURL)
-            appModel.currentDocument = document
+            try appModel.saveCurrentProject(to: packageURL)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -103,9 +167,17 @@ struct AppRootView: View {
             : selectedURL.appendingPathExtension("fountain")
 
         do {
-            try document.exportFountain(to: exportURL)
+            try appModel.exportCurrentProject(to: exportURL)
         } catch {
             errorMessage = error.localizedDescription
         }
     }
+}
+
+extension Notification.Name {
+    static let dreamJotterNewProject = Notification.Name("DreamJotterNewProject")
+    static let dreamJotterOpenProject = Notification.Name("DreamJotterOpenProject")
+    static let dreamJotterSaveProject = Notification.Name("DreamJotterSaveProject")
+    static let dreamJotterSaveProjectAs = Notification.Name("DreamJotterSaveProjectAs")
+    static let dreamJotterExportFountain = Notification.Name("DreamJotterExportFountain")
 }

@@ -16,6 +16,8 @@ struct MacAppViewModelTests {
         let document = try #require(app.currentDocument)
         #expect(document.dashboard.title == "First Draft")
         #expect(document.dashboard.sceneCount == 0)
+        #expect(document.packageURL == nil)
+        #expect(document.isDirty == false)
     }
 
     @Test("Editing screenplay text reparses scenes and characters")
@@ -33,6 +35,7 @@ struct MacAppViewModelTests {
         #expect(document.dashboard.characterCount == 1)
         #expect(document.scenes.first?.heading == "INT. ROOM - DAY")
         #expect(document.characters.first?.displayName == "MARA")
+        #expect(document.isDirty)
     }
 
     @Test("Editor adapter text updates use the shared semantic view model path")
@@ -50,6 +53,114 @@ struct MacAppViewModelTests {
         #expect(document.scenes.first?.heading == "EXT. STREET - NIGHT")
         #expect(document.characters.map(\.displayName) == ["LUIS"])
         #expect(document.fountainExportText.contains("LUIS"))
+    }
+
+    @Test("Save without a package URL requests Save As")
+    func saveWithoutPackageURLRequestsSaveAs() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+
+        let result = try app.saveCurrentProject(now: now)
+
+        #expect(result == .requiresSaveAs)
+        #expect(app.currentDocument?.isDirty == true)
+    }
+
+    @Test("Saving to a package clears dirty state and records a recent project")
+    func saveAsClearsDirtyAndRecordsRecentProject() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+        let packageURL = temporaryDirectory(named: "DreamJotterMacSaveAs").appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
+
+        try app.saveCurrentProject(to: packageURL, now: now)
+
+        #expect(app.currentDocument?.packageURL == packageURL)
+        #expect(app.currentDocument?.isDirty == false)
+        #expect(app.recentProjectURLs == [packageURL])
+    }
+
+    @Test("Saving an existing package updates that package and clears dirty state")
+    func saveExistingPackageClearsDirtyState() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        let packageURL = temporaryDirectory(named: "DreamJotterMacExistingSave").appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
+        try app.saveCurrentProject(to: packageURL, now: now)
+        app.currentDocument?.updateScriptText("EXT. STREET - DAY")
+
+        let result = try app.saveCurrentProject(now: now)
+
+        #expect(result == .saved)
+        #expect(app.currentDocument?.packageURL == packageURL)
+        #expect(app.currentDocument?.isDirty == false)
+    }
+
+    @Test("Opening a package loads clean state and records recent project")
+    func openPackageLoadsCleanStateAndRecordsRecentProject() throws {
+        var source = ProjectDocumentViewModel(project: project())
+        source.updateScriptText("EXT. PARK - DAY")
+        let packageURL = temporaryDirectory(named: "DreamJotterMacOpen").appendingPathComponent("Open Me.dreamjotter", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
+        try source.save(to: packageURL, now: now)
+
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        let decision = try app.requestOpenPackage(at: packageURL)
+
+        #expect(decision == .replaced)
+        #expect(app.currentDocument?.packageURL == packageURL)
+        #expect(app.currentDocument?.isDirty == false)
+        #expect(app.currentDocument?.dashboard.sceneCount == 1)
+        #expect(app.recentProjectURLs == [packageURL])
+    }
+
+    @Test("Failed open returns human readable error")
+    func failedOpenReturnsHumanReadableError() throws {
+        let invalidURL = temporaryDirectory(named: "DreamJotterInvalidOpen").appendingPathComponent("Broken.dreamjotter", isDirectory: true)
+        try FileManager.default.createDirectory(at: invalidURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: invalidURL.deletingLastPathComponent()) }
+        var app = MacAppViewModel(recentProjectStore: .memory(initialURLs: [invalidURL]))
+
+        do {
+            _ = try app.requestOpenPackage(at: invalidURL)
+            Issue.record("Expected open to fail")
+        } catch {
+            #expect(error.localizedDescription.isEmpty == false)
+            #expect(!error.localizedDescription.contains("Swift"))
+        }
+    }
+
+    @Test("Export does not mark project dirty")
+    func exportDoesNotMarkDirty() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+        let packageURL = temporaryDirectory(named: "DreamJotterExportDirty").appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
+        let exportURL = packageURL.deletingLastPathComponent().appendingPathComponent("First Draft.fountain")
+        defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
+        try app.saveCurrentProject(to: packageURL, now: now)
+
+        try app.exportCurrentProject(to: exportURL)
+
+        #expect(app.currentDocument?.isDirty == false)
+    }
+
+    @Test("Replacing a dirty project requires confirmation")
+    func replacingDirtyProjectRequiresConfirmation() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+
+        let decision = app.requestNewProject(title: "Second Draft", now: now)
+
+        #expect(decision != .replaced)
+        #expect(app.pendingReplacement == .newProject(title: "Second Draft"))
+
+        try app.confirmPendingReplacement(now: now)
+        #expect(app.currentDocument?.dashboard.title == "Second Draft")
+        #expect(app.currentDocument?.isDirty == false)
     }
 
     @Test("Explicit parse refresh keeps derived scene list current")
@@ -140,5 +251,9 @@ struct MacAppViewModelTests {
             screenplayID: "screenplay-1",
             createdAt: now
         )
+    }
+
+    private func temporaryDirectory(named name: String) -> URL {
+        URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(name)-\(UUID().uuidString)", isDirectory: true)
     }
 }

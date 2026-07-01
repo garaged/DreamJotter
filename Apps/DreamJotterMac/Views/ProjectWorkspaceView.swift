@@ -48,6 +48,9 @@ struct ProjectWorkspaceView: View {
         }
         .toolbar {
             ToolbarItemGroup {
+                Text(documentStatus)
+                    .foregroundStyle(document.isDirty ? .orange : .secondary)
+
                 Button("Library") {
                     closeAction()
                 }
@@ -70,6 +73,13 @@ struct ProjectWorkspaceView: View {
                 }
             }
         }
+    }
+
+    private var documentStatus: String {
+        if document.packageURL == nil {
+            return document.isDirty ? "Unsaved changes" : "Unsaved project"
+        }
+        return document.isDirty ? "Unsaved changes" : "Saved"
     }
 
     @ViewBuilder

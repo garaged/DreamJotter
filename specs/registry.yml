@@ -488,6 +488,35 @@
       "notes": "Adds a macOS NSTextView adapter foundation with SwiftUI TextEditor fallback while preserving semantic screenplay parsing, .dreamjotter package storage, and Fountain export through portable core."
     },
     {
+      "id": "M6-DOCUMENT-LIFECYCLE",
+      "title": "Milestone 6 Document Lifecycle and Writer Workflow Stabilization",
+      "milestone": "M6",
+      "status": "implemented",
+      "spec": "docs/milestones/milestone-6-document-lifecycle.md",
+      "acceptance": "docs/acceptance/milestone-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
+      ],
+      "planned_modules": [
+        "DreamJotterMac",
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "RecentProjectStore",
+        "DreamJotterPackageStore",
+        "FountainIO"
+      ],
+      "guardrails": [
+        "Document lifecycle behavior stays in app support and view models; .dreamjotter remains canonical storage and DreamJotterCore remains platform-neutral."
+      ],
+      "notes": "Adds dirty state, Save/Save As routing, recent projects, dirty replacement confirmation state, basic macOS commands, and export-without-dirtying behavior."
+    },
+    {
       "id": "ROUTINE-SYSTEM-V1",
       "title": "Routine System v1 Spec",
       "milestone": "M4",

@@ -19,15 +19,20 @@ struct ProjectDocumentViewModel: Equatable {
     private(set) var project: DreamJotterProject
     var scriptText: String {
         didSet {
-            reparseScript()
+            if scriptText != oldValue {
+                isDirty = true
+                reparseScript()
+            }
         }
     }
     private(set) var packageURL: URL?
+    private(set) var isDirty: Bool
 
-    init(project: DreamJotterProject, packageURL: URL? = nil, scriptText: String? = nil) {
+    init(project: DreamJotterProject, packageURL: URL? = nil, scriptText: String? = nil, isDirty: Bool = false) {
         self.project = project
         self.packageURL = packageURL
         self.scriptText = scriptText ?? FountainIO.exportScreenplay(project.screenplay)
+        self.isDirty = isDirty
         reparseScript()
     }
 
@@ -74,6 +79,7 @@ struct ProjectDocumentViewModel: Equatable {
         reparseScript(modifiedAt: now)
         try DreamJotterPackageStore.save(project, to: packageURL, updatedAt: now)
         self.packageURL = packageURL
+        isDirty = false
     }
 
     func exportFountain(to fileURL: URL) throws {
@@ -85,14 +91,16 @@ struct ProjectDocumentViewModel: Equatable {
     }
 
     mutating func refreshParse(now: Date = Date()) {
-        reparseScript(modifiedAt: now)
+        reparseScript()
     }
 
     mutating func updateTitle(_ title: String, now: Date = Date()) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedTitle = trimmed.isEmpty ? "Untitled" : trimmed
+        guard normalizedTitle != project.metadata.title else { return }
         let metadata = ProjectMetadata(
             id: project.metadata.id,
-            title: trimmed.isEmpty ? "Untitled" : trimmed,
+            title: normalizedTitle,
             createdAt: project.metadata.createdAt,
             modifiedAt: now,
             schemaVersion: project.metadata.schemaVersion,
@@ -100,10 +108,12 @@ struct ProjectDocumentViewModel: Equatable {
             packageExtension: project.metadata.packageExtension
         )
         replaceProject(metadata: metadata)
+        isDirty = true
     }
 
     mutating func updateLogline(_ text: String, now: Date = Date()) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed != loglineText else { return }
         let story = StoryDevelopmentState(
             setup: project.story.setup,
             logline: trimmed.isEmpty ? nil : LoglineRecord(
@@ -117,10 +127,12 @@ struct ProjectDocumentViewModel: Equatable {
             suggestions: project.story.suggestions
         )
         replaceProject(story: story, modifiedAt: now)
+        isDirty = true
     }
 
     mutating func updateSynopsis(_ text: String, now: Date = Date()) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed != synopsisText else { return }
         let story = StoryDevelopmentState(
             setup: project.story.setup,
             logline: project.story.logline,
@@ -134,6 +146,7 @@ struct ProjectDocumentViewModel: Equatable {
             suggestions: project.story.suggestions
         )
         replaceProject(story: story, modifiedAt: now)
+        isDirty = true
     }
 
     mutating func addNote(title: String, body: String, target: NoteLinkTarget, now: Date = Date()) {
@@ -150,6 +163,7 @@ struct ProjectDocumentViewModel: Equatable {
             updatedAt: now
         )
         replaceProject(notes: project.notes + [note], modifiedAt: now)
+        isDirty = true
     }
 
     private mutating func reparseScript(modifiedAt: Date? = nil) {

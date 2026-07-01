@@ -54,13 +54,15 @@ Status: foundation complete.
 - Keep the Script pane editor switch available while TextKit matures.
 - Add document-based app behavior for native package open/save lifecycle.
 - Add autosave after document ownership and snapshot policy are specified.
-- Add recent projects using derived app metadata, never canonical storage.
+- Polish recent projects with availability badges, missing-package repair, and clearer invalid-entry handling.
+- Add reopen-last-project-on-launch once startup ownership rules are specified.
+- Replace the current discard-only dirty replacement prompt with Save / Discard / Cancel.
 - Add iPad app after macOS foundations are stable.
 - Add iPhone app after the iPad workflow is specified.
 - Keep Apple UI adapters thin over portable core behavior.
 - Do not make SwiftData canonical storage.
 - Preserve Simple Mode as the first-run experience.
-- Defer visual polish until the vertical slice workflow is stable.
+- Defer visual polish until the document lifecycle and editor workflows are stable.
 
 ## TextKit Editor
 
