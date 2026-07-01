@@ -1,6 +1,6 @@
 # Continuity Analysis Spec
 
-Status: specified
+Status: implemented
 Milestone: M3-M4
 Traceability ID: CONTINUITY-ANALYSIS-001
 
@@ -180,7 +180,6 @@ And the project remains unchanged.
 
 ## Non-Goals
 
-- No production implementation.
 - No automatic fixes.
 - No AI calls.
 - No mandatory continuity gate before export.

@@ -32,6 +32,9 @@ MyMovie.dreamjotter/
   characters.json
   locations.json
   notes.json
+  inbox.json
+  scene-cards.json
+  story.json
   routines.json
   custom-fields.json
   snapshots/
@@ -52,7 +55,10 @@ All listed top-level files and directories are reserved names. Early packages ma
 | `script.fountain` | Fountain interoperability projection of screenplay. | No, unless explicitly imported as source during an operation. |
 | `characters.json` | Character records, aliases, notes links, source references. | Yes |
 | `locations.json` | Location records, source scene references, notes links. | Yes |
-| `notes.json` | Notes, idea inbox items if not split later, note links, tags where specified. | Yes |
+| `notes.json` | Project notes, note links, tags where specified. | Yes |
+| `inbox.json` | Idea inbox records and archive state. | Yes |
+| `scene-cards.json` | Scene card summaries and planning notes linked to semantic scenes. | Yes |
+| `story.json` | Guided setup, logline, synopsis, beat sheets, and accepted/pending AI suggestion records. | Yes |
 | `routines.json` | Routine definitions and optionally bounded routine run logs. | Yes for routines; logs policy unresolved. |
 | `custom-fields.json` | Custom field definitions and values. | Yes |
 | `snapshots/` | Snapshot manifests and captured project states. | Yes for snapshot metadata/content. |
@@ -96,6 +102,9 @@ Example:
     "characters": { "path": "characters.json", "required": false },
     "locations": { "path": "locations.json", "required": false },
     "notes": { "path": "notes.json", "required": false },
+    "inbox": { "path": "inbox.json", "required": false },
+    "sceneCards": { "path": "scene-cards.json", "required": false },
+    "story": { "path": "story.json", "required": false },
     "routines": { "path": "routines.json", "required": false },
     "customFields": { "path": "custom-fields.json", "required": false },
     "fountainProjection": { "path": "script.fountain", "required": false }
@@ -163,6 +172,7 @@ snapshots/
     characters.json
     locations.json
     notes.json
+    story.json
     routines.json
     custom-fields.json
 ```

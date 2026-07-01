@@ -337,7 +337,7 @@
       "id": "M3-FRIENDLY-WRITER-TOOLS",
       "title": "Milestone 3 Friendly Writer Tools",
       "milestone": "M3",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/milestones/milestone-3-friendly-writer-tools.md",
       "acceptance": "docs/acceptance/milestone-3-acceptance.md",
       "related_adrs": [
@@ -367,13 +367,13 @@
       "guardrails": [
         "Milestone 3 must not call external AI services, must keep AI optional and disableable, must require accepted-only mutations, and must create snapshots before AI rewrites."
       ],
-      "notes": "Detailed Milestone 3 scope for beginner-friendly story tools and safe AI-assisted workflows."
+      "notes": "Accepted portable-core implementation for beginner-friendly story tools and safe AI-assisted workflows: story setup, logline/synopsis builders, beat sheets, FakeAIProvider suggestions, accepted-only mutation, snapshot-before-rewrite, continuity warnings, friendly warning language, table-read plans, and story package persistence."
     },
     {
       "id": "AI-ABSTRACTION-001",
       "title": "AI Abstraction Spec",
       "milestone": "M3",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/ai/ai-abstraction-spec.md",
       "acceptance": "docs/acceptance/milestone-3-acceptance.md",
       "related_adrs": [
@@ -393,7 +393,7 @@
       "guardrails": [
         "AI providers must never mutate project data directly; FakeAIProvider is the only Milestone 3 provider and no external service calls are allowed."
       ],
-      "notes": "Provider-neutral AI boundary, suggestion lifecycle, disabled mode, fake provider, and snapshot-before-rewrite policy."
+      "notes": "Implemented provider-neutral AI request/response/suggestion records, deterministic FakeAIProvider, disabled responses, rejection without mutation, and snapshot-before-rewrite safety; real providers remain deferred."
     },
     {
       "id": "M4-PRO-FOUNDATIONS",
@@ -828,7 +828,7 @@
       "id": "CONTINUITY-ANALYSIS-SPEC",
       "title": "Continuity Analysis Spec",
       "milestone": "M3-M4",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/specs/continuity-analysis-spec.md",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [
@@ -847,13 +847,13 @@
       "guardrails": [
         "Continuity findings are advisory, friendly, false-positive-aware, and must not mutate project data or block writing."
       ],
-      "notes": "Defines character spelling mismatch, unknown character reference, conflicting metadata, unresolved TODOs, friendly language, and false-positive mitigation."
+      "notes": "Implemented read-only continuity findings for character spelling mismatch, unknown character references, conflicting metadata, unresolved TODOs, and friendly language; future dismissal commands remain deferred."
     },
     {
       "id": "TABLE-READ-SPEC",
       "title": "Table-Read Spec",
       "milestone": "M3-M4",
-      "status": "specified",
+      "status": "accepted",
       "spec": "docs/specs/table-read-spec.md",
       "acceptance": "docs/acceptance/traceability-matrix.md",
       "related_adrs": [
@@ -872,7 +872,7 @@
       "guardrails": [
         "Table-read data is generated from semantic screenplay elements and future text-to-speech remains a platform adapter, not portable core storage."
       ],
-      "notes": "Defines ordered speaking parts, dialogue extraction, action separation, character preservation, non-dialogue scenes, and future TTS boundary."
+      "notes": "Implemented portable table-read plan generation with ordered scene items and speaking parts; text-to-speech remains a future platform adapter."
     },
     {
       "id": "EXECUTABLE-SPECS-SKELETON",

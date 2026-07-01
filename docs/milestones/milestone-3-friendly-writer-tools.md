@@ -4,7 +4,7 @@
 
 Add beginner-friendly story-development tools and safe AI-assisted workflows without introducing real AI provider integration. Milestone 3 helps writers shape story material, receive advisory continuity feedback, prepare read-aloud behavior, and evaluate AI suggestions while preserving user control over canonical screenplay text.
 
-Milestone 3 remains documentation-first in this prompt. It does not implement production code, create app UI, create a Swift package, create an Xcode project, call external services, or introduce plugins.
+Milestone 3 portable-core behavior is implemented and executable-spec verified. It does not create app UI, create an Xcode project, call external services, implement real AI providers, or introduce plugins.
 
 ## Scope Summary
 

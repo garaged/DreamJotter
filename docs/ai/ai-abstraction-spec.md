@@ -1,12 +1,12 @@
 # AI Abstraction Spec
 
-Status: specified
+Status: implemented
 Milestone: M3-M4
 Traceability IDs: M3-AI-ABSTRACTION-001, AI-ABSTRACTION-001
 
 ## Purpose
 
-This spec defines DreamJotter's AI boundary through Milestone 4. It is provider-neutral and safety-first. It does not implement code, call external services, choose a real AI provider, or allow AI output to mutate user text directly.
+This spec defines DreamJotter's AI boundary through Milestone 4. It is provider-neutral and safety-first. The Milestone 3 portable core implements deterministic fake-provider behavior, suggestion records, disabled handling, rejection, and snapshot-before-rewrite safety without calling external services, choosing a real AI provider, or allowing AI output to mutate user text directly.
 
 ## Scope
 

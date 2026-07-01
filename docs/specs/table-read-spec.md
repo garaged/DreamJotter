@@ -1,6 +1,6 @@
 # Table-Read Spec
 
-Status: specified
+Status: implemented
 Milestone: M3-M4
 Traceability ID: TABLE-READ-001
 
@@ -156,7 +156,6 @@ And no speaking part is invented.
 
 ## Non-Goals
 
-- No production implementation.
 - No text-to-speech implementation.
 - No audio export.
 - No voice casting UI.

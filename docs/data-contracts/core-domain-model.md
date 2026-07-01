@@ -45,6 +45,11 @@ Purpose: Root canonical project record for a `.dreamjotter` package.
 | `tags` | `[Tag]` | No | Shared tags. |
 | `draftVersions` | `[DraftVersion]` | No | Draft metadata. |
 | `snapshots` | `[Snapshot]` | No | Snapshot metadata. |
+| `storySetup` | `StorySetup` | No | Guided setup fields for title intent, protagonist, goal, obstacle, audience, and notes. |
+| `logline` | `Logline` | No | Manual or accepted-suggestion logline record. |
+| `synopsis` | `Synopsis` | No | Manual or accepted-suggestion synopsis record. |
+| `beatSheets` | `[BeatSheet]` | No | Optional story-planning beats linked to scenes where available. |
+| `aiSuggestions` | `[AISuggestion]` | No | Suggestion lifecycle records; pending/rejected suggestions do not mutate screenplay text. |
 | `productionBreakdown` | `[ProductionBreakdown]` | No | Optional Pro data. |
 | `customFieldDefinitions` | `[CustomFieldDefinition]` | No | Optional Pro schema. |
 | `customFieldValues` | `[CustomFieldValue]` | No | Optional Pro values. |
@@ -81,6 +86,11 @@ JSON example:
   "tags": [],
   "draftVersions": [],
   "snapshots": [],
+  "storySetup": null,
+  "logline": null,
+  "synopsis": null,
+  "beatSheets": [],
+  "aiSuggestions": [],
   "productionBreakdown": [],
   "customFieldDefinitions": [],
   "customFieldValues": [],

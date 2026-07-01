@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This file defines acceptance examples for Milestone 3: Friendly Writer Tools. These examples are intended for future executable specs and tests. They do not require production code, app UI, real AI providers, or external service calls in this prompt.
+This file defines acceptance examples for Milestone 3: Friendly Writer Tools. These examples are covered by executable specs for the portable core. They do not require app UI, real AI providers, or external service calls.
 
 ## Acceptance Fixture Set
 

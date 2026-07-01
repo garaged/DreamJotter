@@ -25,16 +25,15 @@ Status: foundation complete.
 
 ## Milestone 3 Implementation
 
-- Implement guided story setup data flows.
-- Implement manual logline and synopsis builders.
-- Implement beat sheet template data records and scene linking.
-- Implement FakeAIProvider-only suggestion flows for executable specs.
-- Implement AI accept/reject lifecycle through CommandEngine only.
-- Enforce snapshot-before-AI-rewrite behavior.
-- Implement continuity analysis warnings without mutation.
-- Implement character consistency checks with Unicode support.
-- Implement table-read plan generation without text-to-speech.
-- Keep real AI providers and network calls out of scope.
+Status: foundation complete.
+
+- Maintain guided story setup, logline, synopsis, and beat sheet executable specs.
+- Maintain FakeAIProvider-only suggestion flows with AI-disabled behavior and no external calls.
+- Maintain accepted-only mutation and snapshot-before-AI-rewrite behavior.
+- Keep continuity analysis warnings read-only, advisory, friendly, and Unicode-aware.
+- Keep table-read plan generation portable and free of text-to-speech dependencies.
+- Keep story-development state persisted through `.dreamjotter` `story.json` package storage.
+- Defer real AI providers, network calls, UI adapters, and full CommandEngine mutation routing.
 
 ## Milestone 4 Implementation
 
