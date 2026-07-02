@@ -7,6 +7,17 @@ import Testing
 struct ReviewLayoutNumberingTests {
     private let now = Date(timeIntervalSince1970: 1_783_814_400)
 
+    @Test("Review numbering defaults favor low-noise coordinates")
+    func reviewNumberingDefaultsFavorLowNoiseCoordinates() {
+        let options = ReviewLayoutNumberingOptions()
+
+        #expect(options.showPage)
+        #expect(options.showParagraph)
+        #expect(options.showBlock)
+        #expect(options.showSourceElement == false)
+        #expect(options.showLine == false)
+    }
+
     @Test("Review numbering exposes hierarchical addresses without dirtying clean project")
     func reviewNumberingPreservesCleanState() throws {
         let project = DreamJotterProject(
