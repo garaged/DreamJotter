@@ -4,7 +4,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_PATH = ROOT / "specs" / "registry.yml"
+REGISTRY_DIR = ROOT / "specs"
+PRIMARY_REGISTRY_PATH = REGISTRY_DIR / "registry.yml"
 CONSTITUTION_PATH = ROOT / "docs" / "constitution.md"
 ALLOWED_STATUSES = {
     "idea",
@@ -19,12 +20,24 @@ ALLOWED_STATUSES = {
 }
 
 
-def load_registry():
-    try:
-        return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as error:
-        print(f"FAIL registry is not valid JSON-compatible YAML: {error}")
-        sys.exit(1)
+def registry_paths():
+    return sorted(REGISTRY_DIR.glob("registry*.yml"))
+
+
+def load_registries(paths):
+    combined = {"items": []}
+    for path in paths:
+        try:
+            registry = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            print(f"FAIL {path.relative_to(ROOT)} is not valid JSON-compatible YAML: {error}")
+            sys.exit(1)
+        items = registry.get("items", [])
+        if not isinstance(items, list):
+            print(f"FAIL {path.relative_to(ROOT)} must contain an items list")
+            sys.exit(1)
+        combined["items"].extend(items)
+    return combined
 
 
 def as_list(value):
@@ -42,21 +55,26 @@ def path_exists(relative_path):
 def main():
     errors = []
 
-    if not REGISTRY_PATH.exists():
+    if not PRIMARY_REGISTRY_PATH.exists():
         errors.append("specs/registry.yml is missing")
     if not CONSTITUTION_PATH.exists():
         errors.append("docs/constitution.md is missing")
+
+    paths = registry_paths()
+    if not paths:
+        errors.append("no specs/registry*.yml files were found")
 
     if errors:
         for error in errors:
             print(f"FAIL {error}")
         return 1
 
-    registry = load_registry()
+    registry = load_registries(paths)
     items = registry.get("items", [])
-    if not isinstance(items, list) or not items:
-        errors.append("registry must contain a non-empty items list")
+    if not items:
+        errors.append("combined registry must contain a non-empty items list")
 
+    seen_ids = set()
     for index, item in enumerate(items, start=1):
         label = item.get("id", f"item #{index}") if isinstance(item, dict) else f"item #{index}"
         if not isinstance(item, dict):
@@ -66,6 +84,12 @@ def main():
         for field in ("id", "title", "status", "milestone", "spec"):
             if not item.get(field):
                 errors.append(f"{label}: missing required field '{field}'")
+
+        item_id = item.get("id")
+        if item_id:
+            if item_id in seen_ids:
+                errors.append(f"{label}: duplicate registry id")
+            seen_ids.add(item_id)
 
         status = item.get("status")
         if status and status not in ALLOWED_STATUSES:
@@ -115,7 +139,8 @@ def main():
             print(f"FAIL {error}")
         return 1
 
-    print(f"PASS spec-check: {len(items)} registry items validated")
+    relative_paths = ", ".join(str(path.relative_to(ROOT)) for path in paths)
+    print(f"PASS spec-check: {len(items)} registry items validated across {relative_paths}")
     return 0
 
 

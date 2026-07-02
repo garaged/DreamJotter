@@ -1,9 +1,11 @@
 import Foundation
 
-/// Compatibility facade retained for the M9 export workflow entry point.
+/// Compatibility facade retained for source compatibility with the M9 export API.
 ///
-/// The former single-page basic renderer has been removed. All PDF output now
-/// uses `PDFLayoutPlanner` and `ProductionPDFRenderer`.
+/// The former single-page renderer has been removed. All PDF output is planned by
+/// `PDFLayoutPlanner` and rendered by `ProductionPDFRenderer`. New code should call
+/// `ProductionPDFRenderer` directly.
+@available(*, deprecated, message: "Use ProductionPDFRenderer; BasicPDFExportAdapter is retained only for compatibility.")
 public enum BasicPDFExportAdapter {
     public static func render(
         project: DreamJotterProject,
