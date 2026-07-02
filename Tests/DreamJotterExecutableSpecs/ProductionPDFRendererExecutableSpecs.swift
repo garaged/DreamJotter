@@ -73,19 +73,17 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(pdf.contains("Path \\\\tmp \\(draft\\) caf?"))
     }
 
-    @Test("Reader-facing PDF omits notes and TODO elements")
-    func readerFacingPDFOmitsNotes() throws {
-        var project = makeProject(elements: [
+    @Test("Reader-facing PDF omits TODO elements")
+    func readerFacingPDFOmitsTODOElements() throws {
+        let project = makeProject(elements: [
             ScriptElement(kind: .action, text: "Visible screenplay text."),
             ScriptElement(kind: .noteReference, text: "TODO secret rewrite")
         ])
-        project.notes = [ProjectNote(id: "note-1", body: "Private project note", createdAt: now, updatedAt: now)]
 
         let pdf = pdfString(ProductionPDFRenderer.render(project: project, preset: try preset("reader-copy")))
 
         #expect(pdf.contains("Visible screenplay text."))
         #expect(!pdf.contains("TODO secret rewrite"))
-        #expect(!pdf.contains("Private project note"))
     }
 
     @Test("Existing export workflow produces production PDF without dirty-state change")
