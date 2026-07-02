@@ -30,15 +30,16 @@ Block and source-element numbering remain internal for diagnostics and tests.
 
 ## Display
 
-- Page does not appear as a standalone row.
-- Page does not reserve a separate column.
-- When Page and Paragraph are enabled, the gutter uses `page.paragraph`, such as `1.4`.
-- When only Paragraph is enabled, the gutter uses `P4`.
-- When only Page is enabled, the gutter uses the page number.
+- Page appears as its own lightweight row above that page's screenplay blocks.
+- Page numbering does not reserve any horizontal gutter in paragraph or line rows.
+- Paragraph-only mode uses an intrinsic-width `P#` label beside the paragraph.
+- Line-only mode uses an intrinsic-width line-number column.
+- Paragraph-plus-line mode uses one intrinsic-width shared label column.
+- In paragraph-plus-line mode, the first line label uses `P# · L#`; continuation lines use only `L#`.
+- Paragraph labels use the same caption and secondary styling whether Line is enabled or disabled.
+- Disabled numbering levels allocate zero horizontal space.
+- No hard-coded paragraph or line gutter widths are used.
 - When Line is disabled, planner lines are rejoined into one paragraph and SwiftUI wraps to the available width.
-- When Line is enabled, page, paragraph, and line numbers share one compact gutter.
-- The page and paragraph address appears only on the first wrapped line.
-- Continuation lines show only their line number.
 - Title-page blocks are excluded.
 
 The Review pane keeps text left-aligned and does not reuse renderer-specific alignment or narrow PDF columns.
@@ -48,8 +49,10 @@ The Review pane keeps text left-aligned and does not reuse renderer-specific ali
 - The Review tab exposes Page, Paragraph, and Line controls only.
 - Page and Paragraph are enabled by default.
 - Line is disabled by default.
-- Page metadata creates no standalone row or dedicated column.
-- Page and paragraph numbering share one compact gutter address.
-- Line mode does not reserve separate page, paragraph, and line gutters.
+- Page metadata is rendered independently from paragraph and line columns.
+- Paragraph styling is consistent with Line on or off.
+- Disabled numbering levels reserve no gutter width.
+- Paragraph-only and line-only modes use only the space required by their visible labels.
+- Paragraph-plus-line mode uses one shared intrinsic-width label column.
 - Disabling the master toggle restores plain Fountain text.
 - Reading numbering preserves project data and dirty state.
