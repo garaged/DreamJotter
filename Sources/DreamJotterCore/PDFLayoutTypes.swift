@@ -85,12 +85,39 @@ public enum PDFTextAlignment: String, Codable, Equatable, Sendable {
     case right
 }
 
+public struct PDFContentAddress: Codable, Equatable, Hashable, Sendable {
+    public let documentPageNumber: Int
+    public let screenplayPageNumber: Int?
+    public let blockNumber: Int
+    public let paragraphNumber: Int?
+    public let lineNumber: Int
+    public let sourceElementIndex: Int?
+
+    public init(
+        documentPageNumber: Int,
+        screenplayPageNumber: Int?,
+        blockNumber: Int,
+        paragraphNumber: Int?,
+        lineNumber: Int,
+        sourceElementIndex: Int?
+    ) {
+        self.documentPageNumber = documentPageNumber
+        self.screenplayPageNumber = screenplayPageNumber
+        self.blockNumber = blockNumber
+        self.paragraphNumber = paragraphNumber
+        self.lineNumber = lineNumber
+        self.sourceElementIndex = sourceElementIndex
+    }
+}
+
 public struct PDFLinePlan: Codable, Equatable, Sendable {
+    public let lineNumber: Int
     public let text: String
     public let role: PDFBlockRole
     public let alignment: PDFTextAlignment
 
-    public init(text: String, role: PDFBlockRole, alignment: PDFTextAlignment) {
+    public init(lineNumber: Int, text: String, role: PDFBlockRole, alignment: PDFTextAlignment) {
+        self.lineNumber = lineNumber
         self.text = text
         self.role = role
         self.alignment = alignment
@@ -98,12 +125,26 @@ public struct PDFLinePlan: Codable, Equatable, Sendable {
 }
 
 public struct PDFBlockPlan: Codable, Equatable, Sendable {
+    public let blockNumber: Int
+    public let paragraphNumber: Int?
+    public let sourceElementIndex: Int?
     public let role: PDFBlockRole
     public let sourceElementKind: ScriptElementKind?
     public let lines: [PDFLinePlan]
     public let keepWithNext: Bool
 
-    public init(role: PDFBlockRole, sourceElementKind: ScriptElementKind?, lines: [PDFLinePlan], keepWithNext: Bool = false) {
+    public init(
+        blockNumber: Int,
+        paragraphNumber: Int?,
+        sourceElementIndex: Int?,
+        role: PDFBlockRole,
+        sourceElementKind: ScriptElementKind?,
+        lines: [PDFLinePlan],
+        keepWithNext: Bool = false
+    ) {
+        self.blockNumber = blockNumber
+        self.paragraphNumber = paragraphNumber
+        self.sourceElementIndex = sourceElementIndex
         self.role = role
         self.sourceElementKind = sourceElementKind
         self.lines = lines
@@ -117,12 +158,20 @@ public struct PDFBlockPlan: Codable, Equatable, Sendable {
 
 public struct PDFPagePlan: Codable, Equatable, Sendable {
     public let pageIndex: Int
+    public let documentPageNumber: Int
     public let screenplayPageNumber: Int?
     public let isTitlePage: Bool
     public let blocks: [PDFBlockPlan]
 
-    public init(pageIndex: Int, screenplayPageNumber: Int?, isTitlePage: Bool, blocks: [PDFBlockPlan]) {
+    public init(
+        pageIndex: Int,
+        documentPageNumber: Int,
+        screenplayPageNumber: Int?,
+        isTitlePage: Bool,
+        blocks: [PDFBlockPlan]
+    ) {
         self.pageIndex = pageIndex
+        self.documentPageNumber = documentPageNumber
         self.screenplayPageNumber = screenplayPageNumber
         self.isTitlePage = isTitlePage
         self.blocks = blocks
@@ -160,5 +209,23 @@ public struct PDFLayoutPlan: Codable, Equatable, Sendable {
 
     public var contentPages: [PDFPagePlan] {
         pages.filter { !$0.isTitlePage }
+    }
+
+    public func address(pageIndex: Int, blockIndex: Int, lineIndex: Int) -> PDFContentAddress? {
+        guard pages.indices.contains(pageIndex) else { return nil }
+        let page = pages[pageIndex]
+        guard page.blocks.indices.contains(blockIndex) else { return nil }
+        let block = page.blocks[blockIndex]
+        guard block.lines.indices.contains(lineIndex) else { return nil }
+        let line = block.lines[lineIndex]
+
+        return PDFContentAddress(
+            documentPageNumber: page.documentPageNumber,
+            screenplayPageNumber: page.screenplayPageNumber,
+            blockNumber: block.blockNumber,
+            paragraphNumber: block.paragraphNumber,
+            lineNumber: line.lineNumber,
+            sourceElementIndex: block.sourceElementIndex
+        )
     }
 }
