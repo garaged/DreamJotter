@@ -12,6 +12,7 @@ Define the production-oriented PDF export behavior that supersedes the basic M9 
 
 - As a beginner writer, I want a PDF that looks like a real screenplay without configuring technical options.
 - As a reviewer, I want page numbers and readable formatting.
+- As a reviewer or developer, I want precise plan-level addresses down to paragraphs and wrapped lines.
 - As a contest submitter, I want identifying metadata omitted by default.
 - As a developer, I want layout planning to be testable without depending on a platform renderer.
 
@@ -37,11 +38,38 @@ Recommended defaults:
 
 - US Letter page size for MVP unless a later setting selects A4.
 - Monospaced body font where available.
-- One screenplay line maps to predictable wrapped layout lines.
+- One screenplay paragraph maps to predictable wrapped layout lines.
 - Page numbers appear after title page where preset requires them.
 - Internal notes and TODOs are excluded from reader-facing output.
 
 Exact numeric margins and font metrics should be captured in implementation-facing tests once the renderer is selected.
+
+## Hierarchical Content Numbering
+
+The adapter-neutral layout plan must carry deterministic numbering independent from visible renderer decoration.
+
+Numbering layers:
+
+- `documentPageNumber`: one-based physical PDF page number, including title page.
+- `screenplayPageNumber`: one-based screenplay content page number, excluding title page.
+- `blockNumber`: one-based page-local block number that resets on each page.
+- `paragraphNumber`: one-based document-wide logical screenplay paragraph number.
+- `lineNumber`: one-based wrapped-line number inside a paragraph.
+- `sourceElementIndex`: zero-based parsed screenplay element position used to create the block.
+
+Rules:
+
+- One included screenplay element produces one paragraph number.
+- Wrapped lines remain inside the same paragraph.
+- Title-page blocks do not consume screenplay paragraph numbers.
+- Explicit page-break elements do not consume paragraph numbers.
+- Notes/TODOs omitted by preset policy do not consume paragraph numbers.
+- Character cue and following dialogue remain separate paragraphs even when kept together during pagination.
+- The plan always carries page and content numbering; the preset separately controls what is rendered visibly.
+- Paragraph and line numbers are not reader-facing by default.
+- Persistent paragraph identity across edits is deferred until canonical screenplay elements have stable IDs.
+
+The detailed contract is defined in `docs/specs/export/pdf-content-numbering.spec.md`.
 
 ## Element Formatting Rules
 
@@ -98,6 +126,8 @@ Minimum rules:
 - Explicit page break markers, if represented by the core model, should force a page break.
 - Oversized blocks may split if they cannot fit on one page.
 - Title page should not count as screenplay page 1 unless preset policy says otherwise.
+- Block numbering resets after automatic or explicit page breaks.
+- Paragraph numbering continues across automatic or explicit page breaks.
 
 ## Preset Policy
 
@@ -151,7 +181,8 @@ Warnings:
 - Production PDF export uses the existing export workflow entry point.
 - Export picker does not need a new PDF-only UI to produce the improved output.
 - Exporting PDF does not dirty the project.
-- Page planning is deterministic under tests.
+- Page planning and hierarchical numbering are deterministic under tests.
+- Physical page, screenplay page, block, paragraph, line, and source-element numbering are represented explicitly.
 - Preset metadata privacy rules are respected.
 - Notes/TODOs are excluded from reader-facing PDFs by default.
 - Malformed text produces readable fallback output and warnings.
@@ -162,6 +193,13 @@ Warnings:
 Add executable coverage for:
 
 - Simple one-scene screenplay PDF layout plan.
+- Physical and screenplay page numbering.
+- Page-local block numbering.
+- Document-wide paragraph numbering.
+- Paragraph-local wrapped-line numbering.
+- Line-level content-address lookup.
+- Explicit page-break numbering behavior.
+- Omitted note/TODO numbering behavior.
 - Multi-scene page numbering.
 - Character/dialogue keep-with-next behavior.
 - Contest submission metadata suppression.

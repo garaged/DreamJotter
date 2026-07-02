@@ -6,6 +6,8 @@ struct ReviewModeView: View {
     let exportAction: () -> Void
     let openScriptAction: () -> Void
 
+    @State private var showLayoutNumbering = true
+
     private var report: ScriptHealthReport {
         document.scriptHealthReport
     }
@@ -58,16 +60,26 @@ struct ReviewModeView: View {
 
     private var scriptPreview: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Script Preview")
-                .font(.headline)
+            HStack {
+                Text("Script Preview")
+                    .font(.headline)
+                Spacer()
+                Toggle("Show layout numbering", isOn: $showLayoutNumbering)
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+            }
 
-            Text(document.fountainExportText.isEmpty ? "No script text yet." : document.fountainExportText)
-                .font(.system(.body, design: .monospaced))
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(Color(nsColor: .textBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+            if showLayoutNumbering, let plan = document.reviewPDFLayoutPlan {
+                SimplifiedReviewLayoutNumberingView(plan: plan)
+            } else {
+                Text(document.fountainExportText.isEmpty ? "No script text yet." : document.fountainExportText)
+                    .font(.system(.body, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color(nsColor: .textBackgroundColor))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
         }
     }
 
