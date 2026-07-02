@@ -62,20 +62,22 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(printPDF.contains("(1.) Tj"))
     }
 
-    @Test("Built-in PDF presets produce distinct deterministic artifacts")
-    func builtInPDFPresetsProduceDistinctArtifacts() {
+    @Test("Built-in screenplay presets produce distinct deterministic PDF artifacts")
+    func builtInPDFPresetsProduceDistinctArtifacts() throws {
         let project = makeProject(elements: [
             ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY"),
             ScriptElement(kind: .action, text: "Distinct screenplay body.")
         ])
-        let presets = ExportPresetCatalog.builtInPresets().filter { preset in
-            preset.format == .pdf && preset.id != "draft-pdf"
-        }
+        let presets = try [
+            preset("reader-copy"),
+            preset("print-script"),
+            preset("contest-submission")
+        ]
         let artifacts = presets.map { preset in
             ProductionPDFRenderer.render(project: project, preset: preset)
         }
 
-        #expect(presets.count == 3)
+        #expect(artifacts.count == 3)
         #expect(Set(artifacts).count == 3)
 
         let rendered = artifacts.map(pdfString)
@@ -83,7 +85,7 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(rendered.filter { $0.contains("/Count 1") }.count == 1)
     }
 
-    @Test("Renderer escapes PDF strings and replaces unsupported scalars")
+    @Test("Renderer escapes PDF strings and preserves Windows-1252 text")
     func rendererEscapesPDFStrings() throws {
         let project = makeProject(elements: [
             ScriptElement(kind: .action, text: "Path \\tmp (draft) café")
@@ -91,7 +93,7 @@ struct ProductionPDFRendererExecutableSpecs {
 
         let pdf = pdfString(ProductionPDFRenderer.render(project: project, preset: try preset("reader-copy")))
 
-        #expect(pdf.contains("Path \\\\tmp \\(draft\\) caf?"))
+        #expect(pdf.contains("Path \\\\tmp \\(draft\\) caf\\351"))
     }
 
     @Test("Reader-facing PDF omits TODO elements")

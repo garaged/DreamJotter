@@ -40,8 +40,17 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Transitions are right aligned.
 - The renderer preserves planner page boundaries and wrapped lines.
 - PDF control characters are escaped safely.
-- Unsupported non-ASCII scalars fall back without corrupting the PDF structure.
 - Internal block, paragraph, source-element, and line numbers are never rendered into reader-facing PDFs.
+
+### Renderer Hardening
+
+- Printable ASCII remains directly readable in PDF content streams.
+- Windows-1252 characters use PDF octal escapes and are preserved by built-in Courier fonts.
+- Unsupported Unicode characters fall back to `?` without corrupting PDF structure.
+- Unsupported-character diagnostics are deterministic and de-duplicated.
+- Layout warnings are forwarded through detailed renderer output.
+- Successful exports with warnings remain successful and expose warning detail through `ExportResult`.
+- Renderer warnings do not change project dirty state.
 
 ### Pagination
 
@@ -87,15 +96,18 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Reader Copy page-number suppression.
 - Print Script and Contest Submission page-number rendering.
 - Notes/TODO exclusion.
-- PDF string escaping and unsupported-character fallback.
-- Existing export workflow integration.
-- Export-result dirty-state preservation.
+- PDF string escaping.
+- Windows-1252 accented text preservation.
+- Unsupported Unicode fallback and de-duplicated diagnostics.
+- Planner-warning forwarding.
+- Export-result warning propagation and dirty-state preservation.
 
 ## Related Specs
 
 - `docs/specs/export/production-pdf-export.spec.md`
 - `docs/specs/export/pdf-content-numbering.spec.md`
 - `docs/specs/export/production-pdf-renderer.spec.md`
+- `docs/specs/export/pdf-renderer-hardening.spec.md`
 
 ## Validation Commands
 
@@ -108,4 +120,4 @@ CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift build --p
 
 ## Acceptance Decision
 
-M10 remains `implementation-in-progress` until the renderer branch passes package tests, macOS build validation, and manual PDF inspection from the app export workflow.
+M10 remains `implementation-in-progress` until renderer hardening passes package tests, macOS build validation, and manual export inspection.

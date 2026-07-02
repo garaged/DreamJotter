@@ -27,9 +27,10 @@ struct ExportPresetPresentationTests {
         #expect(ids.contains("reader-copy"))
         #expect(ids.contains("print-script"))
         #expect(ids.contains("contest-submission"))
-        #expect(ids.contains("fountain"))
+        #expect(ids.contains("plain-text-archive"))
         #expect(ids.contains("writer-backup"))
         #expect(ids.contains("draft-pdf") == false)
+        #expect(ids.contains("fountain") == false)
     }
 
     @Test("Custom project presets remain available")
@@ -48,7 +49,7 @@ struct ExportPresetPresentationTests {
         #expect(presented.contains { $0.id == custom.id })
     }
 
-    @Test("Initial export state prefers current reader preset")
+    @Test("Initial export state prefers reader preset and PDF")
     func initialStatePrefersCurrentReaderPreset() {
         let legacy = ExportPreset(
             id: "draft-pdf",

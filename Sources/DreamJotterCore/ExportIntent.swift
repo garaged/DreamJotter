@@ -183,7 +183,18 @@ public enum ExportWorkflow {
 
         switch request.format {
         case .pdf:
-            return (BasicPDFExportAdapter.render(project: project, preset: preset, generatedAt: generatedAt), successResult(request: request, generatedAt: generatedAt))
+            let output = ProductionPDFRenderer.renderOutput(project: project, preset: preset)
+            let warningDetail = output.diagnostics.isEmpty
+                ? nil
+                : output.diagnostics.map(\.message).joined(separator: "\n")
+            return (
+                output.data,
+                successResult(
+                    request: request,
+                    generatedAt: generatedAt,
+                    warningDetail: warningDetail
+                )
+            )
         case .fountain, .plainText, .markdown, .jsonBackup:
             let export = exportText(for: project, request: request, preset: preset, generatedAt: generatedAt)
             return (export.text.map { Data($0.utf8) }, export.result)
@@ -218,14 +229,19 @@ public enum ExportWorkflow {
         (text, successResult(request: request, generatedAt: generatedAt))
     }
 
-    private static func successResult(request: ExportRequest, generatedAt: Date) -> ExportResult {
+    private static func successResult(
+        request: ExportRequest,
+        generatedAt: Date,
+        warningDetail: String? = nil
+    ) -> ExportResult {
         ExportResult(
             id: "export-result-\(request.id)",
             requestID: request.id,
             status: .success,
             artifactPath: request.destinationPath,
             format: request.format,
-            userMessage: "Export complete.",
+            userMessage: warningDetail == nil ? "Export complete." : "Export complete with warnings.",
+            technicalDetail: warningDetail,
             generatedAt: generatedAt
         )
     }
