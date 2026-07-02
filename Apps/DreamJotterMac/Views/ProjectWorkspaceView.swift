@@ -7,6 +7,7 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
     case characters = "Characters"
     case locations = "Locations"
     case notes = "Notes"
+    case review = "Review"
     case healthReport = "Health Report"
 
     var id: String { rawValue }
@@ -155,6 +156,14 @@ struct ProjectWorkspaceView: View {
                 NotesView(document: $document)
                     .padding()
             }
+        case .review:
+            ReviewModeView(
+                document: $document,
+                exportAction: exportAction,
+                openScriptAction: {
+                    selectedSection = .script
+                }
+            )
         case .healthReport:
             ScrollView {
                 HealthReportView(findings: document.healthFindings)

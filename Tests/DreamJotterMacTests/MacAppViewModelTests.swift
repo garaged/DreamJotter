@@ -634,6 +634,51 @@ struct MacAppViewModelTests {
         #expect(document.scriptText == textBefore)
     }
 
+    @Test("Review mode is read only and does not mark project dirty")
+    func reviewModeIsReadOnlyAndDoesNotMarkDirty() {
+        var document = ProjectDocumentViewModel(project: project())
+        document.updateScriptText("""
+        INT. ROOM - DAY
+
+        ELENA
+        We stay.
+        """)
+        document.clearDirtyForTesting()
+
+        document.enterReviewMode(now: now)
+
+        #expect(document.reviewModeState.isActive)
+        #expect(document.reviewModeState.isReadOnly)
+        #expect(document.scriptHealthReport.sceneCount == 1)
+        #expect(document.isDirty == false)
+    }
+
+    @Test("Selecting review finding requests scene navigation")
+    func selectingReviewFindingRequestsSceneNavigation() throws {
+        var document = ProjectDocumentViewModel(project: project())
+        document.updateScriptText("""
+        INT. ROOM - DAY
+
+        ELENA
+        We stay.
+
+        EXT. STREET - NIGHT
+
+        MARA
+        Run.
+        """)
+        document.clearDirtyForTesting()
+        document.enterReviewMode(now: now)
+        let locationFinding = try #require(document.scriptHealthReport.findings.first { $0.source == .unresolvedLocation && $0.linkedEntityID == "scene-2" })
+
+        document.selectReviewFinding(locationFinding)
+
+        #expect(document.reviewModeState.selectedFindingID == locationFinding.id)
+        #expect(document.reviewModeState.selectedSceneID == "scene-2")
+        #expect(document.editorNavigationState.selectedSceneID == "scene-2")
+        #expect(document.isDirty == false)
+    }
+
     private func project() -> DreamJotterProject {
         ProjectFactory.createBlankProject(
             title: "First Draft",

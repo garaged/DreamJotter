@@ -37,6 +37,8 @@ struct ProjectDocumentViewModel: Equatable {
     private(set) var editorParseState = EditorParseState()
     private(set) var editorNavigationState = EditorNavigationState()
     private(set) var editorSuggestions: [EditorSuggestion] = []
+    private(set) var reviewModeState = ReviewModeState.inactive
+    private(set) var currentScriptHealthReport: ScriptHealthReport?
 
     init(project: DreamJotterProject, packageURL: URL? = nil, scriptText: String? = nil, isDirty: Bool = false) {
         self.project = project
@@ -123,6 +125,14 @@ struct ProjectDocumentViewModel: Equatable {
 
     var healthFindings: [HealthFinding] {
         HealthReport.findings(for: project)
+    }
+
+    var scriptHealthReport: ScriptHealthReport {
+        currentScriptHealthReport ?? ScriptHealthReportBuilder.report(
+            for: project,
+            generatedAt: project.metadata.modifiedAt,
+            lastSavedAt: packageURL == nil ? nil : project.metadata.modifiedAt
+        )
     }
 
     var fountainExportText: String {
@@ -228,6 +238,43 @@ struct ProjectDocumentViewModel: Equatable {
             scenes: scenes,
             parseRevision: editorParseState.currentTextRevision
         )
+    }
+
+    mutating func enterReviewMode(now: Date = Date()) {
+        let report = ScriptHealthReportBuilder.report(
+            for: project,
+            generatedAt: now,
+            lastSavedAt: packageURL == nil ? nil : project.metadata.modifiedAt
+        )
+        currentScriptHealthReport = report
+        reviewModeState = ReviewModeState(
+            isActive: true,
+            isReadOnly: true,
+            selectedFindingID: reviewModeState.selectedFindingID,
+            selectedSceneID: editorNavigationState.selectedSceneID,
+            focus: .script,
+            generatedAt: now
+        )
+    }
+
+    mutating func exitReviewMode() {
+        reviewModeState = .inactive
+    }
+
+    mutating func selectReviewFinding(_ finding: ReviewFinding) {
+        let sceneID = sceneID(for: finding)
+        reviewModeState = ReviewModeState(
+            isActive: true,
+            isReadOnly: true,
+            selectedFindingID: finding.id,
+            selectedSceneID: sceneID,
+            focus: .findings,
+            generatedAt: reviewModeState.generatedAt
+        )
+
+        if let sceneIndex = sceneIndex(from: sceneID) {
+            requestNavigation(toSceneAt: sceneIndex)
+        }
     }
 
     mutating func clearEditorNavigationRequest() {
@@ -544,6 +591,50 @@ struct ProjectDocumentViewModel: Equatable {
     private func currentLineKind(at cursorLocation: Int) -> ScriptElementKind {
         let currentLine = EditorUsabilityService.currentLine(in: scriptText, cursorLocation: cursorLocation)
         return EditorUsabilityService.lineKind(for: currentLine.text)
+    }
+
+    private func sceneID(for finding: ReviewFinding) -> String? {
+        if finding.linkedEntityType == .scene {
+            return finding.linkedEntityID
+        }
+
+        guard finding.linkedEntityType == .screenplayElement,
+              let elementID = finding.linkedEntityID,
+              let elementIndex = elementIndex(from: elementID) else {
+            return nil
+        }
+
+        var sceneIndex = -1
+        for (index, element) in project.screenplay.elements.enumerated() {
+            if element.kind == .sceneHeading {
+                sceneIndex += 1
+            }
+            if index == elementIndex, sceneIndex >= 0 {
+                return "scene-\(sceneIndex + 1)"
+            }
+        }
+        return nil
+    }
+
+    private func sceneIndex(from sceneID: String?) -> Int? {
+        guard let sceneID,
+              sceneID.hasPrefix("scene-"),
+              let oneBasedIndex = Int(sceneID.dropFirst("scene-".count)),
+              oneBasedIndex > 0,
+              oneBasedIndex <= scenes.count else {
+            return nil
+        }
+        return oneBasedIndex - 1
+    }
+
+    private func elementIndex(from elementID: String) -> Int? {
+        guard elementID.hasPrefix("element-"),
+              let oneBasedIndex = Int(elementID.dropFirst("element-".count)),
+              oneBasedIndex > 0,
+              oneBasedIndex <= project.screenplay.elements.count else {
+            return nil
+        }
+        return oneBasedIndex - 1
     }
 
     private mutating func requestEditorCursorNavigation(to location: Int) {

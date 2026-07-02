@@ -141,6 +141,41 @@ public struct ScriptHealthReport: Codable, Equatable, Sendable {
     }
 }
 
+public enum ReviewModeFocus: String, Codable, Equatable, Sendable {
+    case script
+    case scenes
+    case notes
+    case findings
+    case export
+}
+
+public struct ReviewModeState: Codable, Equatable, Sendable {
+    public let isActive: Bool
+    public let isReadOnly: Bool
+    public let selectedFindingID: String?
+    public let selectedSceneID: String?
+    public let focus: ReviewModeFocus
+    public let generatedAt: Date?
+
+    public init(
+        isActive: Bool = false,
+        isReadOnly: Bool = true,
+        selectedFindingID: String? = nil,
+        selectedSceneID: String? = nil,
+        focus: ReviewModeFocus = .script,
+        generatedAt: Date? = nil
+    ) {
+        self.isActive = isActive
+        self.isReadOnly = isReadOnly
+        self.selectedFindingID = selectedFindingID
+        self.selectedSceneID = selectedSceneID
+        self.focus = focus
+        self.generatedAt = generatedAt
+    }
+
+    public static let inactive = ReviewModeState()
+}
+
 public enum ScriptHealthReportBuilder {
     public static func report(for project: DreamJotterProject, generatedAt: Date = Date(), lastSavedAt: Date? = nil) -> ScriptHealthReport {
         let unresolvedCharacters = CharacterManager.unresolvedDetectedCharacters(for: project)
