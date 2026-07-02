@@ -22,7 +22,7 @@ Replace the M9 single-page basic PDF adapter with a deterministic multi-page ren
 ## Rendering Rules
 
 - Use the page size and margins from `PDFLayoutSettings`.
-- Render title-page content centered vertically and horizontally.
+- Render title-page content centered vertically and horizontally when the preset includes a title page.
 - Render scene headings in bold.
 - Render action and fallback text left aligned.
 - Render character cues and parentheticals with screenplay-style indentation.
@@ -33,6 +33,36 @@ Replace the M9 single-page basic PDF adapter with a deterministic multi-page ren
 - Preserve the planner's page boundaries and wrapped lines.
 - Escape PDF literal-string control characters.
 - Replace unsupported non-ASCII scalar values with a readable fallback character rather than producing invalid PDF bytes.
+
+## Built-In PDF Preset Policies
+
+### Reader Copy
+
+- Includes a title page.
+- Omits visible screenplay page numbers.
+- Keeps normal project-facing title metadata.
+
+### Print Script
+
+- Includes a title page.
+- Includes visible screenplay page numbers.
+- Keeps normal project-facing title metadata.
+
+### Contest Submission
+
+- Omits the title page in the current privacy-safe implementation.
+- Includes visible screenplay page numbers.
+- Suppresses identifying metadata.
+
+These policies must produce distinct PDF byte artifacts for the same project. The difference must come from actual layout policy, not timestamps or nondeterministic metadata.
+
+## Preset Catalog Migration
+
+- The export UI must always present the current built-in preset catalog.
+- Presets stored in older project packages must not hide newer built-in presets.
+- Obsolete stored built-ins are replaced by the current built-in definition with the same role.
+- Genuine project-specific custom presets remain available.
+- Merely opening the export dialog must not mutate or dirty the project.
 
 ## Workflow Integration
 
@@ -56,6 +86,8 @@ Replace the M9 single-page basic PDF adapter with a deterministic multi-page ren
 - Dialogue and transitions use distinct horizontal placement.
 - Print Script and Contest Submission render screenplay page numbers.
 - Reader Copy suppresses visible screenplay page numbers.
+- Reader Copy, Print Script, and Contest Submission produce distinct deterministic PDF bytes.
+- Older projects show the current built-in export presets without requiring project mutation.
 - Notes and TODOs excluded by the planner do not appear in PDF bytes.
 - PDF export succeeds through the existing workflow and does not dirty the project.
 - Fountain, plain text, Markdown, and JSON backup behavior remains unchanged.
@@ -67,6 +99,8 @@ Replace the M9 single-page basic PDF adapter with a deterministic multi-page ren
 - Title-page rendering.
 - Role-specific font and position commands.
 - Visible page-number policy by preset.
+- Distinct deterministic output across built-in PDF presets.
+- Legacy stored-preset catalog merged with current built-ins.
 - Notes/TODO omission.
 - Parentheses and backslash escaping.
 - Unsupported-character fallback.
