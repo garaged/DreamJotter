@@ -21,11 +21,20 @@ enum SaveBeforeReplacementResult: Equatable {
     case requiresSaveAs
 }
 
+enum SaveBeforeRestoreResult: Equatable {
+    case restored(RestoreResult)
+    case requiresSaveAs
+}
+
 enum PendingProjectReplacement: Equatable {
     case newProject(title: String)
     case openPackage(URL)
     case closeProject
     case closeWindow
+}
+
+enum PendingBackupRestore: Equatable {
+    case validated(project: DreamJotterProject, confirmation: RestoreResult)
 }
 
 struct RecentProjectStore {
@@ -58,7 +67,7 @@ struct RecentProjectStore {
         let box = Box(initialURLs)
         return RecentProjectStore(
             load: { box.urls },
-            save: { box.urls = $0 }
+            save: { urls in box.urls = urls }
         )
     }
 }
@@ -67,6 +76,7 @@ struct MacAppViewModel {
     var currentDocument: ProjectDocumentViewModel?
     private(set) var recentProjectURLs: [URL]
     private(set) var pendingReplacement: PendingProjectReplacement?
+    private(set) var pendingRestore: PendingBackupRestore?
     private var recentProjectStore: RecentProjectStore
 
     init(recentProjectStore: RecentProjectStore = .userDefaults()) {
@@ -94,6 +104,7 @@ struct MacAppViewModel {
             createdAt: now
         )
         currentDocument = ProjectDocumentViewModel(project: project)
+        pendingRestore = nil
     }
 
     mutating func requestNewProject(title: String, now: Date = Date()) -> ProjectReplacementDecision {
@@ -181,6 +192,7 @@ struct MacAppViewModel {
                 ? DreamJotterPackageStore.fountainProjectionText(from: normalizedURL)
                 : nil
             currentDocument = ProjectDocumentViewModel(project: project, packageURL: normalizedURL, scriptText: scriptText)
+            pendingRestore = nil
             recordRecentProject(normalizedURL)
             return
         }
@@ -269,27 +281,106 @@ struct MacAppViewModel {
     mutating func restoreBackup(from data: Data, allowReplacingDirtyProject: Bool = false, now: Date = Date()) -> RestoreResult {
         let restore = BackupRestoreWorkflow.validateRestore(
             from: data,
-            currentProjectIsDirty: currentDocument?.isDirty == true,
-            allowReplacingDirtyProject: allowReplacingDirtyProject,
+            currentProjectIsDirty: false,
+            allowReplacingDirtyProject: true,
             completedAt: now
         )
 
         guard restore.result.status == .restored, let project = restore.project else {
+            pendingRestore = nil
             return restore.result
         }
 
-        currentDocument = ProjectDocumentViewModel(project: project)
-        return restore.result
+        if currentDocument?.isDirty == true && !allowReplacingDirtyProject {
+            let protected = BackupRestoreWorkflow.validateRestore(
+                from: data,
+                currentProjectIsDirty: true,
+                allowReplacingDirtyProject: false,
+                completedAt: now
+            )
+            pendingRestore = .validated(project: project, confirmation: protected.result)
+            return protected.result
+        }
+
+        return applyRestoredProject(project, result: restore.result)
+    }
+
+    mutating func saveAndConfirmPendingRestore(now: Date = Date()) throws -> SaveBeforeRestoreResult {
+        guard pendingRestore != nil else {
+            return .restored(noPendingRestoreResult(now: now))
+        }
+
+        let saveResult = try saveCurrentProject(now: now)
+        guard saveResult == .saved else { return .requiresSaveAs }
+        return .restored(applyPendingRestore(now: now))
+    }
+
+    mutating func confirmPendingRestoreAfterExternalSave(now: Date = Date()) throws -> RestoreResult {
+        guard pendingRestore != nil else { return noPendingRestoreResult(now: now) }
+        guard currentDocument?.isDirty != true else {
+            throw AppError(
+                category: .saveFailed,
+                userMessage: "DreamJotter could not restore the backup because the current project still has unsaved changes.",
+                recoverySuggestion: "Save the project, then try restore again.",
+                sourceOperation: .save
+            )
+        }
+        return applyPendingRestore(now: now)
+    }
+
+    mutating func discardPendingRestore(now: Date = Date()) -> RestoreResult {
+        guard pendingRestore != nil else { return noPendingRestoreResult(now: now) }
+        return applyPendingRestore(now: now)
+    }
+
+    mutating func cancelPendingRestore() {
+        pendingRestore = nil
     }
 
     mutating func closeProject() {
         currentDocument = nil
+        pendingRestore = nil
     }
 
     mutating func forgetInvalidRecentProject(_ packageURL: URL) {
         let normalizedURL = Self.normalizedFileURL(packageURL)
         recentProjectURLs.removeAll { Self.normalizedFileURL($0) == normalizedURL }
         recentProjectStore.save(recentProjectURLs)
+    }
+
+    private mutating func applyPendingRestore(now: Date) -> RestoreResult {
+        guard let pendingRestore else { return noPendingRestoreResult(now: now) }
+        self.pendingRestore = nil
+
+        switch pendingRestore {
+        case .validated(let project, let confirmation):
+            let result = RestoreResult(
+                id: confirmation.id,
+                status: .restored,
+                restoredProjectID: project.metadata.id,
+                userMessage: "Restore complete.",
+                technicalDetail: confirmation.technicalDetail,
+                completedAt: now,
+                dirtyStateChanged: false
+            )
+            return applyRestoredProject(project, result: result)
+        }
+    }
+
+    private mutating func applyRestoredProject(_ project: DreamJotterProject, result: RestoreResult) -> RestoreResult {
+        currentDocument = ProjectDocumentViewModel(project: project)
+        pendingRestore = nil
+        return result
+    }
+
+    private func noPendingRestoreResult(now: Date) -> RestoreResult {
+        RestoreResult(
+            id: "restore-result-no-pending-\(Int(now.timeIntervalSince1970))",
+            status: .failed,
+            restoredProjectID: nil,
+            userMessage: "There is no backup waiting to restore.",
+            completedAt: now
+        )
     }
 
     private mutating func applyPendingReplacement(now: Date) throws {
