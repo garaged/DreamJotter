@@ -229,6 +229,59 @@ struct MacAppViewModel {
         }
     }
 
+    func exportCurrentProject(request: ExportRequest, preset: ExportPreset, now: Date = Date()) -> ExportFeedback {
+        guard let document = currentDocument else {
+            return ExportFeedback(
+                kind: .error,
+                userMessage: "Open a project before exporting.",
+                sourceOperation: "export",
+                timestamp: now
+            )
+        }
+
+        let export = ExportWorkflow.exportData(
+            for: document.project,
+            request: request,
+            preset: preset,
+            generatedAt: now
+        )
+
+        guard export.result.status == .success, let data = export.data else {
+            return .from(export.result, timestamp: now)
+        }
+
+        do {
+            try data.write(to: URL(fileURLWithPath: request.destinationPath), options: .atomic)
+            return .from(export.result, timestamp: now)
+        } catch {
+            let appError = AppError.wrap(error, operation: .export)
+            return ExportFeedback(
+                kind: .error,
+                userMessage: appError.userMessage,
+                technicalDetail: appError.technicalDetail,
+                outputPath: request.destinationPath,
+                sourceOperation: "export",
+                timestamp: now
+            )
+        }
+    }
+
+    mutating func restoreBackup(from data: Data, allowReplacingDirtyProject: Bool = false, now: Date = Date()) -> RestoreResult {
+        let restore = BackupRestoreWorkflow.validateRestore(
+            from: data,
+            currentProjectIsDirty: currentDocument?.isDirty == true,
+            allowReplacingDirtyProject: allowReplacingDirtyProject,
+            completedAt: now
+        )
+
+        guard restore.result.status == .restored, let project = restore.project else {
+            return restore.result
+        }
+
+        currentDocument = ProjectDocumentViewModel(project: project)
+        return restore.result
+    }
+
     mutating func closeProject() {
         currentDocument = nil
     }

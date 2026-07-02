@@ -86,16 +86,29 @@ Status: implemented with deferred polish.
 
 ## Milestone 9 Export, Review, and Script Health
 
-Status: specified.
+Status: implemented with deferred UX polish.
 
-- Add executable specs for Fountain, Markdown, plain text, JSON backup, and basic PDF export without dirty-state mutation.
-- Implement export preset validation for Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive.
-- Add a basic PDF export adapter that produces readable screenplay-like output while deferring production pagination.
-- Add backup export and restore validation that protects dirty current work.
-- Add read-only Review Mode with script preview, scene navigation, notes/TODOs, health findings, and export actions.
-- Add Script Health Report v1 metrics for scenes, elements, profiles, unresolved detections, notes, TODOs, dialogue/action ratio, longest scenes, and scenes without dialogue.
-- Add formatting warnings and review findings with severity/source/link/navigation data.
+- Maintain executable specs for Fountain, Markdown, plain text, JSON backup, and basic PDF export without dirty-state mutation.
+- Maintain export preset validation for Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive.
+- Maintain the basic PDF export adapter as readable screenplay-like output while deferring production pagination.
+- Maintain backup export and restore validation that protects dirty current work.
+- Maintain read-only Review Mode with script preview, scene navigation, health findings, and export actions.
+- Maintain Script Health Report v1 metrics for scenes, elements, profiles, unresolved detections, notes, TODOs, dialogue/action ratio, longest scenes, and scenes without dialogue.
+- Maintain formatting warnings and review findings with severity/source/link/navigation data.
 - Preserve Milestone 6 document lifecycle, Milestone 7 editor usability, and Milestone 8 project-object workflows.
+
+## Milestone 9.5 Export UX and Release Readiness Polish
+
+Status: implemented.
+
+- Maintain export format picker UI for Fountain, PDF, Markdown, plain text, and JSON backup.
+- Maintain export preset picker UI with beginner-friendly descriptions for Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive.
+- Maintain destination selection, cancel handling, success/error feedback, and Reveal in Finder availability through `ExportFeedback`.
+- Maintain Review Mode export actions through the same picker/preset workflow while keeping Review Mode read-only.
+- Maintain backup and restore UI over existing M9 backup/restore services with unsaved-work protection.
+- Keep app-support tests for `ExportUIState`, preset/format compatibility, canceled export feedback, selected-format export, backup restore protection, and dirty-state preservation.
+- Execute the Mac MVP manual QA checklist before treating the Mac MVP as release-ready.
+- Defer native overwrite confirmation polish, export history, batch export, and richer restore confirmation UI.
 
 ## Apple UI
 

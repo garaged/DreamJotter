@@ -2,7 +2,7 @@
 
 DreamJotter is a screenplay and movie-script writing app for non-programmers. It is designed to let beginners write, organize, and export scripts without learning technical tooling, while still leaving room for optional Pro Mode workflows such as revision colors, draft comparison, production breakdown, custom fields, export presets, and no-code routines.
 
-Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. Milestone 6 stabilizes document lifecycle behavior for saving, dirty state, recent projects, replacement protection, and basic commands. Milestone 7 implements screenplay editor usability v1 with TextKit Smart Enter, Tab cycling, suggestions, scene navigation/cursor sync, adapter-only styling, and passive blank-script guidance. Milestone 8 implements character, location, notes, and scene workflow v1 with detected object resolution, profile creation/editing, scene-card status, parsed TODO notes, dashboard summary, and search integration. Milestone 9 is specified for export, review, backup/restore, and script health v1. There is no plugin runtime, real AI provider, cloud sync, or external service integration.
+Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. Milestone 6 stabilizes document lifecycle behavior for saving, dirty state, recent projects, replacement protection, and basic commands. Milestone 7 implements screenplay editor usability v1 with TextKit Smart Enter, Tab cycling, suggestions, scene navigation/cursor sync, adapter-only styling, and passive blank-script guidance. Milestone 8 implements character, location, notes, and scene workflow v1 with detected object resolution, profile creation/editing, scene-card status, parsed TODO notes, dashboard summary, and search integration. Milestone 9 implements export, review, backup/restore, and script health v1. Milestone 9.5 implements export UX and release-readiness polish. There is no plugin runtime, real AI provider, cloud sync, or external service integration.
 
 ## Product Direction
 
@@ -45,7 +45,7 @@ Key SDD files:
 - `docs/vision/`: product vision, personas, principles.
 - `docs/architecture/`: architecture overview, portable core, command engine, Apple-native direction.
 - `docs/adr/`: accepted architecture decisions.
-- `docs/milestones/`: Milestone 1 through Milestone 9 specs and milestone map.
+- `docs/milestones/`: Milestone 1 through Milestone 9.5 specs and milestone map.
 - `docs/acceptance/`: acceptance documents, traceability matrix, consistency review notes.
 - `docs/data-contracts/`: portable core data contracts and serialization rules.
 - `docs/editor/`: screenplay engine, Fountain support, and editor behavior specs.
@@ -74,9 +74,10 @@ Key SDD files:
 | Milestone 6 | Implemented | Document lifecycle is implemented for the macOS app: dirty state, Save/Save As routing, Save As cancel preservation, failed-save dirty preservation, recent-project deduplication, app errors, Save / Discard / Cancel protection, basic commands, and export without dirtying the project. |
 | Milestone 7 | Implemented | Screenplay editor usability v1 is implemented: TextKit Smart Enter, Tab cycling, scene heading suggestions, character/location autocomplete, parse state, scene navigation/cursor sync, adapter-only line styling, empty guidance, and preserved document workflow. |
 | Milestone 8 | Implemented | Character, location, notes, and scene workflow v1 covers detected character/location resolution, profile create/edit/save/reopen, scene-card status, parsed TODO notes, dashboard summary, and search integration. Rich archive/delete/profile-field polish remains deferred. |
-| Milestone 9 | Specified | Export, Review, and Script Health v1 is specified for Fountain/plain text/Markdown/JSON backup/basic PDF export, presets, backup/restore, read-only Review Mode, health reports, formatting warnings, and review findings. |
+| Milestone 9 | Implemented | Export, Review, and Script Health v1 covers Fountain/plain text/Markdown/JSON backup/basic PDF export, presets, backup/restore validation, read-only Review Mode, health reports, formatting warnings, and review findings. |
+| Milestone 9.5 | Implemented | Export UX and Release Readiness Polish covers format/preset picker UI, destination and feedback flows, Review Mode export reuse, backup/restore UI, export UI state, export feedback, and a Mac MVP manual QA checklist. |
 
-Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5, Milestone 6, Milestone 7, and Milestone 8 app/editor/workspace foundations are implemented; Milestone 9 is specified. Real renderers, real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
+Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5, Milestone 6, Milestone 7, Milestone 8, Milestone 9, and Milestone 9.5 app/editor/workspace/export foundations are implemented. Real production pagination, real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
 
 ## Current App Capabilities
 
@@ -93,8 +94,12 @@ Implementation status: Milestone 1 through Milestone 4 portable-core foundations
 - Routes Save to Save As when a project has no package URL.
 - Records recently opened or saved packages in the Project Library.
 - Requires confirmation before replacing a project with unsaved changes.
-- Exports parser-backed Fountain text.
-- Shows a read-only script health report.
+- Shows a SwiftUI export picker with Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive presets.
+- Exports parser-backed Fountain, plain text, Markdown, JSON backup, and basic PDF artifacts through the core export workflow.
+- Shows export success, cancel, and failure feedback, including Reveal in Finder for successful file exports.
+- Reuses the same export picker from Review Mode.
+- Validates JSON backup restore before replacing current project state and protects dirty current projects.
+- Shows read-only Review Mode and script health findings.
 - Provides basic commands and shortcuts for New Project, Open, Save, Save As, and Export Fountain.
 
 ## Running The macOS App

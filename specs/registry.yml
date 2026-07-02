@@ -1953,6 +1953,346 @@
       "notes": "Implemented: M9 export/review/analysis preserves existing document lifecycle, editor behavior, and project-object workflows in executable specs."
     },
     {
+      "id": "EXPORT-FORMAT-PICKER-UI",
+      "title": "Export Format Picker UI",
+      "milestone": "M9.5",
+      "status": "implemented",
+      "spec": "docs/specs/export/export-picker-ui.spec.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/export-request.md",
+        "docs/data-contracts/export-result.md"
+      ],
+      "planned_modules": [
+        "ExportPickerView",
+        "ExportUIState",
+        "ProjectDocumentViewModel",
+        "ExportWorkflow"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Implemented: writer-facing format selection for Fountain, PDF, Markdown, plain text, and JSON backup uses existing M9 export services."
+    },
+    {
+      "id": "EXPORT-PRESET-PICKER-UI",
+      "title": "Export Preset Picker UI",
+      "milestone": "M9.5",
+      "status": "implemented",
+      "spec": "docs/specs/export/export-preset-picker-ui.spec.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-preset.md",
+        "docs/data-contracts/export-request.md"
+      ],
+      "planned_modules": [
+        "ExportPresetPickerView",
+        "ExportUIState",
+        "ExportPresetCatalog",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Implemented: non-technical preset descriptions and preset/format compatibility behavior for Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive."
+    },
+    {
+      "id": "EXPORT-DESTINATION-FEEDBACK",
+      "title": "Export Destination and Feedback",
+      "milestone": "M9.5",
+      "status": "implemented",
+      "spec": "docs/specs/export/export-destination-feedback.spec.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/app-error.md"
+      ],
+      "planned_modules": [
+        "ExportDestinationPicker",
+        "ExportFeedback",
+        "MacAppViewModel",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Implemented: export destination selection, cancel handling, success/error feedback, and Reveal in Finder state without dirty-state mutation."
+    },
+    {
+      "id": "REVIEW-MODE-EXPORT-UX",
+      "title": "Review Mode Export UX",
+      "milestone": "M9.5",
+      "status": "implemented",
+      "spec": "docs/specs/export/review-mode-export-ux.spec.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/review-mode-state.md"
+      ],
+      "planned_modules": [
+        "ReviewModeView",
+        "ExportPickerView",
+        "ProjectDocumentViewModel",
+        "ReviewModeViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Implemented: Review Mode uses the same export picker while keeping its preview read-only and state unchanged on cancel or export."
+    },
+    {
+      "id": "BACKUP-RESTORE-UI",
+      "title": "Backup and Restore UI",
+      "milestone": "M9.5",
+      "status": "implemented",
+      "spec": "docs/specs/export/backup-restore-ui.spec.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/backup-archive.md",
+        "docs/data-contracts/restore-result.md",
+        "docs/data-contracts/app-document-state.md"
+      ],
+      "planned_modules": [
+        "BackupRestoreView",
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "BackupRestoreWorkflow"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Implemented: non-technical backup creation and restore validation UI, including unsaved-work protection before replacement."
+    },
+    {
+      "id": "EXPORT-UI-STATE",
+      "title": "Export UI State Data Contract",
+      "milestone": "M9.5",
+      "status": "implemented",
+      "spec": "docs/data-contracts/export-ui-state.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-feedback.md"
+      ],
+      "planned_modules": [
+        "ExportUIState",
+        "ExportPickerView",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Implemented: selected preset, selected format, compatibility state, destination path, operation state, feedback, and source context."
+    },
+    {
+      "id": "EXPORT-FEEDBACK",
+      "title": "Export Feedback Data Contract",
+      "milestone": "M9.5",
+      "status": "implemented",
+      "spec": "docs/data-contracts/export-feedback.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/app-error.md"
+      ],
+      "planned_modules": [
+        "ExportFeedback",
+        "ExportPickerView",
+        "MacAppViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Implemented: success, warning, error, and canceled feedback with user-facing message, optional diagnostics, output path, and Finder reveal capability."
+    },
+    {
+      "id": "MAC-MVP-MANUAL-QA-CHECKLIST",
+      "title": "Mac MVP Manual QA Checklist",
+      "milestone": "M9.5",
+      "status": "specified",
+      "spec": "docs/specs/release/mac-mvp-manual-qa-checklist.spec.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-feedback.md"
+      ],
+      "planned_modules": [
+        "ManualQA",
+        "DreamJotterMac"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Defines manual QA coverage for launch, writing, save/reopen, editor behavior, workspace workflows, review, exports, backup/restore, dirty state, and recents."
+    },
+    {
+      "id": "M9-5-PREVIOUS-MILESTONE-PRESERVATION",
+      "title": "Milestone 9.5 Previous Workflow Preservation",
+      "milestone": "M9.5",
+      "status": "implemented",
+      "spec": "docs/milestones/milestone-9-5-export-ux-release-readiness.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/review-mode-state.md"
+      ],
+      "planned_modules": [
+        "MacAppViewModel",
+        "ProjectDocumentViewModel",
+        "ExportWorkflow",
+        "BackupRestoreWorkflow",
+        "ReviewModeView"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "preserve-project-object-workflows",
+        "preserve-review-health-workflows",
+        "export-does-not-mutate-project",
+        "internal-metadata-not-leaked-by-default",
+        "basic-pdf-not-production-pagination"
+      ],
+      "notes": "Implemented: M9.5 UX polish preserves M6 lifecycle, M7 editor behavior, M8 project-object workflows, and M9 review/export/health behavior."
+    },
+    {
       "id": "ROUTINE-SYSTEM-V1",
       "title": "Routine System v1 Spec",
       "milestone": "M4",

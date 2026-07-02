@@ -21,6 +21,7 @@ struct ProjectWorkspaceView: View {
     let saveAsAction: () -> Void
     let openAction: () -> Void
     let exportAction: () -> Void
+    let reviewExportAction: () -> Void
     let closeAction: () -> Void
 
     var body: some View {
@@ -70,7 +71,7 @@ struct ProjectWorkspaceView: View {
                     saveAsAction()
                 }
 
-                Button("Export Fountain") {
+                Button("Export") {
                     exportAction()
                 }
             }
@@ -159,7 +160,7 @@ struct ProjectWorkspaceView: View {
         case .review:
             ReviewModeView(
                 document: $document,
-                exportAction: exportAction,
+                exportAction: reviewExportAction,
                 openScriptAction: {
                     selectedSection = .script
                 }

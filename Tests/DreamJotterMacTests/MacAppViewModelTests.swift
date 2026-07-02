@@ -302,6 +302,98 @@ struct MacAppViewModelTests {
         #expect(app.currentDocument?.isDirty == false)
     }
 
+    @Test("Export UI state lists formats and disables incompatible preset combinations")
+    func exportUIStateListsFormatsAndDisablesIncompatibleCombinations() {
+        let presets = ExportPresetCatalog.builtInPresets()
+        var state = ExportUIState.initial(presets: presets, sourceContext: .workspace)
+
+        #expect(state.selectedPresetID == "reader-copy")
+        #expect(state.availableFormats == [.fountain, .pdf, .markdown, .plainText, .jsonBackup])
+        #expect(state.disabledReason(for: .jsonBackup) != nil)
+
+        state.selectPreset("print-script", presets: presets)
+
+        #expect(state.selectedFormat == .pdf)
+        #expect(state.disabledReason(for: .fountain) != nil)
+        #expect(state.disabledReason(for: .markdown) != nil)
+    }
+
+    @Test("Export destination cancel creates canceled feedback without dirty change")
+    func exportDestinationCancelCreatesCanceledFeedbackWithoutDirtyChange() {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. ROOM - DAY")
+        app.currentDocument?.clearDirtyForTesting()
+        var state = ExportUIState.initial(sourceContext: .workspace)
+
+        state.setDestination(nil)
+
+        #expect(state.lastFeedback?.kind == .canceled)
+        #expect(state.isCanceled)
+        #expect(app.currentDocument?.isDirty == false)
+    }
+
+    @Test("Export UI request writes selected format and preserves dirty state")
+    func exportUIRequestWritesSelectedFormatAndPreservesDirtyState() throws {
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "First Draft", now: now)
+        app.currentDocument?.updateScriptText("""
+        INT. ROOM - DAY
+
+        ELENA
+        We stay.
+        """)
+        app.currentDocument?.clearDirtyForTesting()
+        let document = try #require(app.currentDocument)
+        let preset = try #require(ExportPresetCatalog.builtInPresets().first { $0.id == "reader-copy" })
+        let root = temporaryDirectory(named: "DreamJotterExportUI")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let exportURL = root.appendingPathComponent("Reader.md")
+        let request = ExportRequest(
+            id: "export-ui-test",
+            projectID: document.project.metadata.id,
+            presetID: preset.id,
+            format: .markdown,
+            destinationPath: exportURL.path,
+            includeNotes: false,
+            includeMetadata: false,
+            createdAt: now
+        )
+
+        let feedback = app.exportCurrentProject(request: request, preset: preset, now: now)
+
+        #expect(feedback.kind == .success)
+        #expect(feedback.canRevealInFinder)
+        #expect(app.currentDocument?.isDirty == false)
+        let exported = try String(contentsOf: exportURL, encoding: .utf8)
+        #expect(exported.contains("# First Draft"))
+        #expect(exported.contains("```fountain"))
+    }
+
+    @Test("Backup restore UI path protects dirty project and restores valid backup")
+    func backupRestoreUIPathProtectsDirtyProjectAndRestoresValidBackup() throws {
+        let sourceProject = project()
+        let backupData = try BackupRestoreWorkflow.encode(
+            BackupRestoreWorkflow.makeArchive(for: sourceProject, createdAt: now)
+        )
+        var app = MacAppViewModel(recentProjectStore: .memory())
+        app.createBlankProject(title: "Dirty Draft", now: now)
+        app.currentDocument?.updateScriptText("INT. DIRTY ROOM - DAY")
+
+        let protected = app.restoreBackup(from: backupData, now: now)
+
+        #expect(protected.status == .confirmationRequired)
+        #expect(app.currentDocument?.dashboard.title == "Dirty Draft")
+        #expect(app.currentDocument?.isDirty == true)
+
+        let restored = app.restoreBackup(from: backupData, allowReplacingDirtyProject: true, now: now)
+
+        #expect(restored.status == .restored)
+        #expect(app.currentDocument?.dashboard.title == "First Draft")
+        #expect(app.currentDocument?.isDirty == false)
+    }
+
     @Test("Replacing a dirty project requires confirmation")
     func replacingDirtyProjectRequiresConfirmation() throws {
         var app = MacAppViewModel(recentProjectStore: .memory())

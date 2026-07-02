@@ -38,7 +38,7 @@ struct DreamJotterMacApp: App {
             }
 
             CommandMenu("Export") {
-                Button("Export Fountain...") {
+                Button("Export...") {
                     NotificationCenter.default.post(name: .dreamJotterExportFountain, object: nil)
                 }
             }
