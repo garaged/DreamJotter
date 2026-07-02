@@ -62,6 +62,27 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(printPDF.contains("(1.) Tj"))
     }
 
+    @Test("Built-in PDF presets produce distinct deterministic artifacts")
+    func builtInPDFPresetsProduceDistinctArtifacts() {
+        let project = makeProject(elements: [
+            ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY"),
+            ScriptElement(kind: .action, text: "Distinct screenplay body.")
+        ])
+        let presets = ExportPresetCatalog.builtInPresets().filter { preset in
+            preset.format == .pdf && preset.id != "draft-pdf"
+        }
+        let artifacts = presets.map { preset in
+            ProductionPDFRenderer.render(project: project, preset: preset)
+        }
+
+        #expect(presets.count == 3)
+        #expect(Set(artifacts).count == 3)
+
+        let rendered = artifacts.map(pdfString)
+        #expect(rendered.filter { $0.contains("/Count 2") }.count == 2)
+        #expect(rendered.filter { $0.contains("/Count 1") }.count == 1)
+    }
+
     @Test("Renderer escapes PDF strings and replaces unsupported scalars")
     func rendererEscapesPDFStrings() throws {
         let project = makeProject(elements: [
