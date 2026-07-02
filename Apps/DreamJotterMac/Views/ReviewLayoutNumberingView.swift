@@ -4,7 +4,7 @@ import SwiftUI
 struct ReviewLayoutNumberingOptions: Equatable {
     var showPage = true
     var showParagraph = true
-    var showBlock = true
+    var showBlock = false
     var showSourceElement = false
     var showLine = false
 }
@@ -23,15 +23,15 @@ struct ReviewLayoutNumberingView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(plan.contentPages, id: \.pageIndex) { page in
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 12) {
                         if options.showPage {
-                            Text("Screenplay Page \(page.screenplayPageNumber ?? 0) · Document Page \(page.documentPageNumber)")
+                            Text("Page \(page.screenplayPageNumber ?? 0)")
                                 .font(.caption.bold())
                                 .foregroundStyle(.secondary)
                         }
 
                         ForEach(page.blocks, id: \.blockNumber) { block in
-                            blockView(page: page, block: block)
+                            blockView(block)
                         }
                     }
                 }
@@ -63,61 +63,58 @@ struct ReviewLayoutNumberingView: View {
         .controlSize(.small)
     }
 
-    private func blockView(page: PDFPagePlan, block: PDFBlockPlan) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            if let address = blockAddress(page: page, block: block) {
+    private func blockView(_ block: PDFBlockPlan) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            if let address = blockAddress(block) {
                 Text(address)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .frame(width: 72, alignment: .trailing)
             }
 
-            ForEach(block.lines, id: \.lineNumber) { line in
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    if options.showLine {
-                        Text("\(line.lineNumber)")
-                            .foregroundStyle(.secondary)
-                            .frame(minWidth: 22, alignment: .trailing)
+            if options.showLine {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(block.lines, id: \.lineNumber) { line in
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text("\(line.lineNumber)")
+                                .foregroundStyle(.secondary)
+                                .frame(width: 22, alignment: .trailing)
+                            Text(line.text.isEmpty ? " " : line.text)
+                        }
                     }
-                    Text(line.text.isEmpty ? " " : line.text)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Text(paragraphText(for: block))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func blockAddress(page: PDFPagePlan, block: PDFBlockPlan) -> String? {
+    private func blockAddress(_ block: PDFBlockPlan) -> String? {
         var components: [String] = []
 
-        if options.showPage {
-            components.append("Page \(page.screenplayPageNumber ?? 0)")
-        }
         if options.showParagraph, let paragraphNumber = block.paragraphNumber {
-            components.append("Paragraph \(paragraphNumber)")
+            components.append("P\(paragraphNumber)")
         }
         if options.showBlock {
-            components.append("Block \(block.blockNumber)")
+            components.append("B\(block.blockNumber)")
         }
         if options.showSourceElement, let sourceElementIndex = block.sourceElementIndex {
-            components.append("Source \(sourceElementIndex)")
+            components.append("S\(sourceElementIndex)")
         }
 
         guard !components.isEmpty else { return nil }
-        components.append(roleLabel(block.role))
-        return components.joined(separator: " · ")
+        return components.joined(separator: " ")
     }
 
-    private func roleLabel(_ role: PDFBlockRole) -> String {
-        switch role {
-        case .title: return "Title"
-        case .sceneHeading: return "Scene Heading"
-        case .action: return "Action"
-        case .characterCue: return "Character"
-        case .parenthetical: return "Parenthetical"
-        case .dialogue: return "Dialogue"
-        case .transition: return "Transition"
-        case .fallback: return "Fallback"
-        case .pageNumber: return "Page Number"
-        }
+    private func paragraphText(for block: PDFBlockPlan) -> String {
+        let text = block.lines
+            .map(\.text)
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? " " : text
     }
 }
