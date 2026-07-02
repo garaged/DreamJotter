@@ -1,6 +1,6 @@
 # Restore Confirmation Flow Spec
 
-Status: specified
+Status: implemented
 Milestone: M9.6
 Traceability ID: RESTORE-CONFIRMATION-FLOW
 
@@ -21,26 +21,20 @@ As a writer, I want DreamJotter to warn me before a backup restore replaces my c
 
 ## State Model
 
-The app should model restore as a two-phase operation:
+The app models restore as a two-phase operation:
 
 1. Validate candidate backup.
 2. Apply candidate backup only when current-project replacement is safe.
 
-Suggested state cases:
+Implemented state lives in `MacAppViewModel` as pending restore state for a validated candidate.
 
-```text
-idle
-validating
-validationFailed(reason)
-readyToApply(candidate)
-requiresDirtyProjectDecision(candidate)
-applying
-completed(feedback)
-canceled(feedback)
-failed(feedback)
-```
+The implemented behavior covers:
 
-This state may live in a dedicated restore UI state type or inside the existing export/backup UI state, but it must remain adapter-neutral.
+- No pending restore.
+- Validation failure before pending replacement state.
+- Pending dirty-project restore decision.
+- Restore application after Save and Restore or Discard and Restore.
+- Cancellation that clears pending restore state.
 
 ## Behavior
 
@@ -53,7 +47,7 @@ Expected result:
 - Current project data is replaced with restored data.
 - Project package ownership follows the existing restore workflow policy.
 - Feedback reports restore success.
-- Dirty state follows explicit restore policy and must be tested.
+- Dirty state follows explicit restore policy and is tested.
 
 ### Dirty Current Project
 
@@ -78,7 +72,7 @@ The app presents three choices:
 
 - Clear pending restore candidate.
 - Preserve current project data, package URL, and dirty state.
-- Report canceled feedback or dismiss silently if the UI already makes cancellation obvious.
+- Report canceled feedback or dismiss clearly without implying success.
 
 ### Invalid Backup
 
@@ -103,11 +97,11 @@ Examples:
 
 ## Edge Cases
 
-- Dirty unsaved project with no package URL chooses Save and Restore: route through Save As.
-- User cancels Save As during Save and Restore: do not restore.
+- Dirty unsaved project with no package URL chooses Save and Restore: routes through Save As.
+- User cancels Save As during Save and Restore: does not restore.
 - Backup validates, but applying restore fails: preserve current state if possible and report failure.
-- User selects another backup while one is pending: replace pending candidate only after explicit user action, or cancel the first pending operation first.
-- Review Mode restore entry point, if present, must exit read-only review context only after restore completes.
+- User selects another backup while one is pending: current implementation replaces pending candidate only through explicit restore action flow.
+- Review Mode restore entry point exits read-only review context only after restore completes.
 
 ## Acceptance Criteria
 
@@ -120,4 +114,10 @@ Examples:
 
 ## Implementation Notes
 
-The current M9.5 implementation already returns confirmation-required feedback for dirty restore attempts. M9.6 should evolve that feedback into first-class pending restore state and a dedicated confirmation UI path.
+Implemented by PR #3:
+
+- `MacAppViewModel` owns pending restore state and restore decision methods.
+- `AppRootView` presents a restore-specific Save and Restore / Discard and Restore / Cancel alert.
+- `Tests/DreamJotterMacTests/M9RestoreUXTests.swift` covers the M9.6 restore decision flow.
+
+Validation passed on the feature branch and on `main`.
