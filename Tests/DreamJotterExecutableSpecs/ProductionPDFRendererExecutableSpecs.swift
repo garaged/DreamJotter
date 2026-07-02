@@ -83,7 +83,7 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(rendered.filter { $0.contains("/Count 1") }.count == 1)
     }
 
-    @Test("Renderer escapes PDF strings and replaces unsupported scalars")
+    @Test("Renderer escapes PDF strings and preserves Windows-1252 text")
     func rendererEscapesPDFStrings() throws {
         let project = makeProject(elements: [
             ScriptElement(kind: .action, text: "Path \\tmp (draft) café")
@@ -91,7 +91,7 @@ struct ProductionPDFRendererExecutableSpecs {
 
         let pdf = pdfString(ProductionPDFRenderer.render(project: project, preset: try preset("reader-copy")))
 
-        #expect(pdf.contains("Path \\\\tmp \\(draft\\) caf?"))
+        #expect(pdf.contains("Path \\\\tmp \\(draft\\) caf\\351"))
     }
 
     @Test("Reader-facing PDF omits TODO elements")
