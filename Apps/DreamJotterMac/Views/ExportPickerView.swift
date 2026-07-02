@@ -10,6 +10,10 @@ struct ExportPickerView: View {
     let revealAction: (String) -> Void
     let cancelAction: () -> Void
 
+    private var presentedPresets: [ExportPreset] {
+        ExportUIState.presentedPresets(presets)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             header
@@ -61,16 +65,16 @@ struct ExportPickerView: View {
 
             Picker("Preset", selection: Binding(
                 get: { state.selectedPresetID },
-                set: { state.selectPreset($0, presets: presets) }
+                set: { state.selectPreset($0, presets: presentedPresets) }
             )) {
-                ForEach(presets, id: \.id) { preset in
+                ForEach(presentedPresets, id: \.id) { preset in
                     Text(preset.title)
                         .tag(preset.id)
                 }
             }
             .pickerStyle(.radioGroup)
 
-            if let preset = state.selectedPreset(in: presets) {
+            if let preset = state.selectedPreset(in: presentedPresets) {
                 Text(preset.goal)
                     .foregroundStyle(.secondary)
                 if let warning = preset.privacyWarning {
@@ -89,7 +93,7 @@ struct ExportPickerView: View {
 
             Picker("Format", selection: Binding(
                 get: { state.selectedFormat },
-                set: { state.selectFormat($0, presets: presets) }
+                set: { state.selectFormat($0, presets: presentedPresets) }
             )) {
                 ForEach(state.availableFormats) { format in
                     Text(format.displayName)

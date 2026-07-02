@@ -59,11 +59,32 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
     }
 
     public static func defaults(for preset: ExportPreset) -> PDFLayoutSettings {
-        PDFLayoutSettings(
-            includeTitlePage: true,
-            includePageNumbers: preset.id == "print-script" || preset.id == "contest-submission",
-            suppressIdentifyingMetadata: preset.id == "contest-submission" || !preset.includesInternalIDs
-        )
+        switch preset.id {
+        case "reader-copy":
+            return PDFLayoutSettings(
+                includeTitlePage: true,
+                includePageNumbers: false,
+                suppressIdentifyingMetadata: false
+            )
+        case "print-script":
+            return PDFLayoutSettings(
+                includeTitlePage: true,
+                includePageNumbers: true,
+                suppressIdentifyingMetadata: false
+            )
+        case "contest-submission":
+            return PDFLayoutSettings(
+                includeTitlePage: false,
+                includePageNumbers: true,
+                suppressIdentifyingMetadata: true
+            )
+        default:
+            return PDFLayoutSettings(
+                includeTitlePage: true,
+                includePageNumbers: false,
+                suppressIdentifyingMetadata: !preset.includesInternalIDs
+            )
+        }
     }
 }
 

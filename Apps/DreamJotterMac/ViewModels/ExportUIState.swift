@@ -123,17 +123,27 @@ struct ExportUIState: Codable, Equatable {
         self.isCanceled = isCanceled
     }
 
+    static func presentedPresets(_ storedPresets: [ExportPreset]) -> [ExportPreset] {
+        let builtIns = ExportPresetCatalog.builtInPresets()
+        let builtInIDs = Set(builtIns.map(\.id))
+        let customPresets = storedPresets.filter { preset in
+            !preset.isBuiltIn && !builtInIDs.contains(preset.id)
+        }
+        return builtIns + customPresets
+    }
+
     static func initial(
         presets: [ExportPreset] = ExportPresetCatalog.builtInPresets(),
         sourceContext: ExportSourceContext = .workspace
     ) -> ExportUIState {
+        let presented = presentedPresets(presets)
         let preferredID = sourceContext == .backup ? "writer-backup" : "reader-copy"
-        let preset = presets.first { $0.id == preferredID } ?? presets[0]
+        let preset = presented.first { $0.id == preferredID } ?? presented[0]
         return ExportUIState(
             selectedPresetID: preset.id,
             selectedFormat: preset.format,
             sourceContext: sourceContext
-        ).reconciled(with: presets)
+        ).reconciled(with: presented)
     }
 
     var selectedDestinationURL: URL? {
@@ -142,7 +152,7 @@ struct ExportUIState: Codable, Equatable {
     }
 
     func selectedPreset(in presets: [ExportPreset]) -> ExportPreset? {
-        presets.first { $0.id == selectedPresetID }
+        Self.presentedPresets(presets).first { $0.id == selectedPresetID }
     }
 
     func disabledReason(for format: ExportFormat) -> String? {
@@ -150,16 +160,17 @@ struct ExportUIState: Codable, Equatable {
     }
 
     mutating func selectPreset(_ presetID: String, presets: [ExportPreset]) {
+        let presented = Self.presentedPresets(presets)
         selectedPresetID = presetID
-        if let preset = selectedPreset(in: presets), !preset.allowedFormats.contains(selectedFormat) {
+        if let preset = selectedPreset(in: presented), !preset.allowedFormats.contains(selectedFormat) {
             selectedFormat = preset.format
         }
-        self = reconciled(with: presets)
+        self = reconciled(with: presented)
     }
 
     mutating func selectFormat(_ format: ExportFormat, presets: [ExportPreset]) {
         selectedFormat = format
-        self = reconciled(with: presets)
+        self = reconciled(with: Self.presentedPresets(presets))
     }
 
     mutating func setDestination(_ url: URL?) {
@@ -204,7 +215,8 @@ struct ExportUIState: Codable, Equatable {
     }
 
     private func reconciled(with presets: [ExportPreset]) -> ExportUIState {
-        guard let preset = selectedPreset(in: presets) else { return self }
+        let presented = Self.presentedPresets(presets)
+        guard let preset = selectedPreset(in: presented) else { return self }
         var copy = self
         copy.availableFormats = ExportFormat.uiVisibleFormats
         copy.disabledFormats = ExportFormat.uiVisibleFormats.compactMap { format in
