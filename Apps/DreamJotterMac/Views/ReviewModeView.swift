@@ -70,7 +70,7 @@ struct ReviewModeView: View {
             }
 
             if showLayoutNumbering, let plan = document.reviewPDFLayoutPlan {
-                ReviewLayoutNumberingView(plan: plan)
+                SimplifiedReviewLayoutNumberingView(plan: plan)
             } else {
                 Text(document.fountainExportText.isEmpty ? "No script text yet." : document.fountainExportText)
                     .font(.system(.body, design: .monospaced))
@@ -108,7 +108,7 @@ struct ReviewModeView: View {
                                 if let action = finding.suggestedAction {
                                     Text(action)
                                         .font(.caption)
-                                      .foregroundStyle(.secondary)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
 
@@ -132,16 +132,16 @@ struct ReviewModeView: View {
             return "exclamationmark.triangle"
         case .issue:
             return "xmark.octagon"
-      }
+        }
     }
 
     private func color(for severity: ReviewFindingSeverity) -> Color {
         switch severity {
         case .info:
             return .secondary
-      case .warning:
+        case .warning:
             return .orange
-      case .issue:
+        case .issue:
             return .red
         }
     }
