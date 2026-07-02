@@ -1,14 +1,50 @@
 import Foundation
 
+public enum PDFRenderDiagnosticCode: String, Codable, Equatable, Sendable {
+    case layoutWarning
+    case unsupportedCharacter
+}
+
+public struct PDFRenderDiagnostic: Codable, Equatable, Hashable, Sendable {
+    public let code: PDFRenderDiagnosticCode
+    public let message: String
+
+    public init(code: PDFRenderDiagnosticCode, message: String) {
+        self.code = code
+        self.message = message
+    }
+}
+
+public struct ProductionPDFRenderOutput: Equatable, Sendable {
+    public let data: Data
+    public let diagnostics: [PDFRenderDiagnostic]
+
+    public init(data: Data, diagnostics: [PDFRenderDiagnostic]) {
+        self.data = data
+        self.diagnostics = diagnostics
+    }
+}
+
 public enum ProductionPDFRenderer {
     public static func render(
         project: DreamJotterProject,
         preset: ExportPreset
     ) -> Data {
-        render(plan: PDFLayoutPlanner.plan(for: project, preset: preset))
+        renderOutput(project: project, preset: preset).data
     }
 
     public static func render(plan: PDFLayoutPlan) -> Data {
+        renderOutput(plan: plan).data
+    }
+
+    public static func renderOutput(
+        project: DreamJotterProject,
+        preset: ExportPreset
+    ) -> ProductionPDFRenderOutput {
+        renderOutput(plan: PDFLayoutPlanner.plan(for: project, preset: preset))
+    }
+
+    public static func renderOutput(plan: PDFLayoutPlan) -> ProductionPDFRenderOutput {
         let pageCount = plan.pages.count
         let firstPageObject = 3
         let firstContentObject = firstPageObject + pageCount
@@ -16,6 +52,7 @@ public enum ProductionPDFRenderer {
         let boldFontObject = regularFontObject + 1
 
         var objects: [String] = []
+        var unsupportedCharacters = Set<String>()
         objects.append("<< /Type /Catalog /Pages 2 0 R >>")
 
         let pageReferences = (0..<pageCount)
@@ -35,23 +72,54 @@ public enum ProductionPDFRenderer {
         }
 
         for page in plan.pages {
-            let stream = contentStream(for: page, settings: plan.settings)
+            let stream = contentStream(
+                for: page,
+                settings: plan.settings,
+                unsupportedCharacters: &unsupportedCharacters
+            )
             objects.append("<< /Length \(stream.utf8.count) >>\nstream\n\(stream)\nendstream")
         }
 
         objects.append("<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>")
         objects.append("<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold /Encoding /WinAnsiEncoding >>")
 
-        return assemble(objects: objects)
+        var diagnostics = plan.warnings.map { warning in
+            PDFRenderDiagnostic(code: .layoutWarning, message: warning.message)
+        }
+        diagnostics.append(contentsOf: unsupportedCharacters.sorted().map { character in
+            PDFRenderDiagnostic(
+                code: .unsupportedCharacter,
+                message: "The character ‘\(character)’ is not supported by the built-in PDF font and was replaced with ?."
+            )
+        })
+
+        return ProductionPDFRenderOutput(
+            data: assemble(objects: objects),
+            diagnostics: diagnostics
+        )
     }
 
-    private static func contentStream(for page: PDFPagePlan, settings: PDFLayoutSettings) -> String {
+    private static func contentStream(
+        for page: PDFPagePlan,
+        settings: PDFLayoutSettings,
+        unsupportedCharacters: inout Set<String>
+    ) -> String {
         var commands: [String] = []
 
         if page.isTitlePage {
-            appendTitlePage(page, settings: settings, commands: &commands)
+            appendTitlePage(
+                page,
+                settings: settings,
+                commands: &commands,
+                unsupportedCharacters: &unsupportedCharacters
+            )
         } else {
-            appendScreenplayPage(page, settings: settings, commands: &commands)
+            appendScreenplayPage(
+                page,
+                settings: settings,
+                commands: &commands,
+                unsupportedCharacters: &unsupportedCharacters
+            )
         }
 
         return commands.joined(separator: "\n")
@@ -60,7 +128,8 @@ public enum ProductionPDFRenderer {
     private static func appendTitlePage(
         _ page: PDFPagePlan,
         settings: PDFLayoutSettings,
-        commands: inout [String]
+        commands: inout [String],
+        unsupportedCharacters: inout Set<String>
     ) {
         let lines = page.blocks.flatMap(\.lines)
         let startY = settings.pageSize.height * 0.62
@@ -73,21 +142,36 @@ public enum ProductionPDFRenderer {
                 fontSize: fontSize,
                 pageWidth: settings.pageSize.width
             )
-            commands.append(textCommand(text: line.text, font: .bold, size: fontSize, x: x, y: y))
+            commands.append(textCommand(
+                text: line.text,
+                font: .bold,
+                size: fontSize,
+                x: x,
+                y: y,
+                unsupportedCharacters: &unsupportedCharacters
+            ))
         }
     }
 
     private static func appendScreenplayPage(
         _ page: PDFPagePlan,
         settings: PDFLayoutSettings,
-        commands: inout [String]
+        commands: inout [String],
+        unsupportedCharacters: inout Set<String>
     ) {
         var y = settings.pageSize.height - settings.margins.top
 
         if settings.includePageNumbers, let screenplayPageNumber = page.screenplayPageNumber {
             let text = "\(screenplayPageNumber)."
             let x = settings.pageSize.width - settings.margins.right - estimatedWidth(text, fontSize: 10)
-            commands.append(textCommand(text: text, font: .regular, size: 10, x: x, y: settings.pageSize.height - 36))
+            commands.append(textCommand(
+                text: text,
+                font: .regular,
+                size: 10,
+                x: x,
+                y: settings.pageSize.height - 36,
+                unsupportedCharacters: &unsupportedCharacters
+            ))
         }
 
         for block in page.blocks {
@@ -97,15 +181,14 @@ public enum ProductionPDFRenderer {
 
             for line in block.lines {
                 let style = style(for: block.role, text: line.text, settings: settings)
-                commands.append(
-                    textCommand(
-                        text: line.text,
-                        font: style.font,
-                        size: style.fontSize,
-                        x: style.x,
-                        y: y
-                    )
-                )
+                commands.append(textCommand(
+                    text: line.text,
+                    font: style.font,
+                    size: style.fontSize,
+                    x: style.x,
+                    y: y,
+                    unsupportedCharacters: &unsupportedCharacters
+                ))
                 y -= settings.lineHeight
             }
 
@@ -158,9 +241,11 @@ public enum ProductionPDFRenderer {
         font: Font,
         size: Double,
         x: Double,
-        y: Double
+        y: Double,
+        unsupportedCharacters: inout Set<String>
     ) -> String {
-        "BT /\(font.rawValue) \(number(size)) Tf \(number(x)) \(number(y)) Td (\(escaped(text))) Tj ET"
+        let encoded = escaped(text, unsupportedCharacters: &unsupportedCharacters)
+        return "BT /\(font.rawValue) \(number(size)) Tf \(number(x)) \(number(y)) Td (\(encoded)) Tj ET"
     }
 
     private static func centeredX(text: String, fontSize: Double, pageWidth: Double) -> Double {
@@ -171,22 +256,40 @@ public enum ProductionPDFRenderer {
         Double(text.count) * fontSize * 0.6
     }
 
-    private static func escaped(_ value: String) -> String {
+    private static func escaped(
+        _ value: String,
+        unsupportedCharacters: inout Set<String>
+    ) -> String {
         var result = ""
-        for scalar in value.unicodeScalars {
-            switch scalar {
-            case "\\": result += "\\\\"
-            case "(": result += "\\("
-            case ")": result += "\\)"
-            case "\n", "\r", "\t": result += " "
+
+        for character in value {
+            switch character {
+            case "\\":
+                result += "\\\\"
+            case "(":
+                result += "\\("
+            case ")":
+                result += "\\)"
+            case "\n", "\r", "\t":
+                result += " "
             default:
-                if scalar.value < 32 || scalar.value > 126 {
+                let text = String(character)
+                guard let encoded = text.data(using: .windowsCP1252, allowLossyConversion: false),
+                      encoded.count == 1,
+                      let byte = encoded.first else {
                     result += "?"
+                    unsupportedCharacters.insert(text)
+                    continue
+                }
+
+                if byte >= 32 && byte <= 126 {
+                    result.append(Character(UnicodeScalar(byte)))
                 } else {
-                    result.append(Character(scalar))
+                    result += String(format: "\\%03o", byte)
                 }
             }
         }
+
         return result
     }
 
