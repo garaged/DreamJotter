@@ -1,6 +1,6 @@
 # M12.1 Character and Location Management
 
-Status: implemented
+Status: implemented in portable core
 
 ## Purpose
 
@@ -10,7 +10,7 @@ Provide safe lifecycle and bulk-edit workflows for canonical character and locat
 
 Archive state is stored as reserved project metadata inside the already persisted Pro-state envelope. Existing packages contain no archive markers and therefore decode every profile as active without migration or a package-format change.
 
-Archive and restore are reversible command operations. Delete is irreversible from current project state and requires explicit user confirmation. Delete removes links to the deleted profile but does not rewrite screenplay text automatically.
+Archive and restore are reversible command operations. Profile removal is irreversible from current project state and requires explicit user confirmation. Removal clears links to the removed profile but does not rewrite screenplay text automatically.
 
 ## Duplicate Merge Contract
 
@@ -61,11 +61,11 @@ M12.1 adds `ProfileCommandRequest` and an overload of `CommandEngine.execute` fo
 
 - archive profile;
 - restore profile;
-- delete profile;
+- remove profile;
 - merge profiles;
 - bulk rename profile.
 
-Delete, merge, and bulk rename set `requiresSnapshot` to true. Archive and restore remain command-backed but do not require a snapshot because they are directly reversible.
+Removal, merge, and bulk rename set `requiresSnapshot` to true. Archive and restore remain command-backed but do not require a snapshot because they are directly reversible.
 
 ## Persistence
 
