@@ -48,7 +48,7 @@ struct ExportFeedback: Codable, Equatable, Identifiable {
         let kind: ExportFeedbackKind
         switch result.status {
         case .success:
-            kind = .success
+            kind = result.technicalDetail == nil ? .success : .warning
         case .failed:
             kind = .error
         case .canceled:
@@ -139,9 +139,15 @@ struct ExportUIState: Codable, Equatable {
         let presented = presentedPresets(presets)
         let preferredID = sourceContext == .backup ? "writer-backup" : "reader-copy"
         let preset = presented.first { $0.id == preferredID } ?? presented[0]
+        let preferredFormat: ExportFormat
+        if sourceContext != .backup && preset.allowedFormats.contains(.pdf) {
+            preferredFormat = .pdf
+        } else {
+            preferredFormat = preset.format
+        }
         return ExportUIState(
             selectedPresetID: preset.id,
-            selectedFormat: preset.format,
+            selectedFormat: preferredFormat,
             sourceContext: sourceContext
         ).reconciled(with: presented)
     }
@@ -163,7 +169,7 @@ struct ExportUIState: Codable, Equatable {
         let presented = Self.presentedPresets(presets)
         selectedPresetID = presetID
         if let preset = selectedPreset(in: presented), !preset.allowedFormats.contains(selectedFormat) {
-            selectedFormat = preset.format
+            selectedFormat = preset.allowedFormats.contains(.pdf) ? .pdf : preset.format
         }
         self = reconciled(with: presented)
     }
@@ -227,7 +233,7 @@ struct ExportUIState: Codable, Equatable {
             )
         }
         if copy.disabledReason(for: copy.selectedFormat) != nil {
-            copy.selectedFormat = preset.format
+            copy.selectedFormat = preset.allowedFormats.contains(.pdf) ? .pdf : preset.format
         }
         return copy
     }
