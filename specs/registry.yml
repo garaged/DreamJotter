@@ -1568,7 +1568,7 @@
       "id": "EXPORT-WORKFLOW-V1",
       "title": "Export Workflow v1",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/export/export-workflow-v1.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1602,13 +1602,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies read-only exports for Fountain, plain text, Markdown, JSON backup, and basic PDF with friendly errors and dirty-state preservation."
+      "notes": "Implemented: ExportWorkflow supports Fountain, plain text, Markdown, JSON backup, and basic PDF artifacts without mutating dirty state."
     },
     {
       "id": "EXPORT-PRESETS-V1",
       "title": "Export Presets v1",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/export/export-presets-v1.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1638,13 +1638,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive presets with metadata/privacy defaults."
+      "notes": "Implemented: Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive presets expose format, availability, and metadata/privacy defaults."
     },
     {
       "id": "BASIC-PDF-EXPORT-ADAPTER",
       "title": "Basic PDF Export Adapter",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/export/basic-pdf-export-adapter.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1676,13 +1676,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies readable screenplay-like PDF output from semantic/plain screenplay text while deferring production pagination."
+      "notes": "Implemented: BasicPDFExportAdapter renders a readable basic PDF artifact from semantic/plain screenplay text while deferring production pagination."
     },
     {
       "id": "SCRIPT-HEALTH-REPORT-V1",
       "title": "Script Health Report v1",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/analysis/script-health-report-v1.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1714,13 +1714,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies local, read-only health metrics and friendly findings without AI or project mutation."
+      "notes": "Implemented: ScriptHealthReportBuilder derives local read-only metrics and findings without AI or project mutation."
     },
     {
       "id": "REVIEW-FINDINGS",
       "title": "Review Findings",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/analysis/review-findings.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1751,13 +1751,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies structured info/warning/issue findings with source, entity links, optional script ranges, and suggested actions."
+      "notes": "Implemented: ReviewFindingBuilder creates structured info/warning/issue findings with source, entity links, and suggested actions."
     },
     {
       "id": "REVIEW-MODE-V1",
       "title": "Review Mode v1",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/review/review-mode-v1.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1790,13 +1790,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies read-only review workspace with script preview, scene navigation, notes/TODOs, findings, export actions, and return to editing."
+      "notes": "Implemented: Review Mode provides a read-only script preview, findings, export action, and return to editing through ProjectDocumentViewModel and ReviewModeView."
     },
     {
       "id": "BACKUP-RESTORE-WORKFLOW-V1",
       "title": "Backup and Restore Workflow v1",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/export/backup-restore-workflow.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1831,13 +1831,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies backup export and restore validation with dirty-work protection and M8 metadata preservation."
+      "notes": "Implemented: BackupRestoreWorkflow exports structured JSON backups, validates restores, preserves M8 metadata, and protects dirty current work."
     },
     {
       "id": "FORMATTING-WARNING-V1",
       "title": "Formatting Warning v1",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/analysis/formatting-warning-v1.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1868,13 +1868,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies non-blocking warnings for missing scene details, cue/dialogue issues, unusual transitions, empty scenes, TODOs, and unresolved detections."
+      "notes": "Implemented: ReviewFindingBuilder emits non-blocking warnings for missing scene time, duplicate headings, cue/dialogue issues, TODOs, and unresolved detections."
     },
     {
       "id": "REVIEW-NAVIGATION-INTEGRATION",
       "title": "Review Navigation Integration",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/review/review-mode-v1.spec.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1907,13 +1907,13 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies read-only navigation from review findings and scenes into existing editor navigation targets."
+      "notes": "Implemented: Selecting linked review findings updates read-only review state and existing editor navigation targets without dirtying project state."
     },
     {
       "id": "M9-PREVIOUS-MILESTONE-PRESERVATION",
       "title": "Milestone 9 Previous Workflow Preservation",
       "milestone": "M9",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/milestones/milestone-9-export-review-health.md",
       "acceptance": "docs/acceptance/milestone-9-acceptance.md",
       "related_adrs": [
@@ -1950,7 +1950,7 @@
         "internal-metadata-not-leaked-by-default",
         "basic-pdf-not-production-pagination"
       ],
-      "notes": "Specifies that M9 export/review/analysis preserves M6 lifecycle, M7 editor behavior, and M8 project-object workflows."
+      "notes": "Implemented: M9 export/review/analysis preserves existing document lifecycle, editor behavior, and project-object workflows in executable specs."
     },
     {
       "id": "ROUTINE-SYSTEM-V1",
