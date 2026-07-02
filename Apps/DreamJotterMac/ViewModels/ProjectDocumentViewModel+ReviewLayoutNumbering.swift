@@ -15,7 +15,7 @@ struct ReviewLayoutLine: Equatable, Identifiable {
     }
 
     var addressLabel: String {
-        "Page \(screenplayPageNumber) / Paragraph \(paragraphNumber) / Block \(blockNumber) / Source \(sourceElementIndex)"
+        "Page \(screenplayPageNumber) · Paragraph \(paragraphNumber) · Block \(blockNumber) · Source \(sourceElementIndex)"
     }
 }
 
