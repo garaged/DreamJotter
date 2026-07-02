@@ -13,7 +13,7 @@ struct ReviewLayoutNumberingTests {
 
         #expect(options.showPage)
         #expect(options.showParagraph)
-        #expect(options.showBlock)
+        #expect(options.showBlock == false)
         #expect(options.showSourceElement == false)
         #expect(options.showLine == false)
     }
