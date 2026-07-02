@@ -24,8 +24,8 @@ struct SimplifiedReviewLayoutNumberingView: View {
 
             ForEach(plan.contentPages, id: \.pageIndex) { page in
                 VStack(alignment: .leading, spacing: 12) {
-                    ForEach(page.blocks, id: \.blockNumber) { block in
-                        blockView(page: page, block: block)
+                    ForEach(Array(page.blocks.enumerated()), id: \.element.blockNumber) { index, block in
+                        blockView(page: page, block: block, isFirstBlock: index == 0)
                     }
                 }
             }
@@ -38,15 +38,24 @@ struct SimplifiedReviewLayoutNumberingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
-    private func blockView(page: PDFPagePlan, block: PDFBlockPlan) -> some View {
+    private func blockView(page: PDFPagePlan, block: PDFBlockPlan, isFirstBlock: Bool) -> some View {
         Group {
             if showLine {
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(Array(block.lines.enumerated()), id: \.element.lineNumber) { index, line in
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(lineLabel(page: page, block: block, lineNumber: line.lineNumber, isFirstLine: index == 0))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 58, alignment: .trailing)
+                            Text(
+                                lineLabel(
+                                    page: page,
+                                    block: block,
+                                    lineNumber: line.lineNumber,
+                                    isFirstLine: index == 0,
+                                    isFirstBlock: isFirstBlock
+                                )
+                            )
+                            .foregroundStyle(.secondary)
+                            .frame(width: 58, alignment: .trailing)
+
                             Text(line.text.isEmpty ? " " : line.text)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -55,7 +64,7 @@ struct SimplifiedReviewLayoutNumberingView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 HStack(alignment: .top, spacing: 12) {
-                    if let address = paragraphAddress(page: page, block: block) {
+                    if let address = paragraphAddress(page: page, block: block, isFirstBlock: isFirstBlock) {
                         Text(address)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -71,12 +80,16 @@ struct SimplifiedReviewLayoutNumberingView: View {
         }
     }
 
-    private func paragraphAddress(page: PDFPagePlan, block: PDFBlockPlan) -> String? {
+    private func paragraphAddress(
+        page: PDFPagePlan,
+        block: PDFBlockPlan,
+        isFirstBlock: Bool
+    ) -> String? {
         switch (showPage, showParagraph, page.screenplayPageNumber, block.paragraphNumber) {
         case (true, true, let pageNumber?, let paragraphNumber?):
             return "\(pageNumber).\(paragraphNumber)"
-        case (true, false, let pageNumber?, _):
-            return "\(pageNumber)"
+        case (true, false, let pageNumber?, _) where isFirstBlock:
+            return "P\(pageNumber)"
         case (false, true, _, let paragraphNumber?):
             return "P\(paragraphNumber)"
         default:
@@ -88,10 +101,11 @@ struct SimplifiedReviewLayoutNumberingView: View {
         page: PDFPagePlan,
         block: PDFBlockPlan,
         lineNumber: Int,
-        isFirstLine: Bool
+        isFirstLine: Bool,
+        isFirstBlock: Bool
     ) -> String {
         guard isFirstLine,
-              let address = paragraphAddress(page: page, block: block) else {
+              let address = paragraphAddress(page: page, block: block, isFirstBlock: isFirstBlock) else {
             return "\(lineNumber)"
         }
         return "\(address)/\(lineNumber)"
