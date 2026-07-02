@@ -37,13 +37,14 @@ Block and source-element numbering remain available in the internal layout plan 
 - Page appears once as a page header.
 - Paragraph appears in a compact gutter.
 - When line numbering is disabled, planner-wrapped lines are rejoined into one logical paragraph and SwiftUI wraps to the available pane width.
-- When line numbering is enabled, planner lines are shown separately with paragraph-local line numbers.
+- When line numbering is enabled, Review Mode uses wider desktop-oriented planner wrapping rather than the narrower production-PDF body width.
+- Line numbers use a narrow fixed gutter and must not materially reduce the text column width.
 - Title-page blocks are excluded.
 - Renderer role labels are not shown in the Review address.
 
-The Review pane must keep screenplay text left-aligned and readable. It must not reuse PDF renderer centering, right-alignment, or fixed screenplay column widths.
+The Review pane must keep screenplay text left-aligned and readable. It must not reuse PDF renderer centering, right-alignment, or narrow fixed screenplay column widths.
 
-Review numbering is derived from `PDFLayoutPlanner` with the built-in Reader Copy preset. It is plan-local metadata, not persistent identity across edits.
+Review numbering is derived from `PDFLayoutPlanner` with the built-in Reader Copy preset and explicit Review layout settings. It is plan-local metadata, not persistent identity across edits.
 
 ## Acceptance Criteria
 
@@ -53,5 +54,6 @@ Review numbering is derived from `PDFLayoutPlanner` with the built-in Reader Cop
 - Block and Source remain internal and are not shown as controls.
 - Page metadata is not repeated for every paragraph.
 - Paragraph text uses the available pane width when line numbering is disabled.
+- Enabling Line uses a wider Review wrapping width than production PDF defaults.
 - Disabling the master toggle restores plain Fountain text.
 - Reading numbering preserves project data and dirty state.
