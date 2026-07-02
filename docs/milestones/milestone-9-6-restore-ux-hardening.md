@@ -1,6 +1,6 @@
 # Milestone 9.6: Restore UX Hardening
 
-Status: specified
+Status: implemented
 Milestone: M9.6
 Traceability ID: M9-6-RESTORE-UX-HARDENING
 
@@ -8,7 +8,7 @@ Traceability ID: M9-6-RESTORE-UX-HARDENING
 
 Turn the current restore protection behavior into a complete writer-safe restore experience.
 
-M9.5 correctly blocks restore when the current project has unsaved changes, but it only returns confirmation-required feedback. M9.6 adds the richer user flow: Save / Discard / Cancel before restore replaces the current project.
+M9.5 correctly blocked restore when the current project had unsaved changes, but it only returned confirmation-required feedback. M9.6 adds the richer user flow: Save / Discard / Cancel before restore replaces the current project.
 
 ## Product Outcome
 
@@ -17,14 +17,14 @@ M9.5 correctly blocks restore when the current project has unsaved changes, but 
 - Restore remains local-first, deterministic, and reversible by user intent.
 - Invalid or incompatible backups never replace current project state.
 
-## Scope
+## Implemented Scope
 
 - Restore-specific dirty-project confirmation flow.
 - Save / Discard / Cancel restore choices.
 - Restore feedback messages for success, cancel, invalid backup, failed save, and blocked replacement.
 - View-model/app-support state for pending restore data.
 - Tests that prove restore choices preserve or replace state correctly.
-- Documentation updates for acceptance, TODO, and traceability.
+- Documentation updates for acceptance, TODO, and status surfaces.
 
 ## Non-Goals
 
@@ -45,18 +45,17 @@ M9.5 correctly blocks restore when the current project has unsaved changes, but 
 - SwiftUI views remain thin; decision state belongs in app-support/view-model logic.
 - `.dreamjotter` package remains canonical project storage.
 
-## Feature Areas
+## Implemented Feature Areas
 
 ### A. Pending Restore State
 
-The app needs adapter-neutral state that can hold a validated restore candidate while waiting for user choice.
+`MacAppViewModel` now owns pending restore state for a validated restore candidate while waiting for writer choice.
 
-The state should represent:
+The implemented state represents:
 
 - No pending restore.
 - Pending restore requires dirty-current-project decision.
-- Pending restore is ready to apply.
-- Pending restore failed validation.
+- Invalid restore data rejected before pending state is created.
 
 ### B. Restore Confirmation Choices
 
@@ -68,28 +67,28 @@ When current project is dirty, the restore flow presents:
 
 ### C. Save Failure Safety
 
-If Save and Restore fails, the restore must not apply. The writer should receive save-failure feedback and remain in the current dirty project.
+If Save and Restore fails, restore does not apply. The current dirty project and pending restore candidate are preserved so the writer can recover.
 
 ### D. Restore Feedback
 
-Feedback should distinguish:
+Feedback distinguishes:
 
 - Restore completed.
 - Restore canceled.
 - Restore blocked because save failed.
 - Restore blocked because backup is invalid.
-- Restore blocked because backup is incompatible.
 - Restore blocked because no project replacement decision was made.
 
 ### E. Tests
 
-Tests should cover:
+Implemented tests cover:
 
 - Valid restore into a clean project replaces state and clears dirty state according to restore policy.
 - Valid restore into a dirty project enters pending confirmation state.
 - Cancel preserves current project data and dirty state.
 - Discard applies restore and replaces current project data.
-- Save and Restore applies restore only after successful save.
+- Save and Restore requires Save As for unsaved dirty projects.
+- External Save As followed by restore applies the pending backup.
 - Save failure prevents restore and preserves current dirty project.
 - Invalid restore never creates pending replacement state.
 
@@ -102,6 +101,23 @@ Tests should cover:
 - Restore feedback is specific enough for a non-technical writer.
 - Existing M9.5 export picker and backup creation behavior remain unchanged.
 - Existing M6 lifecycle, M7 editor, M8 project objects, and M9 review/export/health behavior are preserved.
+
+## Implementation Summary
+
+Implemented by PR #3:
+
+- `Apps/DreamJotterMac/ViewModels/MacAppViewModel.swift`
+- `Apps/DreamJotterMac/Views/AppRootView.swift`
+- `Tests/DreamJotterMacTests/M9RestoreUXTests.swift`
+
+Validation passed on the feature branch and on `main`:
+
+```sh
+python3 scripts/spec-check
+python3 scripts/spec-trace
+CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift test --disable-sandbox --scratch-path /private/tmp/DreamJotterSwiftPM
+CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift build --product DreamJotterMac --disable-sandbox --scratch-path /private/tmp/DreamJotterSwiftPM
+```
 
 ## Related Specs
 
