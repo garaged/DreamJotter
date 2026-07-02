@@ -2,7 +2,7 @@
 
 DreamJotter is a screenplay and movie-script writing app for non-programmers. It is designed to let beginners write, organize, and export scripts without learning technical tooling, while still leaving room for optional Pro Mode workflows such as revision colors, draft comparison, production breakdown, custom fields, export presets, and no-code routines.
 
-Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. Milestone 6 stabilizes document lifecycle behavior for saving, dirty state, recent projects, replacement protection, and basic commands. Milestone 7 implements screenplay editor usability v1 with TextKit Smart Enter, Tab cycling, suggestions, scene navigation/cursor sync, adapter-only styling, and passive blank-script guidance. Milestone 8 implements character, location, notes, and scene workflow v1 with detected object resolution, profile creation/editing, scene-card status, parsed TODO notes, dashboard summary, and search integration. Milestone 9 implements export, review, backup/restore, and script health v1. Milestone 9.5 implements export UX and release-readiness polish. Milestone 10 implements deterministic production PDF layout, numbering, pagination, rendering, diagnostics, and PDF-first screenplay preset behavior. There is no plugin runtime, real AI provider, cloud sync, or external service integration.
+Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. Milestone 6 stabilizes document lifecycle behavior for saving, dirty state, recent projects, replacement protection, and basic commands. Milestone 7 implements screenplay editor usability v1 with TextKit Smart Enter, Tab cycling, suggestions, scene navigation/cursor sync, adapter-only styling, and passive blank-script guidance. Milestone 8 implements character, location, notes, and scene workflow v1 with detected object resolution, profile creation/editing, scene-card status, parsed TODO notes, dashboard summary, and search integration. Milestone 9 implements export, review, backup/restore, and script health v1. Milestone 9.5 implements export UX and release-readiness polish. Milestone 10 implements deterministic production PDF layout, numbering, pagination, rendering, diagnostics, and PDF-first screenplay preset behavior. Milestone 11 adds a portable FDX interoperability foundation. Milestone 12 is in progress, with M12.1 portable character and location management implemented. There is no plugin runtime, real AI provider, cloud sync, or external service integration.
 
 ## Product Direction
 
@@ -36,6 +36,7 @@ Core rules:
 - AI suggestions never mutate user text until accepted.
 - Real AI providers are out of scope through Milestone 4.
 - PDF export uses adapter-neutral layout planning and the production renderer through the existing export workflow.
+- FDX remains an interchange format; `.dreamjotter` remains canonical storage.
 
 ## How Specs Are Organized
 
@@ -78,8 +79,10 @@ Key SDD files:
 | Milestone 9.5 | Implemented | Export UX and Release Readiness Polish covers format/preset picker UI, destination and feedback flows, Review Mode export reuse, backup/restore UI, export UI state, export feedback, and a Mac MVP manual QA checklist. |
 | Milestone 9.6 | Implemented | Restore UX Hardening implements Save / Discard / Cancel protection for restoring backups over dirty current projects. |
 | Milestone 10 | Accepted | Production PDF Export implements deterministic layout planning, hierarchical numbering, title pages, pagination, production rendering, diagnostics, privacy-aware preset behavior, and stable regression coverage. |
+| Milestone 11 | Implemented | FDX Interoperability Foundation provides portable UTF-8 Final Draft XML import/export for the supported semantic subset, with diagnostics and malformed-input protection. |
+| Milestone 12 | In progress | Writer Workflow Polish is split into profile management, notes/TODO workspace, and scene workflow slices. M12.1 portable profile management is implemented. |
 
-Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5 through Milestone 9.6 app/editor/workspace/export/restore foundations are implemented; and Milestone 10 production PDF export is accepted. Real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
+Implementation status: Milestone 1 through Milestone 4 portable-core foundations are accepted; Milestone 5 through Milestone 11 foundations are implemented or accepted; and Milestone 12 is in progress. Real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
 
 ## Current App Capabilities
 
@@ -103,6 +106,7 @@ Implementation status: Milestone 1 through Milestone 4 portable-core foundations
 - Reuses the same export picker from Review Mode.
 - Validates JSON backup restore before replacing current project state and protects dirty current projects with Save / Discard / Cancel restore choices.
 - Shows read-only Review Mode and script health findings.
+- Provides command-backed profile lifecycle, duplicate merge, and previewed bulk rename behavior in portable core.
 - Provides basic commands and shortcuts for New Project, Open, Save, Save As, and Export Fountain.
 
 ## Running The macOS App
