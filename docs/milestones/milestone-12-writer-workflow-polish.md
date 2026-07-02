@@ -1,6 +1,6 @@
 # Milestone 12 — Writer Workflow Polish
 
-Status: specified
+Status: in progress
 
 ## Goal
 
@@ -10,17 +10,22 @@ Milestone 12 is delivered in three independently reviewable slices.
 
 ## M12.1 Character and Location Management
 
+Status: implemented in portable core.
+
 - Archive and restore character and location profiles.
-- Delete profiles only after explicit confirmation.
+- Remove profiles only after explicit confirmation.
 - Merge duplicate profiles into a selected surviving profile.
 - Rename a character or location across the semantic screenplay.
 - Preview affected screenplay elements before applying a bulk rename.
-- Route archive, restore, delete, merge, and bulk rename through `CommandEngine`.
-- Require a snapshot before delete, merge, or bulk screenplay rename.
-- Preserve Unicode names and detected-profile resolution state.
+- Route lifecycle and bulk mutations through `CommandEngine`.
+- Require a snapshot before removal, merge, or bulk screenplay rename.
+- Preserve Unicode names and detected-profile resolution behavior.
 - Preserve changes across `.dreamjotter` save and reopen.
+- Focused macOS management presentation remains a later adapter slice.
 
 ## M12.2 Notes and TODO Workspace
+
+Status: planned.
 
 - Filter notes by state and target.
 - Search note title and body text using Unicode-aware normalization.
@@ -32,6 +37,8 @@ Milestone 12 is delivered in three independently reviewable slices.
 - Keep search indexes and dashboard counts correct after mutations.
 
 ## M12.3 Scene Workflow Polish
+
+Status: planned.
 
 - Enrich scene cards with editable summary, note, status, plotline tags, and planning order.
 - Reorder planning metadata without changing screenplay element order.
