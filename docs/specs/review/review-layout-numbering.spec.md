@@ -40,6 +40,8 @@ Line numbering is disabled by default to avoid visual noise. Source-element numb
 
 Enabled address levels are joined into one compact block label. Each wrapped line displays its paragraph-local line number only when the Line checkbox is enabled. Title-page blocks are excluded.
 
+The Review pane must keep screenplay text left-aligned and readable. It must not reuse renderer-specific centering or right-alignment rules from `PDFTextAlignment`; those rules belong to eventual PDF output, not the review UI.
+
 Review numbering is derived from `PDFLayoutPlanner` with the built-in Reader Copy preset. It is plan-local metadata, not persistent identity across edits.
 
 ## Fallback
@@ -53,6 +55,7 @@ An empty screenplay shows `No script text yet.` If Reader Copy cannot be resolve
 - Page, paragraph, and block are enabled by default.
 - Source-element and line numbering are disabled by default.
 - Disabling all address levels removes the block address label without hiding screenplay content.
+- Numbered Review text remains left-aligned regardless of PDF layout role.
 - Disabling the master toggle restores plain Fountain text.
 - Reading numbering preserves project data and dirty state.
 - Existing findings and export controls remain available.
