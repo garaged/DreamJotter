@@ -15,7 +15,7 @@ struct ReviewLayoutLine: Equatable, Identifiable {
     }
 
     var addressLabel: String {
-        "Page \(screenplayPageNumber) · Paragraph \(paragraphNumber) · Block \(blockNumber) · Source \(sourceElementIndex)"
+        "Page \(screenplayPageNumber) / Paragraph \(paragraphNumber) / Block \(blockNumber) / Source \(sourceElementIndex)"
     }
 }
 
@@ -24,7 +24,14 @@ extension ProjectDocumentViewModel {
         guard let preset = ExportPresetCatalog.builtInPresets().first(where: { $0.id == "reader-copy" }) else {
             return nil
         }
-        return PDFLayoutPlanner.plan(for: project, preset: preset)
+        let settings = PDFLayoutSettings(
+            charactersPerBodyLine: 96,
+            contentLinesPerPage: 54,
+            includeTitlePage: true,
+            includePageNumbers: false,
+            suppressIdentifyingMetadata: true
+        )
+        return PDFLayoutPlanner.plan(for: project, preset: preset, settings: settings)
     }
 
     var reviewLayoutLines: [ReviewLayoutLine] {
