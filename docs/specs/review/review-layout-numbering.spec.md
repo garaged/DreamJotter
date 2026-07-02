@@ -18,29 +18,28 @@ Expose M10 PDF layout numbering in the macOS Review tab as read-only review coor
 
 ## Numbering Level Controls
 
-The numbered preview exposes independent checkbox controls for:
-
-- Page
-- Paragraph
-- Block
-- Source element
-- Line
+The numbered preview exposes independent checkbox controls for Page, Paragraph, Block, Source element, and Line.
 
 Defaults:
 
 - Page: enabled.
 - Paragraph: enabled.
-- Block: enabled.
+- Block: disabled.
 - Source element: disabled.
 - Line: disabled.
 
-Line numbering is disabled by default to avoid visual noise. Source-element numbering is also disabled by default because it is mainly diagnostic metadata. Users can enable either level when more atomic review coordinates are needed.
+Paragraph numbering is the primary default coordinate. Block, source-element, and line numbering are opt-in diagnostic detail.
 
 ## Display
 
-Enabled address levels are joined into one compact block label. Each wrapped line displays its paragraph-local line number only when the Line checkbox is enabled. Title-page blocks are excluded.
+- Page appears once as a page header, not on every screenplay block.
+- Paragraph, block, and source identifiers appear in a compact fixed-width gutter.
+- When line numbering is disabled, planner-wrapped lines are rejoined into one logical paragraph and SwiftUI wraps the paragraph to the available Review pane width.
+- When line numbering is enabled, planner lines are shown separately with paragraph-local line numbers.
+- Title-page blocks are excluded.
+- Renderer role labels are not shown in the default Review address.
 
-The Review pane must keep screenplay text left-aligned and readable. It must not reuse renderer-specific centering or right-alignment rules from `PDFTextAlignment`; those rules belong to eventual PDF output, not the review UI.
+The Review pane must keep screenplay text left-aligned and readable. It must not reuse PDF renderer centering, right-alignment, or fixed screenplay column widths.
 
 Review numbering is derived from `PDFLayoutPlanner` with the built-in Reader Copy preset. It is plan-local metadata, not persistent identity across edits.
 
@@ -52,9 +51,11 @@ An empty screenplay shows `No script text yet.` If Reader Copy cannot be resolve
 
 - The Review tab exposes the master toggle and numbering is visible by default.
 - Independent checkboxes control page, paragraph, block, source-element, and line numbering.
-- Page, paragraph, and block are enabled by default.
-- Source-element and line numbering are disabled by default.
-- Disabling all address levels removes the block address label without hiding screenplay content.
+- Page and paragraph are enabled by default.
+- Block, source-element, and line numbering are disabled by default.
+- Page metadata is not repeated for every block.
+- Paragraph text uses the available pane width when line numbering is disabled.
+- Disabling all address levels removes the gutter without hiding screenplay content.
 - Numbered Review text remains left-aligned regardless of PDF layout role.
 - Disabling the master toggle restores plain Fountain text.
 - Reading numbering preserves project data and dirty state.
