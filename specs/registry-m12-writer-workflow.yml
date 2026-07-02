@@ -1,74 +1,95 @@
-version: 1
-registry: m12-writer-workflow-polish
-items:
-  - id: M12-WRITER-WORKFLOW-POLISH
-    title: Writer Workflow Polish
-    milestone: M12
-    status: in-progress
-    spec: docs/milestones/milestone-12-writer-workflow-polish.md
-    acceptance: docs/acceptance/milestone-12-acceptance.md
-    related_adrs:
-      - docs/adr/0001-apple-native-first-portable-core.md
-      - docs/adr/0002-local-first-dreamjotter-package.md
-    related_data_contracts:
-      - docs/data-contracts/core-domain-model.md
-      - docs/data-contracts/screenplay-element-kinds.md
-    planned_modules:
-      - CommandEngine
-      - ProjectDocumentViewModel
-      - WriterOrganization
-    guardrails:
-      - Destructive operations are command-backed; bulk mutations are snapshot-protected; metadata-only workflows preserve screenplay order and editor navigation.
-    notes: M12.1 portable core is implemented; M12.2 and M12.3 remain planned.
-
-  - id: M12-PROFILE-MANAGEMENT
-    title: Character and Location Management
-    milestone: M12.1
-    status: implemented
-    spec: docs/specs/writer-workflow/m12-profile-management.spec.md
-    acceptance: docs/acceptance/milestone-12-acceptance.md
-    related_adrs: []
-    related_data_contracts:
-      - docs/data-contracts/core-domain-model.md
-      - docs/data-contracts/screenplay-element-kinds.md
-    planned_modules:
-      - ProfileManagement
-      - CommandEngine
-    guardrails:
-      - Archive and restore are reversible commands. Removal, merge, and bulk rename require snapshots and deterministic previews.
-    notes: Portable profile lifecycle, merge, Unicode-safe rename preview and apply, linked-note remapping, scene-card updates, and persistence are implemented.
-
-  - id: M12-NOTES-WORKSPACE
-    title: Notes and TODO Workspace
-    milestone: M12.2
-    status: planned
-    spec: docs/milestones/milestone-12-writer-workflow-polish.md
-    acceptance: docs/acceptance/milestone-12-acceptance.md
-    related_adrs: []
-    related_data_contracts:
-      - docs/data-contracts/core-domain-model.md
-    planned_modules:
-      - NotesWorkspace
-      - CommandEngine
-      - ProjectDocumentViewModel
-    guardrails:
-      - Bulk note mutations require snapshot protection and orphan handling preserves note content.
-    notes: Planned second implementation slice.
-
-  - id: M12-SCENE-WORKFLOW
-    title: Scene Workflow Polish
-    milestone: M12.3
-    status: planned
-    spec: docs/milestones/milestone-12-writer-workflow-polish.md
-    acceptance: docs/acceptance/milestone-12-acceptance.md
-    related_adrs: []
-    related_data_contracts:
-      - docs/data-contracts/core-domain-model.md
-      - docs/data-contracts/screenplay-element-kinds.md
-    planned_modules:
-      - SceneWorkflow
-      - CommandEngine
-      - EditorNavigationState
-    guardrails:
-      - Planning order is separate from screenplay order; explicit screenplay reorder requires a snapshot and preserves navigation consistency.
-    notes: Planned third implementation slice.
+{
+  "version": 1,
+  "registry": "m12-writer-workflow-polish",
+  "items": [
+    {
+      "id": "M12-WRITER-WORKFLOW-POLISH",
+      "title": "Writer Workflow Polish",
+      "milestone": "M12",
+      "status": "in-progress",
+      "spec": "docs/milestones/milestone-12-writer-workflow-polish.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "CommandEngine",
+        "ProjectDocumentViewModel",
+        "WriterOrganization"
+      ],
+      "guardrails": [
+        "Destructive operations are command-backed; bulk mutations are snapshot-protected; metadata-only workflows preserve screenplay order and editor navigation."
+      ],
+      "notes": "M12.1 portable core is implemented; M12.2 and M12.3 remain planned."
+    },
+    {
+      "id": "M12-PROFILE-MANAGEMENT",
+      "title": "Character and Location Management",
+      "milestone": "M12.1",
+      "status": "implemented",
+      "spec": "docs/specs/writer-workflow/m12-profile-management.spec.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "ProfileManagement",
+        "CommandEngine"
+      ],
+      "guardrails": [
+        "Archive and restore are reversible commands. Removal, merge, and bulk rename require snapshots and deterministic previews."
+      ],
+      "notes": "Portable profile lifecycle, merge, Unicode-safe rename preview and apply, linked-note remapping, scene-card updates, and persistence are implemented."
+    },
+    {
+      "id": "M12-NOTES-WORKSPACE",
+      "title": "Notes and TODO Workspace",
+      "milestone": "M12.2",
+      "status": "planned",
+      "spec": "docs/milestones/milestone-12-writer-workflow-polish.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md"
+      ],
+      "planned_modules": [
+        "NotesWorkspace",
+        "CommandEngine",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "Bulk note mutations require snapshot protection and orphan handling preserves note content."
+      ],
+      "notes": "Planned second implementation slice."
+    },
+    {
+      "id": "M12-SCENE-WORKFLOW",
+      "title": "Scene Workflow Polish",
+      "milestone": "M12.3",
+      "status": "planned",
+      "spec": "docs/milestones/milestone-12-writer-workflow-polish.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "SceneWorkflow",
+        "CommandEngine",
+        "EditorNavigationState"
+      ],
+      "guardrails": [
+        "Planning order is separate from screenplay order; explicit screenplay reorder requires a snapshot and preserves navigation consistency."
+      ],
+      "notes": "Planned third implementation slice."
+    }
+  ]
+}
