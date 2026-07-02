@@ -35,10 +35,12 @@ Block and source-element numbering remain available in the internal layout plan 
 ## Display
 
 - Page appears once as a page header.
-- Paragraph appears in a compact gutter.
+- Paragraph appears in a compact gutter when line numbering is disabled.
 - When line numbering is disabled, planner-wrapped lines are rejoined into one logical paragraph and SwiftUI wraps to the available pane width.
 - When line numbering is enabled, Review Mode uses wider desktop-oriented planner wrapping rather than the narrower production-PDF body width.
-- Line numbers use a narrow fixed gutter and must not materially reduce the text column width.
+- Paragraph and line numbers share one compact gutter in line mode.
+- The paragraph marker appears only on the first wrapped line of its paragraph.
+- Continuation lines do not reserve a separate empty paragraph column.
 - Title-page blocks are excluded.
 - Renderer role labels are not shown in the Review address.
 
@@ -55,5 +57,6 @@ Review numbering is derived from `PDFLayoutPlanner` with the built-in Reader Cop
 - Page metadata is not repeated for every paragraph.
 - Paragraph text uses the available pane width when line numbering is disabled.
 - Enabling Line uses a wider Review wrapping width than production PDF defaults.
+- Line mode does not reserve separate paragraph and line gutters.
 - Disabling the master toggle restores plain Fountain text.
 - Reading numbering preserves project data and dirty state.
