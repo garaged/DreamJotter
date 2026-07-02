@@ -80,11 +80,7 @@ struct Milestone4ExecutableSpecs {
         #expect(CustomFieldType.allCases.map(\.rawValue) == ["text", "number", "boolean", "date", "singleSelect", "multiSelect"])
         #expect(CustomFieldValidator.validate(valid, against: definition).isEmpty)
         #expect(!CustomFieldValidator.validate(invalid, against: definition).isEmpty)
-        if case .boolean(true) = typedBoolean.value {
-            #expect(true)
-        } else {
-            Issue.record("Expected typed boolean value")
-        }
+        #expect(typedBoolean.value == .boolean(true))
     }
 
     @Test("Manual routines compile to CommandEngine requests in order")

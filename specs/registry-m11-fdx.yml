@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "registry": "m11-fdx-interoperability",
+  "items": [
+    {
+      "id": "M11-FDX-INTEROPERABILITY",
+      "title": "FDX Interoperability Foundation",
+      "milestone": "M11",
+      "status": "implemented",
+      "spec": "docs/milestones/milestone-11-fdx-interoperability.md",
+      "acceptance": "docs/acceptance/milestone-11-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "FDXInterchange",
+        "FDXDiagnostic",
+        "FDXImportResult",
+        "FDXExportResult"
+      ],
+      "guardrails": [
+        "FDX remains an interchange adapter; .dreamjotter stays canonical and imports return candidate screenplay data without mutating project state."
+      ],
+      "notes": "Implements a deterministic portable FDX subset with role mapping, Unicode-safe XML, derived scene and character data, diagnostics, and malformed-input protection."
+    },
+    {
+      "id": "M11-FDX-EXPORT",
+      "title": "FDX Screenplay Export",
+      "milestone": "M11",
+      "status": "implemented",
+      "spec": "docs/milestones/milestone-11-fdx-interoperability.md",
+      "acceptance": "docs/acceptance/milestone-11-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "FDXInterchange"
+      ],
+      "guardrails": [
+        "Only the supported semantic subset is emitted; unsupported private or internal elements are omitted with deterministic warnings."
+      ],
+      "notes": "Exports UTF-8 Final Draft XML with escaped text and stable paragraph-role mapping."
+    },
+    {
+      "id": "M11-FDX-IMPORT",
+      "title": "FDX Screenplay Import",
+      "milestone": "M11",
+      "status": "implemented",
+      "spec": "docs/milestones/milestone-11-fdx-interoperability.md",
+      "acceptance": "docs/acceptance/milestone-11-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/core-domain-model.md",
+        "docs/data-contracts/screenplay-element-kinds.md"
+      ],
+      "planned_modules": [
+        "FDXInterchange",
+        "FDXImportResult"
+      ],
+      "guardrails": [
+        "Parsing must not resolve external resources and malformed XML must not produce a partial screenplay."
+      ],
+      "notes": "Imports supported paragraph types, preserves unknown types visibly, and derives scenes and characters."
+    }
+  ]
+}

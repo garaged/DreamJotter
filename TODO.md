@@ -4,7 +4,7 @@ This file tracks future implementation and maintenance work. It is not a substit
 
 ## Accepted Foundations
 
-Milestones 1 through 4 are accepted portable-core foundations. Milestones 5 through 9.6 are implemented app, editor, workspace, export, review, and restore foundations. Milestone 10 production PDF export is accepted.
+Milestones 1 through 4 are accepted portable-core foundations. Milestones 5 through 9.6 are implemented app, editor, workspace, export, review, and restore foundations. Milestone 10 production PDF export is accepted. Milestone 11 FDX interoperability foundation is implemented.
 
 Maintain the following cross-cutting guardrails:
 
@@ -65,6 +65,19 @@ Status: accepted.
 - Keep PDF artifacts as exports rather than canonical storage.
 - Prefer structural layout snapshots over binary PDF fixtures unless byte-level compatibility becomes an explicit product requirement.
 
+## Milestone 11 FDX Interoperability
+
+Status: implemented foundation.
+
+- Maintain deterministic mapping for scene headings, action, character cues, parentheticals, dialogue, transitions, and shots.
+- Maintain Unicode-safe UTF-8 XML and escaping for XML-sensitive characters.
+- Keep unknown FDX paragraph types visible as `.unknown` elements with warnings.
+- Keep DreamJotter-only notes, explicit page breaks, and unsupported elements out of exported FDX with deterministic diagnostics.
+- Keep network and external-resource lookup disabled while parsing.
+- Keep FDX as interchange only; `.dreamjotter` remains canonical storage.
+- Add title-page, revision metadata, dual-dialogue, styled-text, and cross-version compatibility fixtures only in later separately specified slices.
+- Add application-level import and export presentation only after replacement, merge, and save semantics are specified.
+
 ## Apple UI
 
 - Maintain the SwiftPM-generated `DreamJotterMac` app scheme.
@@ -87,12 +100,6 @@ Status: accepted.
 - Add privacy, consent, retention, prompt-context, offline, and disable-control specs before implementation.
 - Keep `FakeAIProvider` as the only current executable-spec provider.
 - Preserve accepted-only mutation and snapshot-before-rewrite behavior.
-
-### FDX Support
-
-- Add import/export adapter specs before implementation.
-- Map FDX to the semantic screenplay model without making it canonical storage.
-- Add malformed, partial, and compatibility fixtures.
 
 ### Plugin Runtime
 
