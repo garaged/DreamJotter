@@ -65,24 +65,10 @@ struct ReviewLayoutNumberingView: View {
 
     private func blockView(page: PDFPagePlan, block: PDFBlockPlan) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            if showsBlockAddress {
-                HStack(spacing: 6) {
-                    if options.showPage {
-                        Text("Page \(page.screenplayPageNumber ?? 0)")
-                    }
-                    if options.showParagraph, let paragraphNumber = block.paragraphNumber {
-                        Text(separatorPrefix + "Paragraph \(paragraphNumber)")
-                    }
-                    if options.showBlock {
-                        Text(separatorPrefix + "Block \(block.blockNumber)")
-                    }
-                    if options.showSourceElement, let sourceElementIndex = block.sourceElementIndex {
-                        Text(separatorPrefix + "Source \(sourceElementIndex)")
-                    }
-                    Text(separatorPrefix + roleLabel(block.role))
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            if let address = blockAddress(page: page, block: block) {
+                Text(address)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             ForEach(block.lines, id: \.lineNumber) { line in
@@ -99,12 +85,25 @@ struct ReviewLayoutNumberingView: View {
         }
     }
 
-    private var showsBlockAddress: Bool {
-        options.showPage || options.showParagraph || options.showBlock || options.showSourceElement
-    }
+    private func blockAddress(page: PDFPagePlan, block: PDFBlockPlan) -> String? {
+        var components: [String] = []
 
-    private var separatorPrefix: String {
-        "· "
+        if options.showPage {
+            components.append("Page \(page.screenplayPageNumber ?? 0)")
+        }
+        if options.showParagraph, let paragraphNumber = block.paragraphNumber {
+            components.append("Paragraph \(paragraphNumber)")
+        }
+        if options.showBlock {
+            components.append("Block \(block.blockNumber)")
+        }
+        if options.showSourceElement, let sourceElementIndex = block.sourceElementIndex {
+            components.append("Source \(sourceElementIndex)")
+        }
+
+        guard !components.isEmpty else { return nil }
+        components.append(roleLabel(block.role))
+        return components.joined(separator: " · ")
     }
 
     private func roleLabel(_ role: PDFBlockRole) -> String {
