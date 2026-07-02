@@ -492,13 +492,91 @@ public struct ExportPreset: Codable, Equatable, Sendable {
     public let format: ExportFormat
     public let availability: ExportCapability
     public let isBuiltIn: Bool
+    public let goal: String
+    public let allowedFormats: [ExportFormat]
+    public let includesNotes: Bool
+    public let includesSceneMetadata: Bool
+    public let includesCharacterLocationMetadata: Bool
+    public let includesUnresolvedDetectedItems: Bool
+    public let includesInternalIDs: Bool
+    public let includesAppVersion: Bool
+    public let filenameSuggestion: String
+    public let privacyWarning: String?
 
-    public init(id: String, title: String, format: ExportFormat, availability: ExportCapability, isBuiltIn: Bool = true) {
+    public init(
+        id: String,
+        title: String,
+        format: ExportFormat,
+        availability: ExportCapability,
+        isBuiltIn: Bool = true,
+        goal: String = "",
+        allowedFormats: [ExportFormat]? = nil,
+        includesNotes: Bool = false,
+        includesSceneMetadata: Bool = false,
+        includesCharacterLocationMetadata: Bool = false,
+        includesUnresolvedDetectedItems: Bool = false,
+        includesInternalIDs: Bool = false,
+        includesAppVersion: Bool = false,
+        filenameSuggestion: String? = nil,
+        privacyWarning: String? = nil
+    ) {
         self.id = id
         self.title = title
         self.format = format
         self.availability = availability
         self.isBuiltIn = isBuiltIn
+        self.goal = goal
+        self.allowedFormats = allowedFormats ?? [format]
+        self.includesNotes = includesNotes
+        self.includesSceneMetadata = includesSceneMetadata
+        self.includesCharacterLocationMetadata = includesCharacterLocationMetadata
+        self.includesUnresolvedDetectedItems = includesUnresolvedDetectedItems
+        self.includesInternalIDs = includesInternalIDs
+        self.includesAppVersion = includesAppVersion
+        self.filenameSuggestion = filenameSuggestion ?? title
+        self.privacyWarning = privacyWarning
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case format
+        case availability
+        case isBuiltIn
+        case goal
+        case allowedFormats
+        case includesNotes
+        case includesSceneMetadata
+        case includesCharacterLocationMetadata
+        case includesUnresolvedDetectedItems
+        case includesInternalIDs
+        case includesAppVersion
+        case filenameSuggestion
+        case privacyWarning
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(String.self, forKey: .id)
+        let title = try container.decode(String.self, forKey: .title)
+        let format = try container.decode(ExportFormat.self, forKey: .format)
+        self.init(
+            id: id,
+            title: title,
+            format: format,
+            availability: try container.decodeIfPresent(ExportCapability.self, forKey: .availability) ?? .available,
+            isBuiltIn: try container.decodeIfPresent(Bool.self, forKey: .isBuiltIn) ?? true,
+            goal: try container.decodeIfPresent(String.self, forKey: .goal) ?? "",
+            allowedFormats: try container.decodeIfPresent([ExportFormat].self, forKey: .allowedFormats) ?? [format],
+            includesNotes: try container.decodeIfPresent(Bool.self, forKey: .includesNotes) ?? false,
+            includesSceneMetadata: try container.decodeIfPresent(Bool.self, forKey: .includesSceneMetadata) ?? false,
+            includesCharacterLocationMetadata: try container.decodeIfPresent(Bool.self, forKey: .includesCharacterLocationMetadata) ?? false,
+            includesUnresolvedDetectedItems: try container.decodeIfPresent(Bool.self, forKey: .includesUnresolvedDetectedItems) ?? false,
+            includesInternalIDs: try container.decodeIfPresent(Bool.self, forKey: .includesInternalIDs) ?? false,
+            includesAppVersion: try container.decodeIfPresent(Bool.self, forKey: .includesAppVersion) ?? false,
+            filenameSuggestion: try container.decodeIfPresent(String.self, forKey: .filenameSuggestion) ?? title,
+            privacyWarning: try container.decodeIfPresent(String.self, forKey: .privacyWarning)
+        )
     }
 }
 
@@ -1333,8 +1411,58 @@ public enum HealthReport {
 public enum ExportPresetCatalog {
     public static func builtInPresets() -> [ExportPreset] {
         [
-            ExportPreset(id: "draft-pdf", title: "Draft PDF", format: .pdf, availability: .unavailable),
-            ExportPreset(id: "fountain", title: "Fountain", format: .fountain, availability: .available)
+            ExportPreset(
+                id: "reader-copy",
+                title: "Reader Copy",
+                format: .fountain,
+                availability: .available,
+                goal: "Share a clean script with a reader.",
+                allowedFormats: [.fountain, .plainText, .markdown, .pdf],
+                filenameSuggestion: "Reader Copy"
+            ),
+            ExportPreset(
+                id: "contest-submission",
+                title: "Contest Submission",
+                format: .fountain,
+                availability: .available,
+                goal: "Export a clean submission without internal project metadata.",
+                allowedFormats: [.fountain, .pdf],
+                filenameSuggestion: "Contest Submission"
+            ),
+            ExportPreset(
+                id: "print-script",
+                title: "Print Script",
+                format: .pdf,
+                availability: .unavailable,
+                goal: "Create a readable print copy.",
+                allowedFormats: [.pdf],
+                filenameSuggestion: "Print Script"
+            ),
+            ExportPreset(
+                id: "writer-backup",
+                title: "Writer Backup",
+                format: .jsonBackup,
+                availability: .unavailable,
+                goal: "Create a structured backup that can restore the project.",
+                allowedFormats: [.jsonBackup],
+                includesNotes: true,
+                includesSceneMetadata: true,
+                includesCharacterLocationMetadata: true,
+                includesUnresolvedDetectedItems: true,
+                includesInternalIDs: true,
+                includesAppVersion: true,
+                filenameSuggestion: "Writer Backup",
+                privacyWarning: "Backups include private notes, internal IDs, and project metadata."
+            ),
+            ExportPreset(
+                id: "plain-text-archive",
+                title: "Plain Text Archive",
+                format: .plainText,
+                availability: .available,
+                goal: "Create a durable readable text archive.",
+                allowedFormats: [.plainText],
+                filenameSuggestion: "Plain Text Archive"
+            )
         ]
     }
 }

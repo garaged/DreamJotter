@@ -282,10 +282,9 @@ struct Milestone2ExecutableSpecs {
         #expect(!ModePolicy.simpleModeAvailability(for: "routines"))
         #expect(!ModePolicy.simpleModeAvailability(for: "pluginConfiguration"))
         #expect(!ModePolicy.simpleModeAvailability(for: "advancedExportPresetEditing"))
-        #expect(presets == [
-            ExportPreset(id: "draft-pdf", title: "Draft PDF", format: .pdf, availability: .unavailable),
-            ExportPreset(id: "fountain", title: "Fountain", format: .fountain, availability: .available)
-        ])
+        #expect(presets.map(\.id) == ["reader-copy", "contest-submission", "print-script", "writer-backup", "plain-text-archive"])
+        #expect(presets.first { $0.id == "reader-copy" }?.availability == .available)
+        #expect(presets.first { $0.id == "print-script" }?.availability == .unavailable)
     }
 
     @Test("Dashboard summaries are derived from package metadata and can mark missing recents")

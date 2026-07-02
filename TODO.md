@@ -84,6 +84,19 @@ Status: implemented with deferred polish.
 - Preserve Milestone 6 document lifecycle and Milestone 7 editor behavior across all M8 metadata changes.
 - Defer character/location archive and delete UI, richer profile fields, bulk merge/rename, and full note filtering/search polish.
 
+## Milestone 9 Export, Review, and Script Health
+
+Status: specified.
+
+- Add executable specs for Fountain, Markdown, plain text, JSON backup, and basic PDF export without dirty-state mutation.
+- Implement export preset validation for Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive.
+- Add a basic PDF export adapter that produces readable screenplay-like output while deferring production pagination.
+- Add backup export and restore validation that protects dirty current work.
+- Add read-only Review Mode with script preview, scene navigation, notes/TODOs, health findings, and export actions.
+- Add Script Health Report v1 metrics for scenes, elements, profiles, unresolved detections, notes, TODOs, dialogue/action ratio, longest scenes, and scenes without dialogue.
+- Add formatting warnings and review findings with severity/source/link/navigation data.
+- Preserve Milestone 6 document lifecycle, Milestone 7 editor usability, and Milestone 8 project-object workflows.
+
 ## Apple UI
 
 - Maintain the SwiftPM-generated `DreamJotterMac` macOS app scheme.
