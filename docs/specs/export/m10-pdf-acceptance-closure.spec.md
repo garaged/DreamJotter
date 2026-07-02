@@ -12,8 +12,10 @@ Close Milestone 10 after the layout planner, hierarchical numbering, production 
 
 - `PDFLayoutPlanner` remains the adapter-neutral source of deterministic pagination and content numbering.
 - `ProductionPDFRenderer` remains the production PDF implementation used by `ExportWorkflow`.
-- `BasicPDFExportAdapter` is retained as a deprecated compatibility facade. It must delegate directly to `ProductionPDFRenderer` and must not contain independent rendering behavior.
+- `BasicPDFExportAdapter` is retained as a deprecated compatibility facade. It delegates directly to `ProductionPDFRenderer` and contains no independent rendering behavior.
 - Regression protection uses stable structural layout snapshots rather than checked-in binary PDF files. Binary PDF offsets are implementation details; page, block, role, text, numbering, and renderer structure are the behavior contract.
+- Registry extensions named `specs/registry*.yml` are first-class registry inputs and are validated and traced with the primary registry.
+- `docs/acceptance/traceability-matrix-m10.md` is the accepted M10 extension to the project traceability surface.
 
 ## Required Regression Coverage
 
@@ -41,6 +43,15 @@ Manual verification complements executable tests and does not replace them.
 
 `BasicPDFExportAdapter` remains public for compatibility with callers compiled against the M9 API. It is deprecated and may be removed only in a future breaking release after migration guidance is documented.
 
+## Documentation Integration
+
+- README reports M10 as accepted and describes production PDF capabilities.
+- TODO contains maintenance work rather than future/basic renderer implementation work.
+- `specs/registry-m10-pdf-closure.yml` uses the canonical registry schema.
+- `scripts/spec-check` validates the primary registry and registry extensions as one combined registry, including duplicate-ID detection.
+- `scripts/spec-trace` displays items from the primary registry and registry extensions together.
+- `docs/acceptance/traceability-matrix-m10.md` records accepted traceability for planning, numbering, rendering, hardening, preset migration, and closure.
+
 ## Acceptance
 
-M10 is accepted when registry and traceability statuses are updated, stale basic/future PDF wording is removed, regression tests pass, and the macOS app target builds successfully.
+M10 is accepted. Future PDF changes must be incremental, separately specified, and covered by structural or executable regression tests; they must not reintroduce the removed single-page renderer or bypass `PDFLayoutPlanner`.
