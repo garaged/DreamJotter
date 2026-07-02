@@ -81,6 +81,11 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
             onNavigationApplied: onNavigationApplied
         )
 
+        // AppKit uses marked text while composing accented and other multi-stage
+        // characters. Replacing the string or attributes during composition
+        // cancels the input method and drops the accent.
+        guard !textView.hasMarkedText() else { return }
+
         if textView.string != text {
             let selectedRange = context.coordinator.selectedRange
             textView.string = text
@@ -113,9 +118,8 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
     }
 
     private func applyStyles(to textView: NSTextView) {
-        guard let textStorage = textView.textStorage else { return }
+        guard !textView.hasMarkedText(), let textStorage = textView.textStorage else { return }
         let fullRange = NSRange(location: 0, length: (textView.string as NSString).length)
-        guard fullRange.length >= 0 else { return }
 
         let baseFont = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
         textStorage.setAttributes([
