@@ -284,7 +284,7 @@ struct Milestone2ExecutableSpecs {
         #expect(!ModePolicy.simpleModeAvailability(for: "advancedExportPresetEditing"))
         #expect(presets.map(\.id) == ["reader-copy", "contest-submission", "print-script", "writer-backup", "plain-text-archive"])
         #expect(presets.first { $0.id == "reader-copy" }?.availability == .available)
-        #expect(presets.first { $0.id == "print-script" }?.availability == .unavailable)
+        #expect(presets.first { $0.id == "print-script" }?.availability == .available)
     }
 
     @Test("Dashboard summaries are derived from package metadata and can mark missing recents")

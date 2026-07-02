@@ -1433,7 +1433,7 @@ public enum ExportPresetCatalog {
                 id: "print-script",
                 title: "Print Script",
                 format: .pdf,
-                availability: .unavailable,
+                availability: .available,
                 goal: "Create a readable print copy.",
                 allowedFormats: [.pdf],
                 filenameSuggestion: "Print Script"

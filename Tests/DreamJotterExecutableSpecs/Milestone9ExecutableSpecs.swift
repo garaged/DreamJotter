@@ -233,6 +233,30 @@ struct Milestone9ExecutableSpecs {
         #expect(report.scenesWithoutDialogue.count == 2)
     }
 
+    @Test("Basic PDF export produces readable adapter artifact without internal metadata")
+    func basicPDFExportProducesReadableAdapterArtifact() throws {
+        let project = projectWithWorkspaceMetadata()
+        let preset = try #require(ExportPresetCatalog.builtInPresets().first { $0.id == "reader-copy" })
+
+        let export = ExportWorkflow.exportData(
+            for: project,
+            request: request(format: .pdf, presetID: preset.id),
+            preset: preset,
+            generatedAt: now
+        )
+
+        let data = try #require(export.data)
+        let pdfText = String(decoding: data, as: UTF8.self)
+        #expect(export.result.status == .success)
+        #expect(export.result.dirtyStateChanged == false)
+        #expect(pdfText.hasPrefix("%PDF-1.4"))
+        #expect(pdfText.contains("M9 Export Test"))
+        #expect(pdfText.contains("INT. COFFEE SHOP - DAY"))
+        #expect(pdfText.contains("ELENA"))
+        #expect(!pdfText.contains("Resolve ending."))
+        #expect(!pdfText.contains("character-elena"))
+    }
+
     private func request(format: ExportFormat, presetID: String, includeMetadata: Bool = false) -> ExportRequest {
         ExportRequest(
             id: "export-\(format.rawValue)",

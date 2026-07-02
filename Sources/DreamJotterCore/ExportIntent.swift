@@ -166,6 +166,30 @@ public enum ExportWorkflow {
         }
     }
 
+    public static func exportData(for project: DreamJotterProject, request: ExportRequest, preset: ExportPreset, generatedAt: Date = Date()) -> (data: Data?, result: ExportResult) {
+        let diagnostics = validate(request, preset: preset)
+        guard diagnostics.isEmpty else {
+            return (nil, ExportResult(
+                id: "export-result-\(request.id)",
+                requestID: request.id,
+                status: .failed,
+                artifactPath: nil,
+                format: request.format,
+                userMessage: diagnostics[0],
+                technicalDetail: diagnostics.joined(separator: "\n"),
+                generatedAt: generatedAt
+            ))
+        }
+
+        switch request.format {
+        case .pdf:
+            return (BasicPDFExportAdapter.render(project: project, preset: preset, generatedAt: generatedAt), successResult(request: request, generatedAt: generatedAt))
+        case .fountain, .plainText, .markdown, .jsonBackup:
+            let export = exportText(for: project, request: request, preset: preset, generatedAt: generatedAt)
+            return (export.text.map { Data($0.utf8) }, export.result)
+        }
+    }
+
     public static func plainText(for project: DreamJotterProject) -> String {
         FountainIO.exportScreenplay(project.screenplay)
     }
@@ -191,7 +215,11 @@ public enum ExportWorkflow {
     }
 
     private static func success(_ text: String, request: ExportRequest, generatedAt: Date) -> (text: String?, result: ExportResult) {
-        (text, ExportResult(
+        (text, successResult(request: request, generatedAt: generatedAt))
+    }
+
+    private static func successResult(request: ExportRequest, generatedAt: Date) -> ExportResult {
+        ExportResult(
             id: "export-result-\(request.id)",
             requestID: request.id,
             status: .success,
@@ -199,7 +227,7 @@ public enum ExportWorkflow {
             format: request.format,
             userMessage: "Export complete.",
             generatedAt: generatedAt
-        ))
+        )
     }
 
     private static func unavailable(_ message: String, request: ExportRequest, generatedAt: Date) -> ExportResult {
