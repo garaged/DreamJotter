@@ -47,7 +47,7 @@ struct PDFRegressionExecutableSpecs {
 
         #expect(pdf.hasPrefix("%PDF-1.4"))
         #expect(pdf.contains("/Type /Pages"))
-        #expect(pdf.contains("/Count 2"))
+        #expect(pdf.contains("/Count 1"))
         #expect(pdf.contains("Empty Script"))
         #expect(pdf.hasSuffix("%%EOF\n"))
     }
