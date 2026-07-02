@@ -76,8 +76,10 @@ Key SDD files:
 | Milestone 8 | Implemented | Character, location, notes, and scene workflow v1 covers detected character/location resolution, profile create/edit/save/reopen, scene-card status, parsed TODO notes, dashboard summary, and search integration. Rich archive/delete/profile-field polish remains deferred. |
 | Milestone 9 | Implemented | Export, Review, and Script Health v1 covers Fountain/plain text/Markdown/JSON backup/basic PDF export, presets, backup/restore validation, read-only Review Mode, health reports, formatting warnings, and review findings. |
 | Milestone 9.5 | Implemented | Export UX and Release Readiness Polish covers format/preset picker UI, destination and feedback flows, Review Mode export reuse, backup/restore UI, export UI state, export feedback, and a Mac MVP manual QA checklist. |
+| Milestone 9.6 | Specified | Restore UX Hardening defines Save / Discard / Cancel protection for restoring backups over dirty current projects. |
+| Milestone 10 | Specified | Production PDF Export defines deterministic screenplay PDF layout, pagination, title-page behavior, metadata privacy, diagnostics, and renderer boundaries. |
 
-Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5, Milestone 6, Milestone 7, Milestone 8, Milestone 9, and Milestone 9.5 app/editor/workspace/export foundations are implemented. Real production pagination, real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
+Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5, Milestone 6, Milestone 7, Milestone 8, Milestone 9, and Milestone 9.5 app/editor/workspace/export foundations are implemented. Milestone 9.6 and Milestone 10 are specified as next-stage work. Real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
 
 ## Current App Capabilities
 
