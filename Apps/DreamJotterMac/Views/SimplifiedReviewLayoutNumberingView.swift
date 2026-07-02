@@ -24,14 +24,8 @@ struct SimplifiedReviewLayoutNumberingView: View {
 
             ForEach(plan.contentPages, id: \.pageIndex) { page in
                 VStack(alignment: .leading, spacing: 12) {
-                    if showPage {
-                        Text("Page \(page.screenplayPageNumber ?? 0)")
-                            .font(.caption.bold())
-                            .foregroundStyle(.secondary)
-                    }
-
                     ForEach(page.blocks, id: \.blockNumber) { block in
-                        blockView(block)
+                        blockView(page: page, block: block)
                     }
                 }
             }
@@ -44,15 +38,15 @@ struct SimplifiedReviewLayoutNumberingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
-    private func blockView(_ block: PDFBlockPlan) -> some View {
+    private func blockView(page: PDFPagePlan, block: PDFBlockPlan) -> some View {
         Group {
             if showLine {
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(Array(block.lines.enumerated()), id: \.element.lineNumber) { index, line in
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(lineLabel(block: block, lineNumber: line.lineNumber, isFirstLine: index == 0))
+                            Text(lineLabel(page: page, block: block, lineNumber: line.lineNumber, isFirstLine: index == 0))
                                 .foregroundStyle(.secondary)
-                                .frame(width: 48, alignment: .trailing)
+                                .frame(width: 58, alignment: .trailing)
                             Text(line.text.isEmpty ? " " : line.text)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -61,8 +55,8 @@ struct SimplifiedReviewLayoutNumberingView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 HStack(alignment: .top, spacing: 12) {
-                    if showParagraph, let paragraphNumber = block.paragraphNumber {
-                        Text("P\(paragraphNumber)")
+                    if let address = paragraphAddress(page: page, block: block) {
+                        Text(address)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .frame(width: 52, alignment: .trailing)
@@ -77,12 +71,29 @@ struct SimplifiedReviewLayoutNumberingView: View {
         }
     }
 
-    private func lineLabel(block: PDFBlockPlan, lineNumber: Int, isFirstLine: Bool) -> String {
-        if showParagraph,
-           isFirstLine,
-           let paragraphNumber = block.paragraphNumber {
-            return "P\(paragraphNumber) \(lineNumber)"
+    private func paragraphAddress(page: PDFPagePlan, block: PDFBlockPlan) -> String? {
+        switch (showPage, showParagraph, page.screenplayPageNumber, block.paragraphNumber) {
+        case (true, true, let pageNumber?, let paragraphNumber?):
+            return "\(pageNumber).\(paragraphNumber)"
+        case (true, false, let pageNumber?, _):
+            return "\(pageNumber)"
+        case (false, true, _, let paragraphNumber?):
+            return "P\(paragraphNumber)"
+        default:
+            return nil
         }
-        return "\(lineNumber)"
+    }
+
+    private func lineLabel(
+        page: PDFPagePlan,
+        block: PDFBlockPlan,
+        lineNumber: Int,
+        isFirstLine: Bool
+    ) -> String {
+        guard isFirstLine,
+              let address = paragraphAddress(page: page, block: block) else {
+            return "\(lineNumber)"
+        }
+        return "\(address)/\(lineNumber)"
     }
 }
