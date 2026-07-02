@@ -108,7 +108,73 @@ struct Milestone9ExecutableSpecs {
         #expect(export.result.dirtyStateChanged == false)
     }
 
-    private func request(format: ExportFormat, presetID: String) -> ExportRequest {
+    @Test("JSON backup export creates a restorable archive with project metadata")
+    func jsonBackupExportCreatesRestorableArchive() throws {
+        let project = projectWithWorkspaceMetadata()
+        let preset = try #require(ExportPresetCatalog.builtInPresets().first { $0.id == "writer-backup" })
+
+        let export = ExportWorkflow.exportText(
+            for: project,
+            request: request(format: .jsonBackup, presetID: preset.id, includeMetadata: true),
+            preset: preset,
+            generatedAt: now
+        )
+
+        let text = try #require(export.text)
+        let archive = try BackupRestoreWorkflow.decode(Data(text.utf8))
+        #expect(export.result.status == .success)
+        #expect(export.result.dirtyStateChanged == false)
+        #expect(archive.projectID == project.metadata.id)
+        #expect(archive.containsCharacters)
+        #expect(archive.containsLocations)
+        #expect(archive.containsNotes)
+        #expect(archive.containsSceneMetadata)
+        #expect(archive.project.characters.first?.displayName == "ELENA")
+        #expect(archive.project.locations.first?.displayName == "COFFEE SHOP")
+        #expect(archive.project.notes.first?.body == "Resolve ending.")
+        #expect(archive.project.sceneCards.first?.status == .needsRewrite)
+    }
+
+    @Test("Restore validation loads valid backup and preserves dirty current project protection")
+    func restoreValidationLoadsValidBackupAndProtectsDirtyProject() throws {
+        let project = projectWithWorkspaceMetadata()
+        let archive = BackupRestoreWorkflow.makeArchive(for: project, createdAt: now)
+        let data = try BackupRestoreWorkflow.encode(archive)
+
+        let cleanRestore = BackupRestoreWorkflow.validateRestore(
+            from: data,
+            currentProjectIsDirty: false,
+            completedAt: now
+        )
+        let dirtyRestore = BackupRestoreWorkflow.validateRestore(
+            from: data,
+            currentProjectIsDirty: true,
+            completedAt: now
+        )
+
+        #expect(cleanRestore.project == project)
+        #expect(cleanRestore.result.status == .restored)
+        #expect(cleanRestore.result.dirtyStateChanged == false)
+        #expect(dirtyRestore.project == nil)
+        #expect(dirtyRestore.result.status == .confirmationRequired)
+        #expect(dirtyRestore.result.userMessage == "Save or discard your current changes before restoring this backup.")
+    }
+
+    @Test("Restore validation returns friendly failure for invalid backup")
+    func restoreValidationReturnsFriendlyFailureForInvalidBackup() {
+        let restore = BackupRestoreWorkflow.validateRestore(
+            from: Data("not-json".utf8),
+            currentProjectIsDirty: false,
+            completedAt: now
+        )
+
+        #expect(restore.project == nil)
+        #expect(restore.result.status == .failed)
+        #expect(restore.result.userMessage == "This backup could not be read.")
+        #expect(restore.result.dirtyStateChanged == false)
+    }
+
+    private func request(format: ExportFormat, presetID: String, includeMetadata: Bool = false) -> ExportRequest {
         ExportRequest(
             id: "export-\(format.rawValue)",
             projectID: "project-m9",
@@ -116,7 +182,7 @@ struct Milestone9ExecutableSpecs {
             format: format,
             destinationPath: "/tmp/export.\(format.rawValue)",
             includeNotes: false,
-            includeMetadata: false,
+            includeMetadata: includeMetadata,
             createdAt: now
         )
     }
@@ -132,6 +198,45 @@ struct Milestone9ExecutableSpecs {
                 primaryScreenplayID: "screenplay-m9"
             ),
             screenplay: ScreenplayParser.parse(text)
+        )
+    }
+
+    private func projectWithWorkspaceMetadata() -> DreamJotterProject {
+        DreamJotterProject(
+            metadata: ProjectMetadata(
+                id: "project-m9",
+                title: "M9 Export Test",
+                createdAt: now,
+                modifiedAt: now,
+                schemaVersion: ProjectFactory.currentSchemaVersion,
+                primaryScreenplayID: "screenplay-m9"
+            ),
+            screenplay: ScreenplayParser.parse("""
+            INT. COFFEE SHOP - DAY
+
+            ELENA
+            We go now.
+            """),
+            characters: [
+                CharacterRecord(id: "character-elena", displayName: "ELENA", createdAt: now, updatedAt: now)
+            ],
+            locations: [
+                LocationRecord(id: "location-coffee-shop", displayName: "COFFEE SHOP", createdAt: now, updatedAt: now)
+            ],
+            notes: [
+                ProjectNote(id: "note-ending", body: "Resolve ending.", createdAt: now, updatedAt: now)
+            ],
+            sceneCards: [
+                SceneCard(
+                    id: "scene-card-1",
+                    sourceSceneHeading: "INT. COFFEE SHOP - DAY",
+                    title: "Coffee Shop",
+                    location: "COFFEE SHOP",
+                    timeOfDay: "DAY",
+                    status: .needsRewrite,
+                    order: 0
+                )
+            ]
         )
     }
 }

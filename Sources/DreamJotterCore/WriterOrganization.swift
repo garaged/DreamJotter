@@ -1442,7 +1442,7 @@ public enum ExportPresetCatalog {
                 id: "writer-backup",
                 title: "Writer Backup",
                 format: .jsonBackup,
-                availability: .unavailable,
+                availability: .available,
                 goal: "Create a structured backup that can restore the project.",
                 allowedFormats: [.jsonBackup],
                 includesNotes: true,

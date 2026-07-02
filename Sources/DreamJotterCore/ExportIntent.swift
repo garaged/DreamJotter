@@ -149,7 +149,20 @@ public enum ExportWorkflow {
         case .pdf:
             return (nil, unavailable("Basic PDF export is not implemented yet.", request: request, generatedAt: generatedAt))
         case .jsonBackup:
-            return (nil, unavailable("JSON backup export is not implemented yet.", request: request, generatedAt: generatedAt))
+            do {
+                return success(try BackupRestoreWorkflow.jsonString(for: project, createdAt: generatedAt), request: request, generatedAt: generatedAt)
+            } catch {
+                return (nil, ExportResult(
+                    id: "export-result-\(request.id)",
+                    requestID: request.id,
+                    status: .failed,
+                    artifactPath: nil,
+                    format: request.format,
+                    userMessage: "DreamJotter could not create the backup export.",
+                    technicalDetail: String(describing: error),
+                    generatedAt: generatedAt
+                ))
+            }
         }
     }
 
