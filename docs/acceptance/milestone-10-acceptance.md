@@ -1,12 +1,12 @@
 # Milestone 10 Acceptance: Production PDF Export
 
-Status: implementation-in-progress
+Status: accepted
 Milestone: M10
 Traceability ID: M10-PRODUCTION-PDF-EXPORT
 
 ## Acceptance Summary
 
-Milestone 10 is accepted when DreamJotter can produce deterministic, production-oriented screenplay PDF exports through the existing export workflow without mutating project state.
+Milestone 10 is accepted. DreamJotter produces deterministic, production-oriented screenplay PDF exports through the existing export workflow without mutating project state. M10.1 closes the milestone with stable structural regression snapshots, empty-project and very-long-screenplay coverage, documentation cleanup, and an explicit compatibility decision for the former M9 adapter name.
 
 ## Required Acceptance Criteria
 
@@ -60,6 +60,7 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Oversized blocks split safely.
 - Title page numbering policy is deterministic.
 - Multi-page plans produce matching PDF page-tree counts.
+- A very long screenplay paginates deterministically across many pages.
 
 ### Preset Privacy and Metadata
 
@@ -67,13 +68,15 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Print Script includes print-friendly page numbers.
 - Contest Submission suppresses identifying metadata by default.
 - Notes and TODOs are excluded from reader-facing PDFs by default.
+- Screenplay presets prefer PDF by stable preset identifier while preserving format compatibility.
 
 ### Export Workflow Preservation
 
 - PDF export uses the existing M9 export workflow entry point.
-- M9.5 export picker can invoke production PDF export without a PDF-only UI rewrite.
-- The previous single-page basic renderer is no longer used.
-- `BasicPDFExportAdapter` may remain only as a compatibility facade over the production renderer.
+- M9.5 export picker invokes production PDF export without a PDF-only UI rewrite.
+- The previous single-page renderer is no longer used.
+- `BasicPDFExportAdapter` remains only as a deprecated compatibility facade over `ProductionPDFRenderer`.
+- New code uses `ProductionPDFRenderer` directly.
 - Export does not dirty the project.
 - Fountain, Markdown, plain text, and JSON backup exports remain unchanged.
 
@@ -82,7 +85,7 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Missing optional title metadata warns instead of crashing.
 - Omitted notes/TODOs may be reported as non-fatal diagnostics.
 - Malformed screenplay fallback produces warning diagnostics.
-- Empty screenplay projects still produce valid PDF data.
+- Empty screenplay projects produce valid PDF data.
 
 ## Required Tests
 
@@ -90,6 +93,9 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Deterministic document, screenplay-page, block, paragraph, and line numbering.
 - Line-level content-address lookup.
 - Explicit page break with block-number reset and paragraph-number continuity.
+- Stable representative screenplay structural snapshot.
+- Empty-project PDF export.
+- Very-long-screenplay deterministic pagination.
 - Multi-page PDF page-tree count.
 - Title-page rendering.
 - Role-specific font and horizontal-position commands.
@@ -102,12 +108,17 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Planner-warning forwarding.
 - Export-result warning propagation and dirty-state preservation.
 
+## Manual Verification
+
+Title pages, page numbers, dialogue/parenthetical columns, character cues, and right-aligned transitions were reviewed against the layout plan and renderer command output. Reader Copy, Print Script, and Contest Submission policies were also reviewed for title-page behavior, screenplay-page numbering, and identifying-metadata suppression.
+
 ## Related Specs
 
 - `docs/specs/export/production-pdf-export.spec.md`
 - `docs/specs/export/pdf-content-numbering.spec.md`
 - `docs/specs/export/production-pdf-renderer.spec.md`
 - `docs/specs/export/pdf-renderer-hardening.spec.md`
+- `docs/specs/export/m10-pdf-acceptance-closure.spec.md`
 
 ## Validation Commands
 
@@ -120,4 +131,4 @@ CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift build --p
 
 ## Acceptance Decision
 
-M10 remains `implementation-in-progress` until renderer hardening passes package tests, macOS build validation, and manual export inspection.
+M10 is `accepted`. Future PDF work should be incremental compatibility, typography, or platform-rendering improvements driven by new specs; it must not reintroduce the removed single-page renderer or bypass `PDFLayoutPlanner`.
