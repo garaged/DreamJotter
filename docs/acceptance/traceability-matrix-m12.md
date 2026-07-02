@@ -5,7 +5,7 @@ This extension supplements the primary traceability matrix for writer workflow p
 | Requirement | Slice | Spec | Acceptance | Implementation | Executable coverage | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | M12-WRITER-WORKFLOW-POLISH | M12 | `docs/milestones/milestone-12-writer-workflow-polish.md` | `docs/acceptance/milestone-12-acceptance.md` | CommandEngine, ProjectDocumentViewModel, writer workspace views | slice-specific suites | in-progress |
-| M12-PROFILE-MANAGEMENT | M12.1 | `docs/specs/writer-workflow/m12-profile-management.spec.md` | `docs/acceptance/milestone-12-acceptance.md` | `Sources/DreamJotterCore/ProfileManagement.swift` | `Tests/DreamJotterExecutableSpecs/ProfileManagementExecutableSpecs.swift` | implemented |
+| M12-PROFILE-MANAGEMENT | M12.1 | `docs/specs/writer-workflow/m12-profile-management.spec.md` | `docs/acceptance/milestone-12-acceptance.md` | `Sources/DreamJotterCore/ProfileManagement.swift` | `Tests/DreamJotterExecutableSpecs/ProfileManagementExecutableSpecs.swift` | implemented-core |
 | M12-NOTES-WORKSPACE | M12.2 | `docs/milestones/milestone-12-writer-workflow-polish.md` | `docs/acceptance/milestone-12-acceptance.md` | NotesWorkspace, CommandEngine, notes workspace UI | planned | planned |
 | M12-SCENE-WORKFLOW | M12.3 | `docs/milestones/milestone-12-writer-workflow-polish.md` | `docs/acceptance/milestone-12-acceptance.md` | SceneWorkflow, CommandEngine, editor navigation integration | planned | planned |
 
@@ -19,4 +19,6 @@ This extension supplements the primary traceability matrix for writer workflow p
 
 ## M12.1 Coverage
 
-M12.1 covers archive and restore, explicit confirmation for profile removal and merge, deterministic rename previews, stale-preview rejection, snapshot failure blocking, Unicode character and location rename, duplicate merge, linked-note remapping, scene-card metadata updates, and package save/reopen persistence.
+M12.1 core coverage includes archive and restore, explicit confirmation for profile removal and merge, deterministic rename previews, stale-preview rejection, snapshot failure blocking, Unicode character and location rename, duplicate merge, linked-note remapping, scene-card metadata updates, and package save/reopen persistence.
+
+Focused macOS management presentation remains intentionally separate so the portable command contract can be validated first.
