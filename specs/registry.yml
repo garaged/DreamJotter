@@ -2811,6 +2811,132 @@
         "Parser executable specs define expected semantic output from fixtures without implementing production app UI or TextKit adapters."
       ],
       "notes": "Adds expected semantic JSON outputs for simple, multi-scene, Spanish/Unicode, malformed, advanced forced-syntax, and empty parser inputs plus executable checks against the portable parser implementation."
+    },
+    {
+      "id": "M9-5-CLOSURE-QA",
+      "title": "M9.5 Closure QA",
+      "milestone": "M9.5",
+      "status": "specified",
+      "spec": "docs/specs/release/m9-5-closure-qa.spec.md",
+      "acceptance": "docs/acceptance/milestone-9-5-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-ui-state.md",
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/app-document-state.md"
+      ],
+      "planned_modules": [
+        "ManualQA",
+        "DreamJotterMac"
+      ],
+      "guardrails": [
+        "M9.5 closure QA must not add feature scope or weaken dirty-state/export safety."
+      ],
+      "notes": "Runs the Mac MVP manual QA checklist and records acceptance/deferred limitations before post-M9.5 implementation begins."
+    },
+    {
+      "id": "M9-6-RESTORE-UX-HARDENING",
+      "title": "Restore UX Hardening",
+      "milestone": "M9.6",
+      "status": "specified",
+      "spec": "docs/milestones/milestone-9-6-restore-ux-hardening.md",
+      "acceptance": "docs/acceptance/milestone-9-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/restore-result.md"
+      ],
+      "planned_modules": [
+        "BackupRestoreWorkflow",
+        "ProjectDocumentViewModel",
+        "ExportUIState",
+        "RestoreConfirmationFlow"
+      ],
+      "guardrails": [
+        "Restore must validate backup data before replacement and must not replace dirty current work without explicit Save / Discard / Cancel intent."
+      ],
+      "notes": "Evolves M9.5 confirmation-required restore feedback into a full dirty-project restore confirmation workflow."
+    },
+    {
+      "id": "RESTORE-CONFIRMATION-FLOW",
+      "title": "Restore Confirmation Flow",
+      "milestone": "M9.6",
+      "status": "specified",
+      "spec": "docs/specs/export/restore-confirmation-flow.spec.md",
+      "acceptance": "docs/acceptance/milestone-9-6-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/export-feedback.md",
+        "docs/data-contracts/restore-result.md"
+      ],
+      "planned_modules": [
+        "RestoreConfirmationFlow",
+        "ProjectDocumentViewModel",
+        "MacAppViewModel"
+      ],
+      "guardrails": [
+        "Cancel and save failure must preserve current project content, package URL, and dirty state."
+      ],
+      "notes": "Defines clean restore, dirty restore, Save and Restore, Discard and Restore, Cancel, invalid backup, and feedback behavior."
+    },
+    {
+      "id": "M10-PRODUCTION-PDF-EXPORT",
+      "title": "Production PDF Export",
+      "milestone": "M10",
+      "status": "specified",
+      "spec": "docs/milestones/milestone-10-production-pdf-export.md",
+      "acceptance": "docs/acceptance/milestone-10-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/export-preset.md",
+        "docs/data-contracts/export-request.md",
+        "docs/data-contracts/export-result.md"
+      ],
+      "planned_modules": [
+        "PDFLayoutPlanner",
+        "ProductionPDFExportAdapter",
+        "ExportWorkflow",
+        "MacExportAdapter"
+      ],
+      "guardrails": [
+        "PDF export remains an artifact, must not dirty the project, and must preserve preset privacy rules."
+      ],
+      "notes": "Defines production-oriented screenplay PDF layout, pagination, title page, metadata policy, diagnostics, and renderer boundary."
+    },
+    {
+      "id": "PRODUCTION-PDF-EXPORT",
+      "title": "Production PDF Export Spec",
+      "milestone": "M10",
+      "status": "specified",
+      "spec": "docs/specs/export/production-pdf-export.spec.md",
+      "acceptance": "docs/acceptance/milestone-10-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/export-preset.md",
+        "docs/data-contracts/export-request.md",
+        "docs/data-contracts/export-result.md"
+      ],
+      "planned_modules": [
+        "PDFLayoutPlanner",
+        "ProductionPDFExportAdapter",
+        "MacExportAdapter"
+      ],
+      "guardrails": [
+        "Layout planning should be adapter-neutral where practical; platform rendering must stay behind an adapter."
+      ],
+      "notes": "Detailed M10 behavior for screenplay element formatting, pagination, preset privacy, renderer boundary, diagnostics, and tests."
     }
   ]
 }

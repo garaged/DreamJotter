@@ -110,6 +110,28 @@ Status: implemented.
 - Execute the Mac MVP manual QA checklist before treating the Mac MVP as release-ready.
 - Defer native overwrite confirmation polish, export history, batch export, and richer restore confirmation UI.
 
+## Milestone 9.6 Restore UX Hardening
+
+Status: specified.
+
+- Implement restore-specific Save / Discard / Cancel confirmation when the current project is dirty.
+- Keep restore validation non-destructive until a valid candidate and explicit user choice exist.
+- Ensure Save and Restore uses existing M6 save lifecycle behavior.
+- Ensure failed save or canceled Save As blocks restore and preserves current dirty work.
+- Ensure Discard and Restore applies only validated backup data.
+- Preserve existing M9.5 export picker and backup creation behavior.
+
+## Milestone 10 Production PDF Export
+
+Status: specified.
+
+- Add deterministic PDF layout planning for screenplay elements.
+- Add production-oriented PDF pagination, page numbering, margins, and title-page behavior.
+- Preserve Reader Copy, Print Script, and Contest Submission preset privacy rules.
+- Exclude notes/TODOs/internal metadata from reader-facing PDFs by default.
+- Keep platform PDF rendering behind an adapter.
+- Preserve existing Fountain, Markdown, plain text, JSON backup, and dirty-state export behavior.
+
 ## Apple UI
 
 - Maintain the SwiftPM-generated `DreamJotterMac` macOS app scheme.
