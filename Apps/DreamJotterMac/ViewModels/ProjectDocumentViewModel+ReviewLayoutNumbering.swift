@@ -30,15 +30,16 @@ extension ProjectDocumentViewModel {
     var reviewLayoutLines: [ReviewLayoutLine] {
         guard let plan = reviewPDFLayoutPlan else { return [] }
 
-        return plan.contentPages.flatMap { page in
-            page.blocks.flatMap { block in
-                guard let screenplayPageNumber = page.screenplayPageNumber,
-                      let paragraphNumber = block.paragraphNumber,
+        return plan.contentPages.reduce(into: [ReviewLayoutLine]()) { pageLines, page in
+            guard let screenplayPageNumber = page.screenplayPageNumber else { return }
+
+            for block in page.blocks {
+                guard let paragraphNumber = block.paragraphNumber,
                       let sourceElementIndex = block.sourceElementIndex else {
-                    return []
+                    continue
                 }
 
-                return block.lines.map { line in
+                pageLines.append(contentsOf: block.lines.map { line in
                     ReviewLayoutLine(
                         documentPageNumber: page.documentPageNumber,
                         screenplayPageNumber: screenplayPageNumber,
@@ -49,7 +50,7 @@ extension ProjectDocumentViewModel {
                         role: block.role,
                         text: line.text
                     )
-                }
+                })
             }
         }
     }
