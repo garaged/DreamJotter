@@ -79,10 +79,11 @@ struct ReviewLayoutNumberingView: View {
                             .frame(minWidth: 22, alignment: .trailing)
                     }
                     Text(line.text.isEmpty ? " " : line.text)
-                        .frame(maxWidth: .infinity, alignment: alignment(for: line.alignment))
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func blockAddress(page: PDFPagePlan, block: PDFBlockPlan) -> String? {
@@ -117,14 +118,6 @@ struct ReviewLayoutNumberingView: View {
         case .transition: return "Transition"
         case .fallback: return "Fallback"
         case .pageNumber: return "Page Number"
-        }
-    }
-
-    private func alignment(for alignment: PDFTextAlignment) -> Alignment {
-        switch alignment {
-        case .left: return .leading
-        case .centered: return .center
-        case .right: return .trailing
         }
     }
 }
