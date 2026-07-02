@@ -4,13 +4,20 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_PATH = ROOT / "specs" / "registry.yml"
+REGISTRY_DIR = ROOT / "specs"
+
+
+def load_items():
+    items = []
+    for path in sorted(REGISTRY_DIR.glob("registry*.yml")):
+        registry = json.loads(path.read_text(encoding="utf-8"))
+        items.extend(registry.get("items", []))
+    return items
 
 
 def main():
-    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
     groups = defaultdict(list)
-    for item in registry.get("items", []):
+    for item in load_items():
         groups[item.get("milestone", "Unassigned")].append(item)
 
     print("DreamJotter Spec Traceability")
