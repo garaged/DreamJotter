@@ -174,6 +174,65 @@ struct Milestone9ExecutableSpecs {
         #expect(restore.result.dirtyStateChanged == false)
     }
 
+    @Test("Script health report counts project structure without mutating project")
+    func scriptHealthReportCountsProjectStructureWithoutMutatingProject() throws {
+        let project = projectWithScript("""
+        INT. COFFEE SHOP - DAY
+
+        ELENA
+        We go now.
+
+        [[TODO: improve the goodbye]]
+        """)
+
+        let report = ScriptHealthReportBuilder.report(for: project, generatedAt: now, lastSavedAt: now)
+
+        #expect(report.sceneCount == 1)
+        #expect(report.elementCount == project.screenplay.elements.count)
+        #expect(report.unresolvedDetectedCharacterCount == 1)
+        #expect(report.unresolvedDetectedLocationCount == 1)
+        #expect(report.todoCount == 1)
+        #expect(report.findings.contains { $0.source == .unresolvedCharacter && $0.message.contains("ELENA") })
+        #expect(report.findings.contains { $0.source == .unresolvedLocation && $0.message.contains("COFFEE SHOP") })
+        #expect(report.findings.contains { $0.source == .todo && $0.message.contains("improve the goodbye") })
+        #expect(report.lastSavedAt == now)
+        #expect(project.metadata.modifiedAt == now)
+    }
+
+    @Test("Health report identifies formatting warnings")
+    func healthReportIdentifiesFormattingWarnings() {
+        let project = DreamJotterProject(
+            metadata: ProjectMetadata(
+                id: "project-m9",
+                title: "M9 Export Test",
+                createdAt: now,
+                modifiedAt: now,
+                schemaVersion: ProjectFactory.currentSchemaVersion,
+                primaryScreenplayID: "screenplay-m9"
+            ),
+            screenplay: ScreenplayDocument(
+                elements: [
+                    ScriptElement(kind: .sceneHeading, text: "INT. ROOM"),
+                    ScriptElement(kind: .characterCue, text: "ELENA"),
+                    ScriptElement(kind: .sceneHeading, text: "INT. ROOM")
+                ],
+                scenes: [
+                    Scene(heading: "INT. ROOM", location: "ROOM", timeOfDay: nil),
+                    Scene(heading: "INT. ROOM", location: "ROOM", timeOfDay: nil)
+                ],
+                characters: ["ELENA"]
+            )
+        )
+
+        let report = ScriptHealthReportBuilder.report(for: project, generatedAt: now)
+
+        #expect(report.formattingWarnings.contains { $0.title == "Scene heading missing time of day" })
+        #expect(report.formattingWarnings.contains { $0.title == "Duplicate scene heading" })
+        #expect(report.formattingWarnings.contains { $0.title == "Character cue without dialogue" })
+        #expect(report.findings.contains { $0.source == .formatting })
+        #expect(report.scenesWithoutDialogue.count == 2)
+    }
+
     private func request(format: ExportFormat, presetID: String, includeMetadata: Bool = false) -> ExportRequest {
         ExportRequest(
             id: "export-\(format.rawValue)",
