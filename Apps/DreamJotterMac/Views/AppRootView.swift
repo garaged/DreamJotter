@@ -6,6 +6,7 @@ struct AppRootView: View {
     @State private var appModel = MacAppViewModel()
     @State private var errorMessage: String?
     @State private var replacementConfirmationMessage: String?
+    @State private var restoreConfirmationMessage: String?
     @State private var isExportPickerPresented = false
     @State private var exportUIState = ExportUIState.initial()
     @State private var allowWindowClose = false
@@ -90,6 +91,24 @@ struct AppRootView: View {
             }
         } message: {
             Text(replacementConfirmationMessage ?? "")
+        }
+        .alert("Restore Backup?", isPresented: Binding(
+            get: { restoreConfirmationMessage != nil },
+            set: { if !$0 { restoreConfirmationMessage = nil } }
+        )) {
+            Button("Save and Restore") {
+                saveAndConfirmPendingRestore()
+            }
+            Button("Discard and Restore", role: .destructive) {
+                discardPendingRestore()
+            }
+            Button("Cancel", role: .cancel) {
+                appModel.cancelPendingRestore()
+                restoreConfirmationMessage = nil
+                exportUIState.applyFeedback(.canceled(sourceOperation: "restore"))
+            }
+        } message: {
+            Text(restoreConfirmationMessage ?? "")
         }
     }
 
@@ -204,6 +223,72 @@ struct AppRootView: View {
         }
     }
 
+    private func saveAndConfirmPendingRestore() {
+        do {
+            let result = try appModel.saveAndConfirmPendingRestore()
+            switch result {
+            case .restored(let restoreResult):
+                finishRestore(restoreResult)
+            case .requiresSaveAs:
+                let saveResult = saveProjectAs {
+                    finishPendingRestoreAfterSave()
+                }
+                if saveResult == .canceled {
+                    appModel.cancelPendingRestore()
+                    restoreConfirmationMessage = nil
+                    exportUIState.applyFeedback(.canceled(sourceOperation: "restore"))
+                }
+            }
+        } catch {
+            restoreConfirmationMessage = nil
+            present(error, operation: .save)
+        }
+    }
+
+    private func discardPendingRestore() {
+        let result = appModel.discardPendingRestore()
+        finishRestore(result)
+    }
+
+    private func finishPendingRestoreAfterSave() {
+        do {
+            let result = try appModel.confirmPendingRestoreAfterExternalSave()
+            finishRestore(result)
+        } catch {
+            restoreConfirmationMessage = nil
+            present(error, operation: .save)
+        }
+    }
+
+    private func finishRestore(_ result: RestoreResult) {
+        restoreConfirmationMessage = nil
+        switch result.status {
+        case .restored:
+            exportUIState.applyFeedback(ExportFeedback(
+                kind: .success,
+                userMessage: result.userMessage,
+                technicalDetail: result.technicalDetail,
+                sourceOperation: "restore"
+            ))
+            isExportPickerPresented = false
+        case .confirmationRequired:
+            restoreConfirmationMessage = result.userMessage
+            exportUIState.applyFeedback(ExportFeedback(
+                kind: .warning,
+                userMessage: result.userMessage,
+                technicalDetail: result.technicalDetail,
+                sourceOperation: "restore"
+            ))
+        case .failed:
+            exportUIState.applyFeedback(ExportFeedback(
+                kind: .error,
+                userMessage: result.userMessage,
+                technicalDetail: result.technicalDetail,
+                sourceOperation: "restore"
+            ))
+        }
+    }
+
     private func closeWindowIfNeeded(_ shouldCloseWindow: Bool) {
         if shouldCloseWindow {
             allowWindowClose = true
@@ -308,6 +393,7 @@ struct AppRootView: View {
                 ))
                 isExportPickerPresented = false
             case .confirmationRequired:
+                restoreConfirmationMessage = result.userMessage
                 exportUIState.applyFeedback(ExportFeedback(
                     kind: .warning,
                     userMessage: result.userMessage,
