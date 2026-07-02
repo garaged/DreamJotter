@@ -10,17 +10,7 @@ struct SimplifiedReviewLayoutNumberingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 14) {
-                Text("Numbering levels")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
-                Toggle("Page", isOn: $showPage)
-                Toggle("Paragraph", isOn: $showParagraph)
-                Toggle("Line", isOn: $showLine)
-                Spacer()
-            }
-            .toggleStyle(.checkbox)
-            .controlSize(.small)
+            numberingControls
 
             ForEach(plan.contentPages, id: \.pageIndex) { page in
                 VStack(alignment: .leading, spacing: 12) {
@@ -44,50 +34,84 @@ struct SimplifiedReviewLayoutNumberingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
+    private var numberingControls: some View {
+        HStack(spacing: 14) {
+            Text("Numbering levels")
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+            Toggle("Page", isOn: $showPage)
+            Toggle("Paragraph", isOn: $showParagraph)
+            Toggle("Line", isOn: $showLine)
+            Spacer()
+        }
+        .toggleStyle(.checkbox)
+        .controlSize(.small)
+    }
+
+    @ViewBuilder
     private func blockView(_ block: PDFBlockPlan) -> some View {
-        Group {
-            if showLine {
-                VStack(alignment: .leading, spacing: 2) {
-                    ForEach(Array(block.lines.enumerated()), id: \.element.lineNumber) { index, line in
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(lineLabel(block: block, lineNumber: line.lineNumber, isFirstLine: index == 0))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 48, alignment: .trailing)
-
-                            Text(line.text.isEmpty ? " " : line.text)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else if showParagraph, let paragraphNumber = block.paragraphNumber {
-                HStack(alignment: .top, spacing: 12) {
-                    Text("P\(paragraphNumber)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 52, alignment: .trailing)
-
-                    paragraphText(block)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
+        if showLine {
+            numberedLines(block)
+        } else if showParagraph, let paragraphNumber = block.paragraphNumber {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                paragraphLabel(paragraphNumber)
                 paragraphText(block)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            paragraphText(block)
         }
+    }
+
+    private func numberedLines(_ block: PDFBlockPlan) -> some View {
+        Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 8, verticalSpacing: 2) {
+            ForEach(Array(block.lines.enumerated()), id: \.element.lineNumber) { index, line in
+                GridRow(alignment: .firstTextBaseline) {
+                    lineLabel(
+                        paragraphNumber: block.paragraphNumber,
+                        lineNumber: line.lineNumber,
+                        isFirstLine: index == 0
+                    )
+                    .gridColumnAlignment(.trailing)
+
+                    Text(line.text.isEmpty ? " " : line.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func paragraphLabel(_ paragraphNumber: Int) -> some View {
+        Text("P\(paragraphNumber)")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize()
+    }
+
+    private func lineLabel(
+        paragraphNumber: Int?,
+        lineNumber: Int,
+        isFirstLine: Bool
+    ) -> some View {
+        let label: String
+        if showParagraph,
+           isFirstLine,
+           let paragraphNumber {
+            label = "P\(paragraphNumber) · \(lineNumber)"
+        } else {
+            label = "\(lineNumber)"
+        }
+
+        return Text(label)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize()
     }
 
     private func paragraphText(_ block: PDFBlockPlan) -> some View {
         Text(block.lines.map(\.text).joined(separator: " "))
             .frame(maxWidth: .infinity, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func lineLabel(block: PDFBlockPlan, lineNumber: Int, isFirstLine: Bool) -> String {
-        if showParagraph,
-           isFirstLine,
-           let paragraphNumber = block.paragraphNumber {
-            return "P\(paragraphNumber) \(lineNumber)"
-        }
-        return "\(lineNumber)"
     }
 }
