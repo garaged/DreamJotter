@@ -31,31 +31,7 @@ struct SimplifiedReviewLayoutNumberingView: View {
                     }
 
                     ForEach(page.blocks, id: \.blockNumber) { block in
-                        HStack(alignment: .top, spacing: 12) {
-                            if showParagraph, let paragraphNumber = block.paragraphNumber {
-                                Text("P\(paragraphNumber)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: 52, alignment: .trailing)
-                            }
-
-                            if showLine {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    ForEach(block.lines, id: \.lineNumber) { line in
-                                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                            Text("\(line.lineNumber)")
-                                                .foregroundStyle(.secondary)
-                                                .frame(width: 22, alignment: .trailing)
-                                            Text(line.text.isEmpty ? " " : line.text)
-                                        }
-                                    }
-                                }
-                            } else {
-                                Text(block.lines.map(\.text).joined(separator: " "))
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        blockView(block)
                     }
                 }
             }
@@ -66,5 +42,47 @@ struct SimplifiedReviewLayoutNumberingView: View {
         .padding(12)
         .background(Color(nsColor: .textBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+
+    private func blockView(_ block: PDFBlockPlan) -> some View {
+        Group {
+            if showLine {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(block.lines.enumerated()), id: \.element.lineNumber) { index, line in
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text(lineLabel(block: block, lineNumber: line.lineNumber, isFirstLine: index == 0))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 48, alignment: .trailing)
+                            Text(line.text.isEmpty ? " " : line.text)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .top, spacing: 12) {
+                    if showParagraph, let paragraphNumber = block.paragraphNumber {
+                        Text("P\(paragraphNumber)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 52, alignment: .trailing)
+                    }
+
+                    Text(block.lines.map(\.text).joined(separator: " "))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func lineLabel(block: PDFBlockPlan, lineNumber: Int, isFirstLine: Bool) -> String {
+        if showParagraph,
+           isFirstLine,
+           let paragraphNumber = block.paragraphNumber {
+            return "P\(paragraphNumber) \(lineNumber)"
+        }
+        return "\(lineNumber)"
     }
 }
