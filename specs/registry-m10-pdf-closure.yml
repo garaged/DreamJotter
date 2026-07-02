@@ -9,8 +9,23 @@
       "status": "accepted",
       "spec": "docs/specs/export/production-pdf-export.spec.md",
       "acceptance": "docs/acceptance/milestone-10-acceptance.md",
-      "implementation": ["Sources/DreamJotterCore/PDFLayoutPlanner.swift", "Sources/DreamJotterCore/PDFLayoutTypes.swift"],
-      "tests": ["Tests/DreamJotterExecutableSpecs/PDFLayoutPlannerExecutableSpecs.swift", "Tests/DreamJotterExecutableSpecs/PDFRegressionExecutableSpecs.swift"]
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/export-preset.md",
+        "docs/data-contracts/export-request.md",
+        "docs/data-contracts/export-result.md"
+      ],
+      "planned_modules": [
+        "PDFLayoutPlanner",
+        "PDFLayoutTypes"
+      ],
+      "guardrails": [
+        "Layout planning must remain deterministic, adapter-neutral, and independent from SwiftUI view state."
+      ],
+      "notes": "Accepted implementation in Sources/DreamJotterCore/PDFLayoutPlanner.swift and PDFLayoutTypes.swift with planner and regression executable specs."
     },
     {
       "id": "M10-PDF-CONTENT-NUMBERING",
@@ -19,8 +34,18 @@
       "status": "accepted",
       "spec": "docs/specs/export/pdf-content-numbering.spec.md",
       "acceptance": "docs/acceptance/milestone-10-acceptance.md",
-      "implementation": ["Sources/DreamJotterCore/PDFLayoutPlanner.swift", "Sources/DreamJotterCore/PDFLayoutTypes.swift"],
-      "tests": ["Tests/DreamJotterExecutableSpecs/PDFLayoutPlannerExecutableSpecs.swift"]
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-result.md"
+      ],
+      "planned_modules": [
+        "PDFLayoutPlanner",
+        "PDFContentAddress"
+      ],
+      "guardrails": [
+        "Document, screenplay-page, block, paragraph, line, and source-element numbering must remain deterministic and internal numbering must not leak into reader-facing PDFs."
+      ],
+      "notes": "Accepted hierarchical numbering and line-address lookup with explicit page-break and omitted-note coverage."
     },
     {
       "id": "M10-PRODUCTION-PDF-RENDERER",
@@ -29,8 +54,22 @@
       "status": "accepted",
       "spec": "docs/specs/export/production-pdf-renderer.spec.md",
       "acceptance": "docs/acceptance/milestone-10-acceptance.md",
-      "implementation": ["Sources/DreamJotterCore/ProductionPDFRenderer.swift", "Sources/DreamJotterCore/ExportIntent.swift"],
-      "tests": ["Tests/DreamJotterExecutableSpecs/ProductionPDFRendererExecutableSpecs.swift", "Tests/DreamJotterExecutableSpecs/PDFRegressionExecutableSpecs.swift"]
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [
+        "docs/data-contracts/export-preset.md",
+        "docs/data-contracts/export-request.md",
+        "docs/data-contracts/export-result.md"
+      ],
+      "planned_modules": [
+        "ProductionPDFRenderer",
+        "ExportWorkflow"
+      ],
+      "guardrails": [
+        "The renderer must consume PDFLayoutPlan output, preserve planner page boundaries, and remain an export artifact rather than canonical storage."
+      ],
+      "notes": "Accepted production renderer with title pages, monospaced screenplay roles, dialogue columns, transitions, page numbers, privacy rules, and page-tree regression coverage."
     },
     {
       "id": "M10-PDF-RENDERER-HARDENING",
@@ -39,8 +78,19 @@
       "status": "accepted",
       "spec": "docs/specs/export/pdf-renderer-hardening.spec.md",
       "acceptance": "docs/acceptance/milestone-10-acceptance.md",
-      "implementation": ["Sources/DreamJotterCore/ProductionPDFRenderer.swift", "Sources/DreamJotterCore/ExportIntent.swift"],
-      "tests": ["Tests/DreamJotterExecutableSpecs/PDFRendererHardeningExecutableSpecs.swift"]
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-result.md"
+      ],
+      "planned_modules": [
+        "ProductionPDFRenderer",
+        "PDFRenderDiagnostic",
+        "ExportWorkflow"
+      ],
+      "guardrails": [
+        "Unsupported text must degrade safely with deterministic diagnostics and must never corrupt PDF structure or dirty project state."
+      ],
+      "notes": "Accepted Windows-1252 encoding, unsupported-character fallback, warning de-duplication, layout-warning forwarding, and warning propagation through ExportResult."
     },
     {
       "id": "M10-PDF-PRESET-MIGRATION",
@@ -49,8 +99,41 @@
       "status": "accepted",
       "spec": "docs/specs/export/m10-pdf-acceptance-closure.spec.md",
       "acceptance": "docs/acceptance/milestone-10-acceptance.md",
-      "implementation": ["Apps/DreamJotterMac/ViewModels/ExportUIState.swift", "Sources/DreamJotterCore/ExportIntent.swift"],
-      "tests": ["Tests/DreamJotterMacTests/ExportPresetPresentationTests.swift"]
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-preset.md",
+        "docs/data-contracts/export-ui-state.md"
+      ],
+      "planned_modules": [
+        "ExportUIState",
+        "ExportPresetCatalog",
+        "ExportWorkflow"
+      ],
+      "guardrails": [
+        "Screenplay presets must prefer PDF by stable preset identifier while preserving valid format compatibility and backup behavior."
+      ],
+      "notes": "Accepted PDF-first Reader Copy, Print Script, and Contest Submission selection behavior with presentation tests."
+    },
+    {
+      "id": "M10-PDF-ACCEPTANCE-CLOSURE",
+      "title": "M10 PDF Acceptance Closure",
+      "milestone": "M10.1",
+      "status": "accepted",
+      "spec": "docs/specs/export/m10-pdf-acceptance-closure.spec.md",
+      "acceptance": "docs/acceptance/milestone-10-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/export-result.md"
+      ],
+      "planned_modules": [
+        "PDFRegressionExecutableSpecs",
+        "BasicPDFExportAdapter",
+        "SpecManagement"
+      ],
+      "guardrails": [
+        "M10 closure must harden regressions and documentation without introducing a second renderer or changing canonical project storage."
+      ],
+      "notes": "Closes M10 with stable structural snapshots, empty-project and long-screenplay tests, manual verification, stale-wording removal, and a deprecated compatibility facade decision."
     }
   ]
 }
