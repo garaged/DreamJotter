@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "registry": "m10-pdf-acceptance-closure",
+  "items": [
+    {
+      "id": "M10-PDF-LAYOUT-PLANNING",
+      "title": "PDF Layout Planning",
+      "milestone": "M10",
+      "status": "accepted",
+      "spec": "docs/specs/export/production-pdf-export.spec.md",
+      "acceptance": "docs/acceptance/milestone-10-acceptance.md",
+      "implementation": ["Sources/DreamJotterCore/PDFLayoutPlanner.swift", "Sources/DreamJotterCore/PDFLayoutTypes.swift"],
+      "tests": ["Tests/DreamJotterExecutableSpecs/PDFLayoutPlannerExecutableSpecs.swift", "Tests/DreamJotterExecutableSpecs/PDFRegressionExecutableSpecs.swift"]
+    },
+    {
+      "id": "M10-PDF-CONTENT-NUMBERING",
+      "title": "PDF Hierarchical Content Numbering",
+      "milestone": "M10",
+      "status": "accepted",
+      "spec": "docs/specs/export/pdf-content-numbering.spec.md",
+      "acceptance": "docs/acceptance/milestone-10-acceptance.md",
+      "implementation": ["Sources/DreamJotterCore/PDFLayoutPlanner.swift", "Sources/DreamJotterCore/PDFLayoutTypes.swift"],
+      "tests": ["Tests/DreamJotterExecutableSpecs/PDFLayoutPlannerExecutableSpecs.swift"]
+    },
+    {
+      "id": "M10-PRODUCTION-PDF-RENDERER",
+      "title": "Production PDF Renderer",
+      "milestone": "M10",
+      "status": "accepted",
+      "spec": "docs/specs/export/production-pdf-renderer.spec.md",
+      "acceptance": "docs/acceptance/milestone-10-acceptance.md",
+      "implementation": ["Sources/DreamJotterCore/ProductionPDFRenderer.swift", "Sources/DreamJotterCore/ExportIntent.swift"],
+      "tests": ["Tests/DreamJotterExecutableSpecs/ProductionPDFRendererExecutableSpecs.swift", "Tests/DreamJotterExecutableSpecs/PDFRegressionExecutableSpecs.swift"]
+    },
+    {
+      "id": "M10-PDF-RENDERER-HARDENING",
+      "title": "PDF Renderer Hardening",
+      "milestone": "M10",
+      "status": "accepted",
+      "spec": "docs/specs/export/pdf-renderer-hardening.spec.md",
+      "acceptance": "docs/acceptance/milestone-10-acceptance.md",
+      "implementation": ["Sources/DreamJotterCore/ProductionPDFRenderer.swift", "Sources/DreamJotterCore/ExportIntent.swift"],
+      "tests": ["Tests/DreamJotterExecutableSpecs/PDFRendererHardeningExecutableSpecs.swift"]
+    },
+    {
+      "id": "M10-PDF-PRESET-MIGRATION",
+      "title": "PDF-First Screenplay Preset Migration",
+      "milestone": "M10",
+      "status": "accepted",
+      "spec": "docs/specs/export/m10-pdf-acceptance-closure.spec.md",
+      "acceptance": "docs/acceptance/milestone-10-acceptance.md",
+      "implementation": ["Apps/DreamJotterMac/ViewModels/ExportUIState.swift", "Sources/DreamJotterCore/ExportIntent.swift"],
+      "tests": ["Tests/DreamJotterMacTests/ExportPresetPresentationTests.swift"]
+    }
+  ]
+}
