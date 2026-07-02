@@ -11,14 +11,34 @@ Expose M10 PDF layout numbering in the macOS Review tab as read-only review coor
 ## Behavior
 
 - Review Mode shows a `Show layout numbering` toggle.
-- The toggle is enabled by default.
-- Enabled mode shows numbered screenplay blocks and wrapped lines.
+- The master toggle is enabled by default.
+- Enabled mode shows a configurable numbered screenplay preview.
 - Disabled mode shows the existing plain Fountain preview.
 - Generating or toggling numbering must not dirty the project.
 
+## Numbering Level Controls
+
+The numbered preview exposes independent checkbox controls for:
+
+- Page
+- Paragraph
+- Block
+- Source element
+- Line
+
+Defaults:
+
+- Page: enabled.
+- Paragraph: enabled.
+- Block: enabled.
+- Source element: disabled.
+- Line: disabled.
+
+Line numbering is disabled by default to avoid visual noise. Source-element numbering is also disabled by default because it is mainly diagnostic metadata. Users can enable either level when more atomic review coordinates are needed.
+
 ## Display
 
-Each block shows screenplay page, paragraph, page-local block, and source-element numbers. Each wrapped line shows its paragraph-local line number. Title-page blocks are excluded.
+Enabled address levels are joined into one compact block label. Each wrapped line displays its paragraph-local line number only when the Line checkbox is enabled. Title-page blocks are excluded.
 
 Review numbering is derived from `PDFLayoutPlanner` with the built-in Reader Copy preset. It is plan-local metadata, not persistent identity across edits.
 
@@ -28,14 +48,18 @@ An empty screenplay shows `No script text yet.` If Reader Copy cannot be resolve
 
 ## Acceptance Criteria
 
-- The Review tab exposes the toggle and numbering is visible by default.
-- Page, paragraph, block, source-element, and line numbers are displayed.
-- Disabling the toggle restores plain Fountain text.
+- The Review tab exposes the master toggle and numbering is visible by default.
+- Independent checkboxes control page, paragraph, block, source-element, and line numbering.
+- Page, paragraph, and block are enabled by default.
+- Source-element and line numbering are disabled by default.
+- Disabling all address levels removes the block address label without hiding screenplay content.
+- Disabling the master toggle restores plain Fountain text.
 - Reading numbering preserves project data and dirty state.
 - Existing findings and export controls remain available.
 
 ## Tests
 
+- Numbering option defaults match the specified low-noise configuration.
 - Review rows contain expected hierarchical numbers.
 - Reading review numbering preserves clean state.
 - Reading review numbering preserves an already-dirty state.
