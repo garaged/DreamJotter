@@ -26,10 +26,7 @@ public struct ProductionPDFRenderOutput: Equatable, Sendable {
 }
 
 public enum ProductionPDFRenderer {
-    public static func render(
-        project: DreamJotterProject,
-        preset: ExportPreset
-    ) -> Data {
+    public static func render(project: DreamJotterProject, preset: ExportPreset) -> Data {
         renderOutput(project: project, preset: preset).data
     }
 
@@ -37,10 +34,7 @@ public enum ProductionPDFRenderer {
         renderOutput(plan: plan).data
     }
 
-    public static func renderOutput(
-        project: DreamJotterProject,
-        preset: ExportPreset
-    ) -> ProductionPDFRenderOutput {
+    public static func renderOutput(project: DreamJotterProject, preset: ExportPreset) -> ProductionPDFRenderOutput {
         renderOutput(plan: PDFLayoutPlanner.plan(for: project, preset: preset))
     }
 
@@ -61,7 +55,6 @@ public enum ProductionPDFRenderer {
         objects.append("<< /Type /Pages /Kids [\(pageReferences)] /Count \(pageCount) >>")
 
         for index in 0..<pageCount {
-            let page = plan.pages[index]
             let mediaBox = "0 0 \(number(plan.settings.pageSize.width)) \(number(plan.settings.pageSize.height))"
             let contentReference = firstContentObject + index
             objects.append(
@@ -72,11 +65,7 @@ public enum ProductionPDFRenderer {
         }
 
         for page in plan.pages {
-            let stream = contentStream(
-                for: page,
-                settings: plan.settings,
-                unsupportedCharacters: &unsupportedCharacters
-            )
+            let stream = contentStream(for: page, settings: plan.settings, unsupportedCharacters: &unsupportedCharacters)
             objects.append("<< /Length \(stream.utf8.count) >>\nstream\n\(stream)\nendstream")
         }
 
@@ -93,10 +82,7 @@ public enum ProductionPDFRenderer {
             )
         })
 
-        return ProductionPDFRenderOutput(
-            data: assemble(objects: objects),
-            diagnostics: diagnostics
-        )
+        return ProductionPDFRenderOutput(data: assemble(objects: objects), diagnostics: diagnostics)
     }
 
     private static func contentStream(
@@ -107,19 +93,9 @@ public enum ProductionPDFRenderer {
         var commands: [String] = []
 
         if page.isTitlePage {
-            appendTitlePage(
-                page,
-                settings: settings,
-                commands: &commands,
-                unsupportedCharacters: &unsupportedCharacters
-            )
+            appendTitlePage(page, settings: settings, commands: &commands, unsupportedCharacters: &unsupportedCharacters)
         } else {
-            appendScreenplayPage(
-                page,
-                settings: settings,
-                commands: &commands,
-                unsupportedCharacters: &unsupportedCharacters
-            )
+            appendScreenplayPage(page, settings: settings, commands: &commands, unsupportedCharacters: &unsupportedCharacters)
         }
 
         return commands.joined(separator: "\n")
@@ -137,19 +113,8 @@ public enum ProductionPDFRenderer {
         for (index, line) in lines.enumerated() {
             let fontSize = index == 0 ? 18.0 : 12.0
             let y = startY - Double(index) * 24
-            let x = centeredX(
-                text: line.text,
-                fontSize: fontSize,
-                pageWidth: settings.pageSize.width
-            )
-            commands.append(textCommand(
-                text: line.text,
-                font: .bold,
-                size: fontSize,
-                x: x,
-                y: y,
-                unsupportedCharacters: &unsupportedCharacters
-            ))
+            let x = centeredX(text: line.text, fontSize: fontSize, pageWidth: settings.pageSize.width)
+            commands.append(textCommand(text: line.text, font: .bold, size: fontSize, x: x, y: y, unsupportedCharacters: &unsupportedCharacters))
         }
     }
 
@@ -164,14 +129,7 @@ public enum ProductionPDFRenderer {
         if settings.includePageNumbers, let screenplayPageNumber = page.screenplayPageNumber {
             let text = "\(screenplayPageNumber)."
             let x = settings.pageSize.width - settings.margins.right - estimatedWidth(text, fontSize: 10)
-            commands.append(textCommand(
-                text: text,
-                font: .regular,
-                size: 10,
-                x: x,
-                y: settings.pageSize.height - 36,
-                unsupportedCharacters: &unsupportedCharacters
-            ))
+            commands.append(textCommand(text: text, font: .regular, size: 10, x: x, y: settings.pageSize.height - 36, unsupportedCharacters: &unsupportedCharacters))
         }
 
         for block in page.blocks {
@@ -181,14 +139,7 @@ public enum ProductionPDFRenderer {
 
             for line in block.lines {
                 let style = style(for: block.role, text: line.text, settings: settings)
-                commands.append(textCommand(
-                    text: line.text,
-                    font: style.font,
-                    size: style.fontSize,
-                    x: style.x,
-                    y: y,
-                    unsupportedCharacters: &unsupportedCharacters
-                ))
+                commands.append(textCommand(text: line.text, font: style.font, size: style.fontSize, x: style.x, y: y, unsupportedCharacters: &unsupportedCharacters))
                 y -= settings.lineHeight
             }
 
@@ -196,11 +147,7 @@ public enum ProductionPDFRenderer {
         }
     }
 
-    private static func style(
-        for role: PDFBlockRole,
-        text: String,
-        settings: PDFLayoutSettings
-    ) -> (font: Font, fontSize: Double, x: Double) {
+    private static func style(for role: PDFBlockRole, text: String, settings: PDFLayoutSettings) -> (font: Font, fontSize: Double, x: Double) {
         let left = settings.margins.left
         let right = settings.pageSize.width - settings.margins.right
         let fontSize = 12.0
@@ -256,10 +203,7 @@ public enum ProductionPDFRenderer {
         Double(text.count) * fontSize * 0.6
     }
 
-    private static func escaped(
-        _ value: String,
-        unsupportedCharacters: inout Set<String>
-    ) -> String {
+    private static func escaped(_ value: String, unsupportedCharacters: inout Set<String>) -> String {
         var result = ""
 
         for character in value {
