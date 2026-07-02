@@ -2838,7 +2838,7 @@
       "id": "M9-6-RESTORE-UX-HARDENING",
       "title": "Restore UX Hardening",
       "milestone": "M9.6",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/milestones/milestone-9-6-restore-ux-hardening.md",
       "acceptance": "docs/acceptance/milestone-9-6-acceptance.md",
       "related_adrs": [
@@ -2864,7 +2864,7 @@
       "id": "RESTORE-CONFIRMATION-FLOW",
       "title": "Restore Confirmation Flow",
       "milestone": "M9.6",
-      "status": "specified",
+      "status": "implemented",
       "spec": "docs/specs/export/restore-confirmation-flow.spec.md",
       "acceptance": "docs/acceptance/milestone-9-6-acceptance.md",
       "related_adrs": [

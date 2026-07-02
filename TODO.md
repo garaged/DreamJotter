@@ -112,14 +112,15 @@ Status: implemented.
 
 ## Milestone 9.6 Restore UX Hardening
 
-Status: specified.
+Status: implemented.
 
-- Implement restore-specific Save / Discard / Cancel confirmation when the current project is dirty.
+- Maintain restore-specific Save / Discard / Cancel confirmation when the current project is dirty.
 - Keep restore validation non-destructive until a valid candidate and explicit user choice exist.
-- Ensure Save and Restore uses existing M6 save lifecycle behavior.
+- Ensure Save and Restore continues to use existing M6 save lifecycle behavior.
 - Ensure failed save or canceled Save As blocks restore and preserves current dirty work.
 - Ensure Discard and Restore applies only validated backup data.
 - Preserve existing M9.5 export picker and backup creation behavior.
+- Keep `Tests/DreamJotterMacTests/M9RestoreUXTests.swift` covering clean restore, dirty pending restore, cancel, discard, Save As, save failure, and invalid backup.
 
 ## Milestone 10 Production PDF Export
 
