@@ -1,6 +1,6 @@
 # M12.1 Character and Location Management
 
-Status: specified
+Status: implemented
 
 ## Purpose
 
@@ -8,9 +8,9 @@ Provide safe lifecycle and bulk-edit workflows for canonical character and locat
 
 ## Profile Lifecycle Contract
 
-Character and location records gain an optional archive timestamp. A missing timestamp means active. Existing package files that do not contain the field decode as active without migration.
+Archive state is stored as reserved project metadata inside the already persisted Pro-state envelope. Existing packages contain no archive markers and therefore decode every profile as active without migration or a package-format change.
 
-Archive and restore are reversible command operations. Delete is irreversible from current project state and requires explicit user confirmation before command construction. Delete does not rewrite screenplay text automatically.
+Archive and restore are reversible command operations. Delete is irreversible from current project state and requires explicit user confirmation. Delete removes links to the deleted profile but does not rewrite screenplay text automatically.
 
 ## Duplicate Merge Contract
 
@@ -19,14 +19,14 @@ A merge request names one surviving profile and one or more source profile IDs.
 Before mutation the command engine must:
 
 1. verify all profiles exist and are the same profile kind;
-2. reject a source list containing the surviving ID;
-3. create a project snapshot;
-4. combine nonempty notes deterministically without dropping unique text;
-5. remap detected-profile matches to the survivor;
-6. remove merged source profiles;
-7. mark the survivor source as `merged` and update its timestamp.
-
-Merge does not silently rewrite screenplay text. The writer may run bulk rename separately after reviewing its preview.
+2. reject an empty or invalid source list;
+3. require explicit confirmation;
+4. create a project snapshot;
+5. combine nonempty notes deterministically without dropping unique text;
+6. rewrite semantic screenplay references from source names to the survivor;
+7. remap linked notes and scene-card metadata to the survivor;
+8. remove merged source profiles;
+9. mark the survivor source as `merged` and update its timestamp.
 
 ## Bulk Rename Preview
 
@@ -47,17 +47,17 @@ Character rename matches semantic `characterCue` elements by Unicode-aware norma
 
 Apply requires a command containing the preview identity and proposed name. The engine recomputes the preview against current project state and rejects stale or mismatched previews.
 
-Apply must create a snapshot before changing:
+Apply creates a snapshot before changing:
 
 - the canonical profile display name and normalized key;
 - matching semantic screenplay elements;
 - derived scenes and character projections;
-- detected-profile resolution links;
-- linked scene-card character or location metadata where it references the renamed normalized key.
+- ignored-detection keys that would prevent the renamed profile from matching;
+- linked scene-card character or location metadata.
 
-## Command Types
+## Command API
 
-M12.1 adds command types for:
+M12.1 adds `ProfileCommandRequest` and an overload of `CommandEngine.execute` for:
 
 - archive profile;
 - restore profile;
@@ -69,8 +69,8 @@ Delete, merge, and bulk rename set `requiresSnapshot` to true. Archive and resto
 
 ## Persistence
 
-Archived timestamps and all accepted profile mutations persist through existing character and location package sections. The package format version remains compatible because new lifecycle fields are optional.
+Archive markers persist through the existing `pro.json` package section. Accepted profile, screenplay, note-link, scene-card, and snapshot mutations persist through their existing package sections. The package format version remains compatible.
 
-## UI Boundary
+## Current UI Boundary
 
-This slice requires core and view-model behavior plus minimal management presentation. Confirmation and preview are UI responsibilities; mutation remains in `CommandEngine`. The editor selection must not change until the user explicitly navigates to an affected preview item.
+This slice implements the portable core and command contract. Confirmation and preview presentation remain UI responsibilities for a later focused adapter change. Core mutations do not change editor selection or scene-navigation state.
