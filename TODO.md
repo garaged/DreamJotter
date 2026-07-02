@@ -4,7 +4,7 @@ This file tracks future implementation and maintenance work. It is not a substit
 
 ## Accepted Foundations
 
-Milestones 1 through 4 are accepted portable-core foundations. Milestones 5 through 9.6 are implemented app, editor, workspace, export, review, and restore foundations. Milestone 10 production PDF export is accepted. Milestone 11 FDX interoperability foundation is implemented.
+Milestones 1 through 4 are accepted portable-core foundations. Milestones 5 through 9.6 are implemented app, editor, workspace, export, review, and restore foundations. Milestone 10 production PDF export is accepted. Milestone 11 FDX interoperability foundation is implemented. Milestone 12 writer workflow polish is in progress.
 
 Maintain the following cross-cutting guardrails:
 
@@ -33,50 +33,48 @@ Status: implemented with ongoing hardening.
 - Preserve the SwiftUI `TextEditor` fallback until selection, undo, formatting, and accessibility behavior are mature.
 - Add grapheme-safe cursor tests and accessibility exposure for current element kind and diagnostics.
 
-## Character, Location, Notes, Scenes, and Search
+## M12.1 Character and Location Management
 
-Status: implemented with deferred polish.
+Status: portable core implemented.
 
-- Maintain create/edit/save/reopen, detection resolution, Unicode duplicate collapse, dirty-state, and package persistence coverage.
-- Preserve the distinction between derived screenplay facts and user-authored metadata.
-- Defer archive/delete UI, richer profile fields, bulk merge/rename, and advanced filtering until separately specified.
+- Maintain command-backed archive and restore.
+- Maintain explicit confirmation for profile removal and duplicate merge.
+- Maintain snapshot protection for removal, merge, and bulk rename.
+- Maintain deterministic rename previews and stale-preview rejection.
+- Preserve Unicode names, semantic screenplay references, linked notes, scene-card metadata, ignored-detection keys, and package persistence.
+- Add focused macOS management presentation for preview, confirmation, archive lists, and duplicate merge selection in a later adapter slice.
 
-## Export, Review, Backup, and Restore
+## M12.2 Notes and TODO Workspace
 
-Status: implemented.
+Status: planned.
 
-- Maintain Fountain, Markdown, plain text, JSON backup, and production PDF exports without dirty-state mutation.
-- Maintain Reader Copy, Contest Submission, Print Script, Writer Backup, and Plain Text Archive preset validation.
-- Maintain read-only Review Mode, script health, formatting warnings, and review findings.
-- Maintain backup validation and Save / Discard / Cancel restore protection.
-- Defer export history, batch export, and richer overwrite/restore presentation until separately specified.
+- Add note state and target filters, Unicode-aware search, unresolved TODO projection, direct navigation, resolve/reopen, bulk resolve, and orphan repair.
+- Keep bulk operations command-backed and snapshot-protected.
+- Keep search and dashboard counts correct after mutation and reopen.
+
+## M12.3 Scene Workflow Polish
+
+Status: planned.
+
+- Add richer editable scene cards and status, plotline, and tag filters.
+- Keep planning order separate from screenplay order.
+- Add scene-card navigation and an explicit snapshot-protected screenplay reorder command.
+- Preserve cursor and scene-navigation state for metadata-only changes.
 
 ## Milestone 10 Production PDF Export
 
 Status: accepted.
 
-- Maintain deterministic `PDFLayoutPlanner` output and hierarchical document, screenplay-page, block, paragraph, line, and source-element numbering.
-- Maintain title-page behavior, screenplay page numbers, margins, wrapped blocks, dialogue and parenthetical columns, character cues, and right-aligned transitions.
-- Preserve Reader Copy, Print Script, and Contest Submission privacy and metadata rules.
-- Exclude notes, TODOs, and internal metadata from reader-facing PDFs by default.
-- Maintain Windows-1252 encoding, unsupported-character fallback, deterministic diagnostics, and warning propagation through `ExportResult`.
-- Maintain stable structural snapshots, empty-project PDF coverage, and very-long-screenplay pagination coverage.
-- Retain `BasicPDFExportAdapter` only as a deprecated compatibility facade over `ProductionPDFRenderer`; new code must use `ProductionPDFRenderer` directly.
-- Keep PDF artifacts as exports rather than canonical storage.
-- Prefer structural layout snapshots over binary PDF fixtures unless byte-level compatibility becomes an explicit product requirement.
+- Maintain deterministic `PDFLayoutPlanner` output and hierarchical numbering.
+- Preserve title-page behavior, screenplay page numbers, margins, wrapped blocks, dialogue columns, character cues, transitions, privacy rules, diagnostics, and regression coverage.
+- Retain `BasicPDFExportAdapter` only as a deprecated compatibility facade.
 
 ## Milestone 11 FDX Interoperability
 
 Status: implemented foundation.
 
-- Maintain deterministic mapping for scene headings, action, character cues, parentheticals, dialogue, transitions, and shots.
-- Maintain Unicode-safe UTF-8 XML and escaping for XML-sensitive characters.
-- Keep unknown FDX paragraph types visible as `.unknown` elements with warnings.
-- Keep DreamJotter-only notes, explicit page breaks, and unsupported elements out of exported FDX with deterministic diagnostics.
-- Keep network and external-resource lookup disabled while parsing.
-- Keep FDX as interchange only; `.dreamjotter` remains canonical storage.
-- Add title-page, revision metadata, dual-dialogue, styled-text, and cross-version compatibility fixtures only in later separately specified slices.
-- Add application-level import and export presentation only after replacement, merge, and save semantics are specified.
+- Maintain supported semantic mapping, Unicode-safe XML, unknown paragraph warnings, malformed-input protection, and canonical `.dreamjotter` ownership.
+- Add title pages, revision metadata, dual dialogue, styled text, UI integration, and wider compatibility fixtures only in separately specified slices.
 
 ## Apple UI
 
