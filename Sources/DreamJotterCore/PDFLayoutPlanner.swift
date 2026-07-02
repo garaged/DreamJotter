@@ -15,73 +15,179 @@ public enum PDFLayoutPlanner {
             pages.append(makeTitlePage(title: title, pageIndex: 0))
         }
 
-        let blocks = project.screenplay.elements.flatMap { element -> [PDFBlockPlan] in
-            guard element.kind != .pageBreak else { return [] }
-            return [makeBlock(for: element, settings: settings, warnings: &warnings)]
-        }
-
         var pageBlocks: [PDFBlockPlan] = []
         var lineCount = 0
         var screenplayPageNumber = 1
+        var paragraphNumber = 1
 
-        for block in blocks {
-            if lineCount + block.lineCount > settings.contentLinesPerPage, !pageBlocks.isEmpty {
-                pages.append(PDFPagePlan(
-                    pageIndex: pages.count,
-                    screenplayPageNumber: settings.includePageNumbers ? screenplayPageNumber : nil,
-                    isTitlePage: false,
-                    blocks: pageBlocks
-                ))
-                screenplayPageNumber += 1
-                pageBlocks = []
-                lineCount = 0
-            }
-            pageBlocks.append(block)
-            lineCount += block.lineCount
-        }
-
-        if !pageBlocks.isEmpty {
+        func appendCurrentPageIfNeeded() {
+            guard !pageBlocks.isEmpty else { return }
             pages.append(PDFPagePlan(
                 pageIndex: pages.count,
-                screenplayPageNumber: settings.includePageNumbers ? screenplayPageNumber : nil,
+                documentPageNumber: pages.count + 1,
+                screenplayPageNumber: screenplayPageNumber,
                 isTitlePage: false,
                 blocks: pageBlocks
             ))
+            screenplayPageNumber += 1
+            pageBlocks = []
+            lineCount = 0
         }
 
+        func appendBlock(_ block: PDFBlockPlan) {
+            guard block.lineCount > 0 else { return }
+            if lineCount + block.lineCount > settings.contentLinesPerPage, !pageBlocks.isEmpty {
+                appendCurrentPageIfNeeded()
+            }
+            pageBlocks.append(numbered(block, blockNumber: pageBlocks.count + 1))
+            lineCount += block.lineCount
+        }
+
+        var sourceElementIndex = 0
+        while sourceElementIndex < project.screenplay.elements.count {
+            let element = project.screenplay.elements[sourceElementIndex]
+
+            if element.kind == .pageBreak {
+                appendCurrentPageIfNeeded()
+                sourceElementIndex += 1
+                continue
+            }
+
+            if element.kind == .noteReference, !preset.includesNotes {
+                sourceElementIndex += 1
+                continue
+            }
+
+            var block = makeBlock(
+                for: element,
+                paragraphNumber: paragraphNumber,
+                sourceElementIndex: sourceElementIndex,
+                settings: settings,
+                warnings: &warnings
+            )
+
+            if element.kind == .characterCue,
+               sourceElementIndex + 1 < project.screenplay.elements.count {
+                let nextElement = project.screenplay.elements[sourceElementIndex + 1]
+                if nextElement.kind == .dialogue || nextElement.kind == .parenthetical {
+                    block = PDFBlockPlan(
+                        blockNumber: 0,
+                        paragraphNumber: block.paragraphNumber,
+                        sourceElementIndex: block.sourceElementIndex,
+                        role: block.role,
+                        sourceElementKind: block.sourceElementKind,
+                        lines: block.lines,
+                        keepWithNext: true
+                    )
+                    let nextBlock = makeBlock(
+                        for: nextElement,
+                        paragraphNumber: paragraphNumber + 1,
+                        sourceElementIndex: sourceElementIndex + 1,
+                        settings: settings,
+                        warnings: &warnings
+                    )
+                    if lineCount + block.lineCount + nextBlock.lineCount > settings.contentLinesPerPage,
+                       !pageBlocks.isEmpty {
+                        appendCurrentPageIfNeeded()
+                    }
+                    appendBlock(block)
+                    appendBlock(nextBlock)
+                    paragraphNumber += 2
+                    sourceElementIndex += 2
+                    continue
+                }
+            }
+
+            appendBlock(block)
+            paragraphNumber += 1
+            sourceElementIndex += 1
+        }
+
+        appendCurrentPageIfNeeded()
+
         if pages.isEmpty {
-            pages.append(PDFPagePlan(pageIndex: 0, screenplayPageNumber: nil, isTitlePage: false, blocks: []))
+            pages.append(PDFPagePlan(
+                pageIndex: 0,
+                documentPageNumber: 1,
+                screenplayPageNumber: nil,
+                isTitlePage: false,
+                blocks: []
+            ))
         }
 
         return PDFLayoutPlan(documentTitle: title, settings: settings, pages: pages, warnings: warnings)
     }
 
-    private static func initialWarnings(for project: DreamJotterProject, preset: ExportPreset, title: String) -> [PDFLayoutWarning] {
+    private static func initialWarnings(
+        for project: DreamJotterProject,
+        preset: ExportPreset,
+        title: String
+    ) -> [PDFLayoutWarning] {
         var warnings: [PDFLayoutWarning] = []
         if title == "Untitled" {
             warnings.append(PDFLayoutWarning(code: .missingTitleMetadata, message: "Project title is missing; using Untitled."))
         }
-        if !project.notes.isEmpty && !preset.includesNotes {
-            warnings.append(PDFLayoutWarning(code: .notesOmitted, message: "Project notes are omitted from this PDF preset."))
+        let hasOmittedNotes = !project.notes.isEmpty || project.screenplay.elements.contains { $0.kind == .noteReference }
+        if hasOmittedNotes && !preset.includesNotes {
+            warnings.append(PDFLayoutWarning(code: .notesOmitted, message: "Project notes and screenplay TODOs are omitted from this PDF preset."))
         }
         return warnings
     }
 
     private static func makeTitlePage(title: String, pageIndex: Int) -> PDFPagePlan {
-        let line = PDFLinePlan(text: title, role: .title, alignment: .centered)
-        let block = PDFBlockPlan(role: .title, sourceElementKind: .titlePage, lines: [line])
-        return PDFPagePlan(pageIndex: pageIndex, screenplayPageNumber: nil, isTitlePage: true, blocks: [block])
+        let line = PDFLinePlan(lineNumber: 1, text: title, role: .title, alignment: .centered)
+        let block = PDFBlockPlan(
+            blockNumber: 1,
+            paragraphNumber: nil,
+            sourceElementIndex: nil,
+            role: .title,
+            sourceElementKind: .titlePage,
+            lines: [line]
+        )
+        return PDFPagePlan(
+            pageIndex: pageIndex,
+            documentPageNumber: pageIndex + 1,
+            screenplayPageNumber: nil,
+            isTitlePage: true,
+            blocks: [block]
+        )
     }
 
-    private static func makeBlock(for element: ScriptElement, settings: PDFLayoutSettings, warnings: inout [PDFLayoutWarning]) -> PDFBlockPlan {
+    private static func makeBlock(
+        for element: ScriptElement,
+        paragraphNumber: Int,
+        sourceElementIndex: Int,
+        settings: PDFLayoutSettings,
+        warnings: inout [PDFLayoutWarning]
+    ) -> PDFBlockPlan {
         let role = role(for: element.kind)
         if element.kind == .unknown {
             warnings.append(PDFLayoutWarning(code: .malformedElementFallback, message: "Unknown screenplay text was included as readable fallback text."))
         }
-        let lines = wrap(element.text, width: width(for: role, settings: settings)).map {
-            PDFLinePlan(text: $0, role: role, alignment: alignment(for: role))
+        let lines = wrap(element.text, width: width(for: role, settings: settings)).enumerated().map {
+            PDFLinePlan(lineNumber: $0.offset + 1, text: $0.element, role: role, alignment: alignment(for: role))
         }
-        return PDFBlockPlan(role: role, sourceElementKind: element.kind, lines: lines, keepWithNext: element.kind == .characterCue)
+        return PDFBlockPlan(
+            blockNumber: 0,
+            paragraphNumber: paragraphNumber,
+            sourceElementIndex: sourceElementIndex,
+            role: role,
+            sourceElementKind: element.kind,
+            lines: lines,
+            keepWithNext: false
+        )
+    }
+
+    private static func numbered(_ block: PDFBlockPlan, blockNumber: Int) -> PDFBlockPlan {
+        PDFBlockPlan(
+            blockNumber: blockNumber,
+            paragraphNumber: block.paragraphNumber,
+            sourceElementIndex: block.sourceElementIndex,
+            role: block.role,
+            sourceElementKind: block.sourceElementKind,
+            lines: block.lines,
+            keepWithNext: block.keepWithNext
+        )
     }
 
     private static func role(for kind: ScriptElementKind) -> PDFBlockRole {
@@ -146,7 +252,9 @@ public enum PDFLayoutPlanner {
                 current = word
             }
         }
-        if !current.isEmpty { lines.append(current) }
+        if !current.isEmpty {
+            lines.append(current)
+        }
         return lines
     }
 
