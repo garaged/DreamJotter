@@ -16,6 +16,20 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Layout planning is testable without requiring SwiftUI view state.
 - Page setup, margins, body text roles, wrapped lines, and page numbers are represented explicitly enough for tests.
 
+### Hierarchical Content Numbering
+
+- Physical document page numbering is separate from screenplay content page numbering.
+- Document page numbers are one-based and include an optional title page.
+- Screenplay page numbers are one-based and exclude the title page.
+- Block numbers are one-based and restart on each page.
+- Paragraph numbers are one-based and continue across screenplay pages.
+- Wrapped line numbers are one-based and restart inside each paragraph.
+- Page-break elements do not consume paragraph numbers.
+- Notes and TODO elements omitted by preset policy do not consume paragraph numbers.
+- Source element indexes preserve plan-local traceability, including gaps for omitted elements.
+- A line-level `PDFContentAddress` can be resolved from a page, block, and line position.
+- Paragraph and line numbers are layout-plan metadata and are not rendered for readers by default.
+
 ### Screenplay Formatting
 
 - Scene headings are visually distinct from action.
@@ -57,6 +71,10 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 ## Required Tests
 
 - Simple one-scene PDF layout plan.
+- Deterministic document, screenplay-page, block, paragraph, and line numbering.
+- Line-level content-address lookup.
+- Explicit page break with block-number reset and paragraph-number continuity.
+- Omitted note/TODO with contiguous paragraph numbering and source-index gap.
 - Multi-scene page numbering.
 - Character cue/dialogue keep-with-next behavior.
 - Reader Copy metadata exclusion.
@@ -65,6 +83,11 @@ Milestone 10 is accepted when DreamJotter can produce deterministic, production-
 - Notes/TODO exclusion.
 - Malformed screenplay fallback warning.
 - Export-result dirty-state preservation.
+
+## Related Specs
+
+- `docs/specs/export/production-pdf-export.spec.md`
+- `docs/specs/export/pdf-content-numbering.spec.md`
 
 ## Validation Commands
 
