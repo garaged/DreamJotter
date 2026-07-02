@@ -6,6 +6,8 @@ struct ReviewModeView: View {
     let exportAction: () -> Void
     let openScriptAction: () -> Void
 
+    @State private var showLayoutNumbering = true
+
     private var report: ScriptHealthReport {
         document.scriptHealthReport
     }
@@ -58,16 +60,26 @@ struct ReviewModeView: View {
 
     private var scriptPreview: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Script Preview")
-                .font(.headline)
+            HStack {
+                Text("Script Preview")
+                    .font(.headline)
+                Spacer()
+                Toggle("Show layout numbering", isOn: $showLayoutNumbering)
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+            }
 
-            Text(document.fountainExportText.isEmpty ? "No script text yet." : document.fountainExportText)
-                .font(.system(.body, design: .monospaced))
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(Color(nsColor: .textBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+            if showLayoutNumbering, let plan = document.reviewPDFLayoutPlan {
+                ReviewLayoutNumberingView(plan: plan)
+            } else {
+                Text(document.fountainExportText.isEmpty ? "No script text yet." : document.fountainExportText)
+                    .font(.system(.body, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color(nsColor: .textBackgroundColor))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
         }
     }
 
@@ -96,7 +108,7 @@ struct ReviewModeView: View {
                                 if let action = finding.suggestedAction {
                                     Text(action)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                      .foregroundStyle(.secondary)
                                 }
                             }
 
@@ -120,16 +132,16 @@ struct ReviewModeView: View {
             return "exclamationmark.triangle"
         case .issue:
             return "xmark.octagon"
-        }
+      }
     }
 
     private func color(for severity: ReviewFindingSeverity) -> Color {
         switch severity {
         case .info:
             return .secondary
-        case .warning:
+      case .warning:
             return .orange
-        case .issue:
+      case .issue:
             return .red
         }
     }
