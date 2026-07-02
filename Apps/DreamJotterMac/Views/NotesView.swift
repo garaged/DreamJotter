@@ -33,7 +33,12 @@ struct NotesView: View {
             }
             .disabled(noteBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
-            NotesListView(notes: document.notes)
+            NotesListView(
+                notes: document.notes + document.scriptTodoNotes,
+                resolveAction: { note in
+                    document.resolveNote(note)
+                }
+            )
         }
     }
 
@@ -47,6 +52,12 @@ struct NotesView: View {
 
 struct NotesListView: View {
     let notes: [ProjectNote]
+    let resolveAction: (ProjectNote) -> Void
+
+    init(notes: [ProjectNote], resolveAction: @escaping (ProjectNote) -> Void = { _ in }) {
+        self.notes = notes
+        self.resolveAction = resolveAction
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -75,6 +86,17 @@ struct NotesListView: View {
                 Text("\(link.targetKind.rawValue.capitalized): \(link.targetID)")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
+            }
+            HStack {
+                Text("\(note.source.rawValue) / \(note.status.rawValue)")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                if note.status == .open && note.source == .manual {
+                    Button("Resolve") {
+                        resolveAction(note)
+                    }
+                    .font(.caption)
+                }
             }
         }
     }

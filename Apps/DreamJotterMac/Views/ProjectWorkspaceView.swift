@@ -5,6 +5,7 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
     case script = "Script"
     case scenes = "Scenes"
     case characters = "Characters"
+    case locations = "Locations"
     case notes = "Notes"
     case healthReport = "Health Report"
 
@@ -95,18 +96,58 @@ struct ProjectWorkspaceView: View {
         case .scenes:
             ScrollView {
                 SceneListView(
-                    scenes: document.scenes,
+                    sceneCards: document.sceneCards,
                     selectedSceneID: document.editorNavigationState.selectedSceneID,
                     selectAction: { index in
                         document.requestNavigation(toSceneAt: index)
                         selectedSection = .script
+                    },
+                    updateStatusAction: { card, status in
+                        if let heading = card.sourceSceneHeading {
+                            document.updateSceneStatus(sceneHeading: heading, status: status)
+                        }
                     }
                 )
                     .padding()
             }
         case .characters:
             ScrollView {
-                CharacterListView(characters: document.characters)
+                CharacterListView(
+                    characters: document.characters,
+                    unresolvedDetectedCharacters: document.unresolvedDetectedCharacters,
+                    createAction: { name, note in
+                        document.createCharacterProfile(name: name, note: note)
+                    },
+                    updateAction: { character, name, note in
+                        document.updateCharacterProfile(character, name: name, note: note)
+                    },
+                    convertAction: { detection in
+                        document.convertDetectedCharacterToProfile(detection)
+                    },
+                    ignoreAction: { detection in
+                        document.ignoreDetectedCharacter(detection)
+                    }
+                )
+                    .padding()
+            }
+        case .locations:
+            ScrollView {
+                LocationListView(
+                    locations: document.locations,
+                    unresolvedDetectedLocations: document.unresolvedDetectedLocations,
+                    createAction: { name, note in
+                        document.createLocationProfile(name: name, note: note)
+                    },
+                    updateAction: { location, name, note in
+                        document.updateLocationProfile(location, name: name, note: note)
+                    },
+                    convertAction: { detection in
+                        document.convertDetectedLocationToProfile(detection)
+                    },
+                    ignoreAction: { detection in
+                        document.ignoreDetectedLocation(detection)
+                    }
+                )
                     .padding()
             }
         case .notes:

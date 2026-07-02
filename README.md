@@ -2,7 +2,7 @@
 
 DreamJotter is a screenplay and movie-script writing app for non-programmers. It is designed to let beginners write, organize, and export scripts without learning technical tooling, while still leaving room for optional Pro Mode workflows such as revision colors, draft comparison, production breakdown, custom fields, export presets, and no-code routines.
 
-Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. Milestone 6 stabilizes document lifecycle behavior for saving, dirty state, recent projects, replacement protection, and basic commands. Milestone 7 implements screenplay editor usability v1 with TextKit Smart Enter, Tab cycling, suggestions, scene navigation/cursor sync, adapter-only styling, and passive blank-script guidance. There is no plugin runtime, real AI provider, cloud sync, or external service integration.
+Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. Milestone 6 stabilizes document lifecycle behavior for saving, dirty state, recent projects, replacement protection, and basic commands. Milestone 7 implements screenplay editor usability v1 with TextKit Smart Enter, Tab cycling, suggestions, scene navigation/cursor sync, adapter-only styling, and passive blank-script guidance. Milestone 8 implements character, location, notes, and scene workflow v1 with detected object resolution, profile creation/editing, scene-card status, parsed TODO notes, dashboard summary, and search integration. There is no plugin runtime, real AI provider, cloud sync, or external service integration.
 
 ## Product Direction
 
@@ -45,7 +45,7 @@ Key SDD files:
 - `docs/vision/`: product vision, personas, principles.
 - `docs/architecture/`: architecture overview, portable core, command engine, Apple-native direction.
 - `docs/adr/`: accepted architecture decisions.
-- `docs/milestones/`: Milestone 1 through Milestone 7 specs and milestone map.
+- `docs/milestones/`: Milestone 1 through Milestone 8 specs and milestone map.
 - `docs/acceptance/`: acceptance documents, traceability matrix, consistency review notes.
 - `docs/data-contracts/`: portable core data contracts and serialization rules.
 - `docs/editor/`: screenplay engine, Fountain support, and editor behavior specs.
@@ -73,8 +73,9 @@ Key SDD files:
 | Milestone 5 | Implemented | First macOS SwiftUI vertical slice exists as the `DreamJotterMac` package executable: Project Library, editable title/logline/synopsis, temporary TextEditor screenplay editing, parsed scenes/characters, notes, dashboard, package save/open, Fountain export, health report, and simple error alerts. |
 | Milestone 6 | Implemented | Document lifecycle is implemented for the macOS app: dirty state, Save/Save As routing, Save As cancel preservation, failed-save dirty preservation, recent-project deduplication, app errors, Save / Discard / Cancel protection, basic commands, and export without dirtying the project. |
 | Milestone 7 | Implemented | Screenplay editor usability v1 is implemented: TextKit Smart Enter, Tab cycling, scene heading suggestions, character/location autocomplete, parse state, scene navigation/cursor sync, adapter-only line styling, empty guidance, and preserved document workflow. |
+| Milestone 8 | Implemented | Character, location, notes, and scene workflow v1 covers detected character/location resolution, profile create/edit/save/reopen, scene-card status, parsed TODO notes, dashboard summary, and search integration. Rich archive/delete/profile-field polish remains deferred. |
 
-Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5, Milestone 6, and Milestone 7 app/editor foundations are implemented. Real renderers, real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
+Implementation status: Milestone 1 through Milestone 4 portable-core foundations are `accepted`; Milestone 5, Milestone 6, Milestone 7, and Milestone 8 app/editor/workspace foundations are implemented. Real renderers, real AI providers, cloud sync, iOS targets, and plugin runtime remain deferred.
 
 ## Current App Capabilities
 

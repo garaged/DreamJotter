@@ -34,6 +34,9 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
     public let mode: EditorMode
     public let template: ProjectTemplateMetadata?
     public let characters: [CharacterRecord]
+    public let ignoredDetectedCharacterKeys: [String]
+    public let locations: [LocationRecord]
+    public let ignoredDetectedLocationKeys: [String]
     public let notes: [ProjectNote]
     public let inboxItems: [InboxItem]
     public let sceneCards: [SceneCard]
@@ -48,6 +51,9 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         mode: EditorMode = .simple,
         template: ProjectTemplateMetadata? = nil,
         characters: [CharacterRecord] = [],
+        ignoredDetectedCharacterKeys: [String] = [],
+        locations: [LocationRecord] = [],
+        ignoredDetectedLocationKeys: [String] = [],
         notes: [ProjectNote] = [],
         inboxItems: [InboxItem] = [],
         sceneCards: [SceneCard] = [],
@@ -61,6 +67,9 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         self.mode = mode
         self.template = template
         self.characters = characters
+        self.ignoredDetectedCharacterKeys = ignoredDetectedCharacterKeys
+        self.locations = locations
+        self.ignoredDetectedLocationKeys = ignoredDetectedLocationKeys
         self.notes = notes
         self.inboxItems = inboxItems
         self.sceneCards = sceneCards
@@ -76,6 +85,9 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         case mode
         case template
         case characters
+        case ignoredDetectedCharacterKeys
+        case locations
+        case ignoredDetectedLocationKeys
         case notes
         case inboxItems
         case sceneCards
@@ -92,6 +104,9 @@ public struct DreamJotterProject: Codable, Equatable, Sendable {
         mode = try container.decodeIfPresent(EditorMode.self, forKey: .mode) ?? .simple
         template = try container.decodeIfPresent(ProjectTemplateMetadata.self, forKey: .template)
         characters = try container.decodeIfPresent([CharacterRecord].self, forKey: .characters) ?? []
+        ignoredDetectedCharacterKeys = try container.decodeIfPresent([String].self, forKey: .ignoredDetectedCharacterKeys) ?? []
+        locations = try container.decodeIfPresent([LocationRecord].self, forKey: .locations) ?? []
+        ignoredDetectedLocationKeys = try container.decodeIfPresent([String].self, forKey: .ignoredDetectedLocationKeys) ?? []
         notes = try container.decodeIfPresent([ProjectNote].self, forKey: .notes) ?? []
         inboxItems = try container.decodeIfPresent([InboxItem].self, forKey: .inboxItems) ?? []
         sceneCards = try container.decodeIfPresent([SceneCard].self, forKey: .sceneCards) ?? []

@@ -99,6 +99,9 @@ public enum DreamJotterPackageStore {
 
     public static let defaultSections: [String: PackageSection] = [
         "characters": PackageSection(path: "characters.json", required: false),
+        "ignoredDetectedCharacters": PackageSection(path: "ignored-detected-characters.json", required: false),
+        "locations": PackageSection(path: "locations.json", required: false),
+        "ignoredDetectedLocations": PackageSection(path: "ignored-detected-locations.json", required: false),
         "notes": PackageSection(path: "notes.json", required: false),
         "inbox": PackageSection(path: "inbox.json", required: false),
         "sceneCards": PackageSection(path: "scene-cards.json", required: false),
@@ -129,6 +132,9 @@ public enum DreamJotterPackageStore {
         try write(project.metadata, to: packageURL.appendingPathComponent(manifest.projectFile))
         try write(project.screenplay, to: packageURL.appendingPathComponent(manifest.screenplayFile))
         try write(project.characters, to: packageURL.appendingPathComponent("characters.json"))
+        try write(project.ignoredDetectedCharacterKeys, to: packageURL.appendingPathComponent("ignored-detected-characters.json"))
+        try write(project.locations, to: packageURL.appendingPathComponent("locations.json"))
+        try write(project.ignoredDetectedLocationKeys, to: packageURL.appendingPathComponent("ignored-detected-locations.json"))
         try write(project.notes, to: packageURL.appendingPathComponent("notes.json"))
         try write(project.inboxItems, to: packageURL.appendingPathComponent("inbox.json"))
         try write(project.sceneCards, to: packageURL.appendingPathComponent("scene-cards.json"))
@@ -192,6 +198,9 @@ public enum DreamJotterPackageStore {
         }
 
         let characters = decodeOptional([CharacterRecord].self, from: packageURL, section: manifest.sections["characters"], name: "characters", diagnostics: &diagnostics) ?? []
+        let ignoredDetectedCharacterKeys = decodeOptional([String].self, from: packageURL, section: manifest.sections["ignoredDetectedCharacters"], name: "ignoredDetectedCharacters", diagnostics: &diagnostics) ?? []
+        let locations = decodeOptional([LocationRecord].self, from: packageURL, section: manifest.sections["locations"], name: "locations", diagnostics: &diagnostics) ?? []
+        let ignoredDetectedLocationKeys = decodeOptional([String].self, from: packageURL, section: manifest.sections["ignoredDetectedLocations"], name: "ignoredDetectedLocations", diagnostics: &diagnostics) ?? []
         let notes = decodeOptional([ProjectNote].self, from: packageURL, section: manifest.sections["notes"], name: "notes", diagnostics: &diagnostics) ?? []
         let inboxItems = decodeOptional([InboxItem].self, from: packageURL, section: manifest.sections["inbox"], name: "inbox", diagnostics: &diagnostics) ?? []
         let sceneCards = decodeOptional([SceneCard].self, from: packageURL, section: manifest.sections["sceneCards"], name: "sceneCards", diagnostics: &diagnostics) ?? []
@@ -205,6 +214,9 @@ public enum DreamJotterPackageStore {
             screenplay: screenplay,
             mode: .simple,
             characters: characters,
+            ignoredDetectedCharacterKeys: ignoredDetectedCharacterKeys,
+            locations: locations,
+            ignoredDetectedLocationKeys: ignoredDetectedLocationKeys,
             notes: notes,
             inboxItems: inboxItems,
             sceneCards: sceneCards,

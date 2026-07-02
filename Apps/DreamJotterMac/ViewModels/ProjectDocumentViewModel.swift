@@ -7,12 +7,18 @@ struct ProjectDashboardSnapshot: Equatable {
     let synopsis: String?
     let sceneCount: Int
     let characterCount: Int
+    let unresolvedCharacterCount: Int
+    let locationCount: Int
+    let unresolvedLocationCount: Int
     let noteCount: Int
+    let todoCount: Int
 }
 
 enum NoteLinkTarget: Equatable {
     case project
     case scene(DreamJotterCore.Scene)
+    case character(CharacterRecord)
+    case location(LocationRecord)
 }
 
 struct ProjectDocumentViewModel: Equatable {
@@ -46,8 +52,20 @@ struct ProjectDocumentViewModel: Equatable {
             logline: project.story.logline?.text.nilIfBlank,
             synopsis: project.story.synopsis?.text.nilIfBlank,
             sceneCount: project.screenplay.scenes.count,
-            characterCount: CharacterManager.records(for: project, now: project.metadata.modifiedAt).count,
-            noteCount: project.notes.count
+            characterCount: characters.count,
+            unresolvedCharacterCount: CharacterManager.unresolvedDetectedCharacters(for: project).count,
+            locationCount: locations.count,
+            unresolvedLocationCount: LocationManager.unresolvedDetectedLocations(for: project).count,
+            noteCount: NotesIndex.openNotes(in: project).count,
+            todoCount: scriptTodoNotes.count
+        )
+    }
+
+    var workspaceSummary: ProjectWorkspaceSummary {
+        ProjectWorkspaceSummaryBuilder.summary(
+            for: project,
+            isDirty: isDirty,
+            lastSavedAt: packageURL == nil ? nil : project.metadata.modifiedAt
         )
     }
 
@@ -59,8 +77,40 @@ struct ProjectDocumentViewModel: Equatable {
         CharacterManager.records(for: project, now: project.metadata.modifiedAt)
     }
 
+    var detectedCharacters: [DetectedCharacter] {
+        CharacterManager.detectedCharacters(for: project)
+    }
+
+    var unresolvedDetectedCharacters: [DetectedCharacter] {
+        CharacterManager.unresolvedDetectedCharacters(for: project)
+    }
+
+    var locations: [LocationRecord] {
+        LocationManager.records(for: project, now: project.metadata.modifiedAt)
+    }
+
+    var detectedLocations: [DetectedLocation] {
+        LocationManager.detectedLocations(for: project)
+    }
+
+    var unresolvedDetectedLocations: [DetectedLocation] {
+        LocationManager.unresolvedDetectedLocations(for: project)
+    }
+
+    var sceneCards: [SceneCard] {
+        SceneCardBuilder.cards(for: project)
+    }
+
     var notes: [ProjectNote] {
         project.notes
+    }
+
+    var openNotes: [ProjectNote] {
+        NotesIndex.openNotes(in: project)
+    }
+
+    var scriptTodoNotes: [ProjectNote] {
+        NotesIndex.detectedScriptTodos(in: project, now: project.metadata.modifiedAt)
     }
 
     var loglineText: String {
@@ -271,6 +321,144 @@ struct ProjectDocumentViewModel: Equatable {
         isDirty = true
     }
 
+    mutating func createCharacterProfile(name: String, note: String = "", now: Date = Date()) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+        let normalizedKey = TextNormalization.key(for: trimmedName)
+        guard !project.characters.contains(where: { $0.normalizedKey == normalizedKey }) else { return }
+
+        let profile = CharacterRecord(
+            id: "character-\(normalizedKey.lowercased().replacingOccurrences(of: " ", with: "-"))",
+            displayName: trimmedName,
+            normalizedKey: normalizedKey,
+            note: note.trimmingCharacters(in: .whitespacesAndNewlines),
+            source: .manual,
+            createdAt: now,
+            updatedAt: now
+        )
+        replaceProject(characters: project.characters + [profile], modifiedAt: now)
+        isDirty = true
+    }
+
+    mutating func updateCharacterProfile(_ profile: CharacterRecord, name: String, note: String, now: Date = Date()) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+        let normalizedKey = TextNormalization.key(for: trimmedName)
+        guard !project.characters.contains(where: { $0.id != profile.id && $0.normalizedKey == normalizedKey }) else { return }
+
+        let updated = CharacterRecord(
+            id: profile.id,
+            displayName: trimmedName,
+            normalizedKey: normalizedKey,
+            note: note.trimmingCharacters(in: .whitespacesAndNewlines),
+            source: profile.source == .detected ? .manual : profile.source,
+            createdAt: profile.createdAt,
+            updatedAt: now
+        )
+        let profiles = project.characters.map { $0.id == profile.id ? updated : $0 }
+        guard profiles != project.characters else { return }
+        replaceProject(characters: profiles, modifiedAt: now)
+        isDirty = true
+    }
+
+    mutating func createLocationProfile(name: String, note: String = "", now: Date = Date()) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+        let normalizedKey = TextNormalization.key(for: trimmedName)
+        guard !project.locations.contains(where: { $0.normalizedKey == normalizedKey }) else { return }
+
+        let profile = LocationRecord(
+            id: "location-\(normalizedKey.lowercased().replacingOccurrences(of: " ", with: "-"))",
+            displayName: trimmedName,
+            normalizedKey: normalizedKey,
+            note: note.trimmingCharacters(in: .whitespacesAndNewlines),
+            source: .manual,
+            createdAt: now,
+            updatedAt: now
+        )
+        replaceProject(locations: project.locations + [profile], modifiedAt: now)
+        isDirty = true
+    }
+
+    mutating func updateLocationProfile(_ profile: LocationRecord, name: String, note: String, now: Date = Date()) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+        let normalizedKey = TextNormalization.key(for: trimmedName)
+        guard !project.locations.contains(where: { $0.id != profile.id && $0.normalizedKey == normalizedKey }) else { return }
+
+        let updated = LocationRecord(
+            id: profile.id,
+            displayName: trimmedName,
+            normalizedKey: normalizedKey,
+            note: note.trimmingCharacters(in: .whitespacesAndNewlines),
+            source: profile.source == .detected ? .manual : profile.source,
+            createdAt: profile.createdAt,
+            updatedAt: now
+        )
+        let profiles = project.locations.map { $0.id == profile.id ? updated : $0 }
+        guard profiles != project.locations else { return }
+        replaceProject(locations: profiles, modifiedAt: now)
+        isDirty = true
+    }
+
+    mutating func convertDetectedCharacterToProfile(_ detection: DetectedCharacter, now: Date = Date()) {
+        let updated = CharacterManager.convertDetectedCharacter(
+            named: detection.name,
+            in: project,
+            now: now
+        )
+        guard updated != project else { return }
+        project = updated
+        isDirty = true
+    }
+
+    mutating func ignoreDetectedCharacter(_ detection: DetectedCharacter, now: Date = Date()) {
+        let updated = CharacterManager.ignoreDetectedCharacter(
+            named: detection.name,
+            in: project,
+            now: now
+        )
+        guard updated != project else { return }
+        project = updated
+        isDirty = true
+    }
+
+    mutating func convertDetectedLocationToProfile(_ detection: DetectedLocation, now: Date = Date()) {
+        let updated = LocationManager.convertDetectedLocation(
+            named: detection.name,
+            in: project,
+            now: now
+        )
+        guard updated != project else { return }
+        project = updated
+        isDirty = true
+    }
+
+    mutating func ignoreDetectedLocation(_ detection: DetectedLocation, now: Date = Date()) {
+        let updated = LocationManager.ignoreDetectedLocation(
+            named: detection.name,
+            in: project,
+            now: now
+        )
+        guard updated != project else { return }
+        project = updated
+        isDirty = true
+    }
+
+    mutating func updateSceneStatus(sceneHeading: String, status: SceneCardStatus, now: Date = Date()) {
+        let updated = SceneCardBuilder.updateStatus(status, forSceneHeading: sceneHeading, in: project, now: now)
+        guard updated != project else { return }
+        project = updated
+        isDirty = true
+    }
+
+    mutating func resolveNote(_ note: ProjectNote, now: Date = Date()) {
+        let updated = NotesIndex.resolve(noteID: note.id, in: project, now: now)
+        guard updated != project else { return }
+        project = updated
+        isDirty = true
+    }
+
     private mutating func reparseScript(modifiedAt: Date? = nil, parseDate: Date? = nil) {
         let parsed = ScreenplayParser.parse(scriptText)
         let updatedMetadata = metadata(modifiedAt: modifiedAt)
@@ -280,6 +468,9 @@ struct ProjectDocumentViewModel: Equatable {
             mode: project.mode,
             template: project.template,
             characters: project.characters,
+            ignoredDetectedCharacterKeys: project.ignoredDetectedCharacterKeys,
+            locations: project.locations,
+            ignoredDetectedLocationKeys: project.ignoredDetectedLocationKeys,
             notes: project.notes,
             inboxItems: project.inboxItems,
             sceneCards: project.sceneCards,
@@ -301,6 +492,10 @@ struct ProjectDocumentViewModel: Equatable {
             return NoteLink(targetKind: .project, targetID: project.metadata.id)
         case .scene(let scene):
             return NoteLink(targetKind: .scene, targetID: scene.heading)
+        case .character(let character):
+            return NoteLink(targetKind: .character, targetID: character.id)
+        case .location(let location):
+            return NoteLink(targetKind: .location, targetID: location.id)
         }
     }
 
@@ -319,6 +514,10 @@ struct ProjectDocumentViewModel: Equatable {
 
     private mutating func replaceProject(
         metadata: ProjectMetadata? = nil,
+        characters: [CharacterRecord]? = nil,
+        ignoredDetectedCharacterKeys: [String]? = nil,
+        locations: [LocationRecord]? = nil,
+        ignoredDetectedLocationKeys: [String]? = nil,
         notes: [ProjectNote]? = nil,
         story: StoryDevelopmentState? = nil,
         modifiedAt: Date? = nil
@@ -328,7 +527,10 @@ struct ProjectDocumentViewModel: Equatable {
             screenplay: project.screenplay,
             mode: project.mode,
             template: project.template,
-            characters: project.characters,
+            characters: characters ?? project.characters,
+            ignoredDetectedCharacterKeys: ignoredDetectedCharacterKeys ?? project.ignoredDetectedCharacterKeys,
+            locations: locations ?? project.locations,
+            ignoredDetectedLocationKeys: ignoredDetectedLocationKeys ?? project.ignoredDetectedLocationKeys,
             notes: notes ?? project.notes,
             inboxItems: project.inboxItems,
             sceneCards: project.sceneCards,

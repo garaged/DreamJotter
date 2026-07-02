@@ -1,24 +1,24 @@
 import DreamJotterCore
 import SwiftUI
 
-struct CharacterListView: View {
-    let characters: [CharacterRecord]
-    let unresolvedDetectedCharacters: [DetectedCharacter]
+struct LocationListView: View {
+    let locations: [LocationRecord]
+    let unresolvedDetectedLocations: [DetectedLocation]
     let createAction: (String, String) -> Void
-    let updateAction: (CharacterRecord, String, String) -> Void
-    let convertAction: (DetectedCharacter) -> Void
-    let ignoreAction: (DetectedCharacter) -> Void
-    @State private var newCharacterName = ""
-    @State private var newCharacterNote = ""
+    let updateAction: (LocationRecord, String, String) -> Void
+    let convertAction: (DetectedLocation) -> Void
+    let ignoreAction: (DetectedLocation) -> Void
+    @State private var newLocationName = ""
+    @State private var newLocationNote = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Characters")
+            Text("Locations")
                 .font(.headline)
 
             createProfileSection
-            activeProfilesSection
-            detectedCharactersSection
+            profilesSection
+            detectedSection
         }
     }
 
@@ -28,56 +28,56 @@ struct CharacterListView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            TextField("Character name", text: $newCharacterName)
+            TextField("Location name", text: $newLocationName)
                 .textFieldStyle(.roundedBorder)
-            TextField("Notes", text: $newCharacterNote, axis: .vertical)
+            TextField("Notes", text: $newLocationNote, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
 
-            Button("Add Character") {
-                createAction(newCharacterName, newCharacterNote)
-                newCharacterName = ""
-                newCharacterNote = ""
+            Button("Add Location") {
+                createAction(newLocationName, newLocationNote)
+                newLocationName = ""
+                newLocationNote = ""
             }
-            .disabled(newCharacterName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .disabled(newLocationName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
     }
 
     @ViewBuilder
-    private var activeProfilesSection: some View {
+    private var profilesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Profiles")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            let profiles = characters.filter { $0.source != .detected }
+            let profiles = locations.filter { $0.source != .detected }
             if profiles.isEmpty {
-                Text("No character profiles yet. Add one here or convert a detected character below.")
+                Text("No location profiles yet. Add one here or convert a detected location from a scene heading.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(profiles, id: \.id) { character in
-                    CharacterProfileRow(character: character, updateAction: updateAction)
+                ForEach(profiles, id: \.id) { location in
+                    LocationProfileRow(location: location, updateAction: updateAction)
                 }
             }
         }
     }
 
     @ViewBuilder
-    private var detectedCharactersSection: some View {
+    private var detectedSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Detected in Script")
+            Text("Detected in Scene Headings")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            if unresolvedDetectedCharacters.isEmpty {
-                Text("No unresolved detected characters. Uppercase character cues without profiles will appear here.")
+            if unresolvedDetectedLocations.isEmpty {
+                Text("No unresolved detected locations. Scene heading locations without profiles will appear here.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(unresolvedDetectedCharacters, id: \.id) { detection in
+                ForEach(unresolvedDetectedLocations, id: \.id) { detection in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(detection.name)
                                 .lineLimit(1)
-                            Text("\(detection.occurrenceCount) appearance\(detection.occurrenceCount == 1 ? "" : "s")")
+                            Text("\(detection.sceneCount) scene\(detection.sceneCount == 1 ? "" : "s")")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -98,27 +98,27 @@ struct CharacterListView: View {
     }
 }
 
-private struct CharacterProfileRow: View {
-    let character: CharacterRecord
-    let updateAction: (CharacterRecord, String, String) -> Void
+private struct LocationProfileRow: View {
+    let location: LocationRecord
+    let updateAction: (LocationRecord, String, String) -> Void
     @State private var name: String
     @State private var note: String
 
-    init(character: CharacterRecord, updateAction: @escaping (CharacterRecord, String, String) -> Void) {
-        self.character = character
+    init(location: LocationRecord, updateAction: @escaping (LocationRecord, String, String) -> Void) {
+        self.location = location
         self.updateAction = updateAction
-        _name = State(initialValue: character.displayName)
-        _note = State(initialValue: character.note)
+        _name = State(initialValue: location.displayName)
+        _note = State(initialValue: location.note)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            TextField("Character name", text: $name)
+            TextField("Location name", text: $name)
                 .textFieldStyle(.roundedBorder)
             TextField("Notes", text: $note, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
             Button("Save Profile") {
-                updateAction(character, name, note)
+                updateAction(location, name, note)
             }
             .disabled(!hasChanges || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
@@ -126,6 +126,6 @@ private struct CharacterProfileRow: View {
     }
 
     private var hasChanges: Bool {
-        name != character.displayName || note != character.note
+        name != location.displayName || note != location.note
     }
 }

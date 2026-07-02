@@ -52,10 +52,118 @@ public enum CharacterSource: String, Codable, Equatable, Sendable {
     case merged
 }
 
+public struct LocationRecord: Codable, Equatable, Sendable {
+    public let id: String
+    public let displayName: String
+    public let normalizedKey: String
+    public let note: String
+    public let source: LocationSource
+    public let createdAt: Date
+    public let updatedAt: Date
+
+    public init(
+        id: String,
+        displayName: String,
+        normalizedKey: String? = nil,
+        note: String = "",
+        source: LocationSource = .manual,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.normalizedKey = normalizedKey ?? TextNormalization.key(for: displayName)
+        self.note = note
+        self.source = source
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public enum LocationSource: String, Codable, Equatable, Sendable {
+    case detected
+    case manual
+    case merged
+}
+
+public enum DetectedCharacterResolutionStatus: String, Codable, Equatable, Sendable {
+    case unresolved
+    case converted
+    case ignored
+    case matchedProfile
+}
+
+public struct DetectedCharacter: Codable, Equatable, Sendable {
+    public let id: String
+    public let name: String
+    public let normalizedName: String
+    public let firstElementID: String?
+    public let occurrenceCount: Int
+    public let isGenericRole: Bool
+    public let resolutionStatus: DetectedCharacterResolutionStatus
+    public let matchedCharacterID: String?
+
+    public init(
+        id: String,
+        name: String,
+        normalizedName: String,
+        firstElementID: String?,
+        occurrenceCount: Int,
+        isGenericRole: Bool,
+        resolutionStatus: DetectedCharacterResolutionStatus,
+        matchedCharacterID: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.normalizedName = normalizedName
+        self.firstElementID = firstElementID
+        self.occurrenceCount = occurrenceCount
+        self.isGenericRole = isGenericRole
+        self.resolutionStatus = resolutionStatus
+        self.matchedCharacterID = matchedCharacterID
+    }
+}
+
+public enum DetectedLocationResolutionStatus: String, Codable, Equatable, Sendable {
+    case unresolved
+    case converted
+    case ignored
+    case matchedProfile
+}
+
+public struct DetectedLocation: Codable, Equatable, Sendable {
+    public let id: String
+    public let name: String
+    public let normalizedName: String
+    public let firstSceneID: String?
+    public let sceneCount: Int
+    public let resolutionStatus: DetectedLocationResolutionStatus
+    public let matchedLocationID: String?
+
+    public init(
+        id: String,
+        name: String,
+        normalizedName: String,
+        firstSceneID: String?,
+        sceneCount: Int,
+        resolutionStatus: DetectedLocationResolutionStatus,
+        matchedLocationID: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.normalizedName = normalizedName
+        self.firstSceneID = firstSceneID
+        self.sceneCount = sceneCount
+        self.resolutionStatus = resolutionStatus
+        self.matchedLocationID = matchedLocationID
+    }
+}
+
 public enum NoteTargetKind: String, Codable, Equatable, Sendable {
     case project
     case scene
     case character
+    case location
     case screenplayElement
 }
 
@@ -73,6 +181,8 @@ public struct ProjectNote: Codable, Equatable, Sendable {
     public let id: String
     public let title: String?
     public let body: String
+    public let status: ProjectNoteStatus
+    public let source: ProjectNoteSource
     public let links: [NoteLink]
     public let createdAt: Date
     public let updatedAt: Date
@@ -81,6 +191,8 @@ public struct ProjectNote: Codable, Equatable, Sendable {
         id: String,
         title: String? = nil,
         body: String,
+        status: ProjectNoteStatus = .open,
+        source: ProjectNoteSource = .manual,
         links: [NoteLink] = [],
         createdAt: Date,
         updatedAt: Date
@@ -88,10 +200,25 @@ public struct ProjectNote: Codable, Equatable, Sendable {
         self.id = id
         self.title = title
         self.body = body
+        self.status = status
+        self.source = source
         self.links = links
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
+}
+
+public enum ProjectNoteStatus: String, Codable, Equatable, Sendable {
+    case open
+    case resolved
+    case archived
+}
+
+public enum ProjectNoteSource: String, Codable, Equatable, Sendable {
+    case manual
+    case parsedScriptTodo
+    case imported
+    case routine
 }
 
 public enum InboxItemState: String, Codable, Equatable, Sendable {
@@ -129,24 +256,92 @@ public struct SceneCard: Codable, Equatable, Sendable {
     public let id: String
     public let sourceSceneHeading: String?
     public let title: String
+    public let location: String?
+    public let timeOfDay: String?
+    public let characters: [String]
     public let summary: String
     public let note: String
+    public let status: SceneCardStatus
+    public let plotlineTags: [String]
     public let order: Int
 
     public init(
         id: String,
         sourceSceneHeading: String?,
         title: String,
+        location: String? = nil,
+        timeOfDay: String? = nil,
+        characters: [String] = [],
         summary: String = "",
         note: String = "",
+        status: SceneCardStatus = .drafted,
+        plotlineTags: [String] = [],
         order: Int
     ) {
         self.id = id
         self.sourceSceneHeading = sourceSceneHeading
         self.title = title
+        self.location = location
+        self.timeOfDay = timeOfDay
+        self.characters = characters
         self.summary = summary
         self.note = note
+        self.status = status
+        self.plotlineTags = plotlineTags
         self.order = order
+    }
+}
+
+public enum SceneCardStatus: String, Codable, Equatable, Sendable, CaseIterable {
+    case idea
+    case outlined
+    case drafted
+    case needsRewrite
+    case reviewed
+    case locked
+    case ready
+}
+
+public struct ProjectWorkspaceSummary: Codable, Equatable, Sendable {
+    public let projectTitle: String
+    public let logline: String?
+    public let synopsis: String?
+    public let sceneCount: Int
+    public let characterProfileCount: Int
+    public let unresolvedDetectedCharacterCount: Int
+    public let locationProfileCount: Int
+    public let unresolvedDetectedLocationCount: Int
+    public let openNotesCount: Int
+    public let todoCount: Int
+    public let isDirty: Bool
+    public let lastSavedAt: Date?
+
+    public init(
+        projectTitle: String,
+        logline: String?,
+        synopsis: String?,
+        sceneCount: Int,
+        characterProfileCount: Int,
+        unresolvedDetectedCharacterCount: Int,
+        locationProfileCount: Int,
+        unresolvedDetectedLocationCount: Int,
+        openNotesCount: Int,
+        todoCount: Int,
+        isDirty: Bool,
+        lastSavedAt: Date?
+    ) {
+        self.projectTitle = projectTitle
+        self.logline = logline
+        self.synopsis = synopsis
+        self.sceneCount = sceneCount
+        self.characterProfileCount = characterProfileCount
+        self.unresolvedDetectedCharacterCount = unresolvedDetectedCharacterCount
+        self.locationProfileCount = locationProfileCount
+        self.unresolvedDetectedLocationCount = unresolvedDetectedLocationCount
+        self.openNotesCount = openNotesCount
+        self.todoCount = todoCount
+        self.isDirty = isDirty
+        self.lastSavedAt = lastSavedAt
     }
 }
 
@@ -172,6 +367,9 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
     public let mode: EditorMode
     public let template: ProjectTemplateMetadata?
     public let characters: [CharacterRecord]
+    public let ignoredDetectedCharacterKeys: [String]
+    public let locations: [LocationRecord]
+    public let ignoredDetectedLocationKeys: [String]
     public let notes: [ProjectNote]
     public let inboxItems: [InboxItem]
     public let sceneCards: [SceneCard]
@@ -185,6 +383,9 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
         mode = project.mode
         template = project.template
         characters = project.characters
+        ignoredDetectedCharacterKeys = project.ignoredDetectedCharacterKeys
+        locations = project.locations
+        ignoredDetectedLocationKeys = project.ignoredDetectedLocationKeys
         notes = project.notes
         inboxItems = project.inboxItems
         sceneCards = project.sceneCards
@@ -199,6 +400,9 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
         case mode
         case template
         case characters
+        case ignoredDetectedCharacterKeys
+        case locations
+        case ignoredDetectedLocationKeys
         case notes
         case inboxItems
         case sceneCards
@@ -214,6 +418,9 @@ public struct ProjectSnapshotContent: Codable, Equatable, Sendable {
         mode = try container.decodeIfPresent(EditorMode.self, forKey: .mode) ?? .simple
         template = try container.decodeIfPresent(ProjectTemplateMetadata.self, forKey: .template)
         characters = try container.decodeIfPresent([CharacterRecord].self, forKey: .characters) ?? []
+        ignoredDetectedCharacterKeys = try container.decodeIfPresent([String].self, forKey: .ignoredDetectedCharacterKeys) ?? []
+        locations = try container.decodeIfPresent([LocationRecord].self, forKey: .locations) ?? []
+        ignoredDetectedLocationKeys = try container.decodeIfPresent([String].self, forKey: .ignoredDetectedLocationKeys) ?? []
         notes = try container.decodeIfPresent([ProjectNote].self, forKey: .notes) ?? []
         inboxItems = try container.decodeIfPresent([InboxItem].self, forKey: .inboxItems) ?? []
         sceneCards = try container.decodeIfPresent([SceneCard].self, forKey: .sceneCards) ?? []
@@ -227,6 +434,7 @@ public enum SearchResultType: String, Codable, Equatable, Sendable {
     case screenplay
     case note
     case character
+    case location
     case inbox
     case sceneCard
 }
@@ -396,6 +604,18 @@ public enum TemplateFactory {
 }
 
 public enum CharacterManager {
+    public static let genericRoleKeys: Set<String> = [
+        "MAN",
+        "WOMAN",
+        "GUARD",
+        "COP",
+        "COP #2",
+        "VOICE",
+        "ANNOUNCER",
+        "CROWD",
+        "EVERYONE"
+    ]
+
     public static func records(for project: DreamJotterProject, now: Date) -> [CharacterRecord] {
         var records = project.characters
         var existingKeys = Set(records.map(\.normalizedKey))
@@ -415,6 +635,323 @@ public enum CharacterManager {
 
         return records
     }
+
+    public static func detectedCharacters(for project: DreamJotterProject) -> [DetectedCharacter] {
+        detectedCharacters(
+            in: project.screenplay,
+            profiles: project.characters,
+            ignoredKeys: project.ignoredDetectedCharacterKeys
+        )
+    }
+
+    public static func unresolvedDetectedCharacters(for project: DreamJotterProject) -> [DetectedCharacter] {
+        detectedCharacters(for: project).filter { $0.resolutionStatus == .unresolved }
+    }
+
+    public static func detectedCharacters(
+        in document: ScreenplayDocument,
+        profiles: [CharacterRecord],
+        ignoredKeys: [String] = []
+    ) -> [DetectedCharacter] {
+        var orderedKeys: [String] = []
+        var buckets: [String: (name: String, firstElementID: String, count: Int)] = [:]
+
+        for (index, element) in document.elements.enumerated() where element.kind == .characterCue {
+            let name = element.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else {
+                continue
+            }
+
+            let key = TextNormalization.key(for: name)
+            let elementID = "element-\(index + 1)"
+            if let bucket = buckets[key] {
+                buckets[key] = (bucket.name, bucket.firstElementID, bucket.count + 1)
+            } else {
+                orderedKeys.append(key)
+                buckets[key] = (name, elementID, 1)
+            }
+        }
+
+        let ignoredKeySet = Set(ignoredKeys.map(TextNormalization.key(for:)))
+        var profileByKey: [String: CharacterRecord] = [:]
+        for profile in profiles {
+            profileByKey[profile.normalizedKey] = profile
+        }
+
+        return orderedKeys.compactMap { key in
+            guard let bucket = buckets[key] else {
+                return nil
+            }
+
+            let matchedProfile = profileByKey[key]
+            let status: DetectedCharacterResolutionStatus
+            if ignoredKeySet.contains(key) {
+                status = .ignored
+            } else if matchedProfile != nil {
+                status = .matchedProfile
+            } else {
+                status = .unresolved
+            }
+
+            return DetectedCharacter(
+                id: "detected-character-\(key)",
+                name: bucket.name,
+                normalizedName: key,
+                firstElementID: bucket.firstElementID,
+                occurrenceCount: bucket.count,
+                isGenericRole: genericRoleKeys.contains(key),
+                resolutionStatus: status,
+                matchedCharacterID: matchedProfile?.id
+            )
+        }
+    }
+
+    public static func convertDetectedCharacter(
+        named name: String,
+        in project: DreamJotterProject,
+        now: Date
+    ) -> DreamJotterProject {
+        let displayName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let key = TextNormalization.key(for: displayName)
+        guard !displayName.isEmpty else {
+            return project
+        }
+
+        let filteredIgnoredKeys = project.ignoredDetectedCharacterKeys.filter { TextNormalization.key(for: $0) != key }
+        if project.characters.contains(where: { $0.normalizedKey == key }) {
+            return copy(project: project, ignoredDetectedCharacterKeys: filteredIgnoredKeys, modifiedAt: now)
+        }
+
+        let profile = CharacterRecord(
+            id: "character-\(key.lowercased())",
+            displayName: displayName,
+            normalizedKey: key,
+            source: .manual,
+            createdAt: now,
+            updatedAt: now
+        )
+
+        return copy(
+            project: project,
+            characters: project.characters + [profile],
+            ignoredDetectedCharacterKeys: filteredIgnoredKeys,
+            modifiedAt: now
+        )
+    }
+
+    public static func ignoreDetectedCharacter(
+        named name: String,
+        in project: DreamJotterProject,
+        now: Date
+    ) -> DreamJotterProject {
+        let key = TextNormalization.key(for: name)
+        guard !key.isEmpty else {
+            return project
+        }
+
+        var keys = project.ignoredDetectedCharacterKeys
+        if !keys.map(TextNormalization.key(for:)).contains(key) {
+            keys.append(key)
+        }
+
+        return copy(project: project, ignoredDetectedCharacterKeys: keys, modifiedAt: now)
+    }
+
+    private static func copy(
+        project: DreamJotterProject,
+        characters: [CharacterRecord]? = nil,
+        ignoredDetectedCharacterKeys: [String]? = nil,
+        modifiedAt: Date
+    ) -> DreamJotterProject {
+        let metadata = ProjectMetadata(
+            id: project.metadata.id,
+            title: project.metadata.title,
+            createdAt: project.metadata.createdAt,
+            modifiedAt: modifiedAt,
+            schemaVersion: project.metadata.schemaVersion,
+            primaryScreenplayID: project.metadata.primaryScreenplayID,
+            packageExtension: project.metadata.packageExtension
+        )
+
+        return DreamJotterProject(
+            metadata: metadata,
+            screenplay: project.screenplay,
+            mode: project.mode,
+            template: project.template,
+            characters: characters ?? project.characters,
+            ignoredDetectedCharacterKeys: ignoredDetectedCharacterKeys ?? project.ignoredDetectedCharacterKeys,
+            notes: project.notes,
+            inboxItems: project.inboxItems,
+            sceneCards: project.sceneCards,
+            snapshots: project.snapshots,
+            exportPresets: project.exportPresets,
+            story: project.story,
+            pro: project.pro
+        )
+    }
+}
+
+public enum LocationManager {
+    public static func records(for project: DreamJotterProject, now: Date) -> [LocationRecord] {
+        var records = project.locations
+        var existingKeys = Set(records.map(\.normalizedKey))
+        let detected = ScreenplayDerivedData.locationSuggestions(from: project.screenplay)
+
+        for suggestion in detected where !existingKeys.contains(suggestion.normalizedKey) {
+            records.append(LocationRecord(
+                id: "detected-location-\(suggestion.normalizedKey)",
+                displayName: suggestion.displayText,
+                normalizedKey: suggestion.normalizedKey,
+                source: .detected,
+                createdAt: now,
+                updatedAt: now
+            ))
+            existingKeys.insert(suggestion.normalizedKey)
+        }
+
+        return records
+    }
+
+    public static func detectedLocations(for project: DreamJotterProject) -> [DetectedLocation] {
+        detectedLocations(
+            in: project.screenplay,
+            profiles: project.locations,
+            ignoredKeys: project.ignoredDetectedLocationKeys
+        )
+    }
+
+    public static func unresolvedDetectedLocations(for project: DreamJotterProject) -> [DetectedLocation] {
+        detectedLocations(for: project).filter { $0.resolutionStatus == .unresolved }
+    }
+
+    public static func detectedLocations(
+        in document: ScreenplayDocument,
+        profiles: [LocationRecord],
+        ignoredKeys: [String] = []
+    ) -> [DetectedLocation] {
+        var orderedKeys: [String] = []
+        var buckets: [String: (name: String, firstSceneID: String, count: Int)] = [:]
+
+        for (index, scene) in document.scenes.enumerated() {
+            let name = scene.location.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else {
+                continue
+            }
+
+            let key = TextNormalization.key(for: name)
+            let sceneID = "scene-\(index + 1)"
+            if let bucket = buckets[key] {
+                buckets[key] = (bucket.name, bucket.firstSceneID, bucket.count + 1)
+            } else {
+                orderedKeys.append(key)
+                buckets[key] = (name, sceneID, 1)
+            }
+        }
+
+        let ignoredKeySet = Set(ignoredKeys.map(TextNormalization.key(for:)))
+        var profileByKey: [String: LocationRecord] = [:]
+        for profile in profiles {
+            profileByKey[profile.normalizedKey] = profile
+        }
+
+        return orderedKeys.compactMap { key in
+            guard let bucket = buckets[key] else { return nil }
+
+            let matchedProfile = profileByKey[key]
+            let status: DetectedLocationResolutionStatus
+            if ignoredKeySet.contains(key) {
+                status = .ignored
+            } else if matchedProfile != nil {
+                status = .matchedProfile
+            } else {
+                status = .unresolved
+            }
+
+            return DetectedLocation(
+                id: "detected-location-\(key)",
+                name: bucket.name,
+                normalizedName: key,
+                firstSceneID: bucket.firstSceneID,
+                sceneCount: bucket.count,
+                resolutionStatus: status,
+                matchedLocationID: matchedProfile?.id
+            )
+        }
+    }
+
+    public static func convertDetectedLocation(named name: String, in project: DreamJotterProject, now: Date) -> DreamJotterProject {
+        let displayName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let key = TextNormalization.key(for: displayName)
+        guard !displayName.isEmpty else { return project }
+
+        let filteredIgnoredKeys = project.ignoredDetectedLocationKeys.filter { TextNormalization.key(for: $0) != key }
+        if project.locations.contains(where: { $0.normalizedKey == key }) {
+            return copy(project: project, ignoredDetectedLocationKeys: filteredIgnoredKeys, modifiedAt: now)
+        }
+
+        let profile = LocationRecord(
+            id: "location-\(key.lowercased())",
+            displayName: displayName,
+            normalizedKey: key,
+            source: .manual,
+            createdAt: now,
+            updatedAt: now
+        )
+
+        return copy(
+            project: project,
+            locations: project.locations + [profile],
+            ignoredDetectedLocationKeys: filteredIgnoredKeys,
+            modifiedAt: now
+        )
+    }
+
+    public static func ignoreDetectedLocation(named name: String, in project: DreamJotterProject, now: Date) -> DreamJotterProject {
+        let key = TextNormalization.key(for: name)
+        guard !key.isEmpty else { return project }
+
+        var keys = project.ignoredDetectedLocationKeys
+        if !keys.map(TextNormalization.key(for:)).contains(key) {
+            keys.append(key)
+        }
+
+        return copy(project: project, ignoredDetectedLocationKeys: keys, modifiedAt: now)
+    }
+
+    private static func copy(
+        project: DreamJotterProject,
+        locations: [LocationRecord]? = nil,
+        ignoredDetectedLocationKeys: [String]? = nil,
+        modifiedAt: Date
+    ) -> DreamJotterProject {
+        let metadata = ProjectMetadata(
+            id: project.metadata.id,
+            title: project.metadata.title,
+            createdAt: project.metadata.createdAt,
+            modifiedAt: modifiedAt,
+            schemaVersion: project.metadata.schemaVersion,
+            primaryScreenplayID: project.metadata.primaryScreenplayID,
+            packageExtension: project.metadata.packageExtension
+        )
+
+        return DreamJotterProject(
+            metadata: metadata,
+            screenplay: project.screenplay,
+            mode: project.mode,
+            template: project.template,
+            characters: project.characters,
+            ignoredDetectedCharacterKeys: project.ignoredDetectedCharacterKeys,
+            locations: locations ?? project.locations,
+            ignoredDetectedLocationKeys: ignoredDetectedLocationKeys ?? project.ignoredDetectedLocationKeys,
+            notes: project.notes,
+            inboxItems: project.inboxItems,
+            sceneCards: project.sceneCards,
+            snapshots: project.snapshots,
+            exportPresets: project.exportPresets,
+            story: project.story,
+            pro: project.pro
+        )
+    }
 }
 
 public enum SceneCardBuilder {
@@ -429,8 +966,13 @@ public enum SceneCardBuilder {
                     id: existing.id,
                     sourceSceneHeading: scene.heading,
                     title: scene.heading,
+                    location: scene.location,
+                    timeOfDay: scene.timeOfDay,
+                    characters: characters(in: scene, project: project),
                     summary: existing.summary,
                     note: existing.note,
+                    status: existing.status,
+                    plotlineTags: existing.plotlineTags,
                     order: index
                 )
             }
@@ -438,13 +980,151 @@ public enum SceneCardBuilder {
                 id: "scene-card-\(index)",
                 sourceSceneHeading: scene.heading,
                 title: scene.heading,
+                location: scene.location,
+                timeOfDay: scene.timeOfDay,
+                characters: characters(in: scene, project: project),
                 order: index
             )
         }
     }
+
+    public static func updateStatus(_ status: SceneCardStatus, forSceneHeading heading: String, in project: DreamJotterProject, now: Date) -> DreamJotterProject {
+        var cards = cards(for: project)
+        if let index = cards.firstIndex(where: { $0.sourceSceneHeading == heading }) {
+            let existing = cards[index]
+            cards[index] = SceneCard(
+                id: existing.id,
+                sourceSceneHeading: existing.sourceSceneHeading,
+                title: existing.title,
+                location: existing.location,
+                timeOfDay: existing.timeOfDay,
+                characters: existing.characters,
+                summary: existing.summary,
+                note: existing.note,
+                status: status,
+                plotlineTags: existing.plotlineTags,
+                order: existing.order
+            )
+        }
+
+        return DreamJotterProject(
+            metadata: ProjectMetadata(
+                id: project.metadata.id,
+                title: project.metadata.title,
+                createdAt: project.metadata.createdAt,
+                modifiedAt: now,
+                schemaVersion: project.metadata.schemaVersion,
+                primaryScreenplayID: project.metadata.primaryScreenplayID,
+                packageExtension: project.metadata.packageExtension
+            ),
+            screenplay: project.screenplay,
+            mode: project.mode,
+            template: project.template,
+            characters: project.characters,
+            ignoredDetectedCharacterKeys: project.ignoredDetectedCharacterKeys,
+            locations: project.locations,
+            ignoredDetectedLocationKeys: project.ignoredDetectedLocationKeys,
+            notes: project.notes,
+            inboxItems: project.inboxItems,
+            sceneCards: cards,
+            snapshots: project.snapshots,
+            exportPresets: project.exportPresets,
+            story: project.story,
+            pro: project.pro
+        )
+    }
+
+    private static func characters(in scene: Scene, project: DreamJotterProject) -> [String] {
+        guard let sceneIndex = project.screenplay.scenes.firstIndex(of: scene) else { return [] }
+        let nextSceneHeading = project.screenplay.scenes.indices.contains(sceneIndex + 1)
+            ? project.screenplay.scenes[sceneIndex + 1].heading
+            : nil
+
+        var isInScene = false
+        var characters: [String] = []
+        for element in project.screenplay.elements {
+            if element.kind == .sceneHeading {
+                if element.text == scene.heading {
+                    isInScene = true
+                    continue
+                }
+                if isInScene && element.text == nextSceneHeading {
+                    break
+                }
+            }
+            if isInScene, element.kind == .characterCue, !characters.contains(element.text) {
+                characters.append(element.text)
+            }
+        }
+        return characters
+    }
 }
 
 public enum NotesIndex {
+    public static func openNotes(in project: DreamJotterProject) -> [ProjectNote] {
+        project.notes.filter { $0.status == .open }
+    }
+
+    public static func detectedScriptTodos(in project: DreamJotterProject, now: Date) -> [ProjectNote] {
+        project.screenplay.elements.enumerated().compactMap { index, element in
+            guard element.kind == .noteReference,
+                  let todo = todoText(from: element.text) else {
+                return nil
+            }
+            return ProjectNote(
+                id: "script-todo-\(index + 1)",
+                title: "Script TODO",
+                body: todo,
+                status: .open,
+                source: .parsedScriptTodo,
+                links: [NoteLink(targetKind: .screenplayElement, targetID: "element-\(index + 1)")],
+                createdAt: now,
+                updatedAt: now
+            )
+        }
+    }
+
+    public static func resolve(noteID: String, in project: DreamJotterProject, now: Date) -> DreamJotterProject {
+        let notes = project.notes.map { note in
+            guard note.id == noteID else { return note }
+            return ProjectNote(
+                id: note.id,
+                title: note.title,
+                body: note.body,
+                status: .resolved,
+                source: note.source,
+                links: note.links,
+                createdAt: note.createdAt,
+                updatedAt: now
+            )
+        }
+        return DreamJotterProject(
+            metadata: ProjectMetadata(
+                id: project.metadata.id,
+                title: project.metadata.title,
+                createdAt: project.metadata.createdAt,
+                modifiedAt: now,
+                schemaVersion: project.metadata.schemaVersion,
+                primaryScreenplayID: project.metadata.primaryScreenplayID,
+                packageExtension: project.metadata.packageExtension
+            ),
+            screenplay: project.screenplay,
+            mode: project.mode,
+            template: project.template,
+            characters: project.characters,
+            ignoredDetectedCharacterKeys: project.ignoredDetectedCharacterKeys,
+            locations: project.locations,
+            ignoredDetectedLocationKeys: project.ignoredDetectedLocationKeys,
+            notes: notes,
+            inboxItems: project.inboxItems,
+            sceneCards: project.sceneCards,
+            snapshots: project.snapshots,
+            exportPresets: project.exportPresets,
+            story: project.story,
+            pro: project.pro
+        )
+    }
+
     public static func notes(linkedTo link: NoteLink, in project: DreamJotterProject) -> [ProjectNote] {
         project.notes.filter { note in note.links.contains(link) }
     }
@@ -459,11 +1139,46 @@ public enum NotesIndex {
                     return !sceneIDs.contains(link.targetID)
                 case .character:
                     return !characterIDs.contains(link.targetID)
+                case .location:
+                    return !project.locations.map(\.id).contains(link.targetID)
                 case .project, .screenplayElement:
                     return false
                 }
             }
         }
+    }
+
+    private static func todoText(from text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let uppercased = trimmed.uppercased()
+        guard uppercased.hasPrefix("TODO:") else { return nil }
+        let value = String(trimmed.dropFirst(5)).trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+}
+
+public enum ProjectWorkspaceSummaryBuilder {
+    public static func summary(for project: DreamJotterProject, isDirty: Bool = false, lastSavedAt: Date? = nil) -> ProjectWorkspaceSummary {
+        ProjectWorkspaceSummary(
+            projectTitle: project.metadata.title,
+            logline: nilIfBlank(project.story.logline?.text),
+            synopsis: nilIfBlank(project.story.synopsis?.text),
+            sceneCount: project.screenplay.scenes.count,
+            characterProfileCount: project.characters.count,
+            unresolvedDetectedCharacterCount: CharacterManager.unresolvedDetectedCharacters(for: project).count,
+            locationProfileCount: project.locations.count,
+            unresolvedDetectedLocationCount: LocationManager.unresolvedDetectedLocations(for: project).count,
+            openNotesCount: NotesIndex.openNotes(in: project).count,
+            todoCount: NotesIndex.detectedScriptTodos(in: project, now: project.metadata.modifiedAt).count,
+            isDirty: isDirty,
+            lastSavedAt: lastSavedAt
+        )
+    }
+
+    private static func nilIfBlank(_ text: String?) -> String? {
+        guard let text else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 
@@ -498,6 +1213,11 @@ public enum ProjectSearch {
         for character in CharacterManager.records(for: project, now: project.metadata.modifiedAt)
             where matches(character.displayName, normalizedQuery) || matches(character.note, normalizedQuery) {
             results.append(SearchResult(type: .character, sourceID: character.id, preview: character.displayName, navigationTarget: "character:\(character.id)"))
+        }
+
+        for location in LocationManager.records(for: project, now: project.metadata.modifiedAt)
+            where matches(location.displayName, normalizedQuery) || matches(location.note, normalizedQuery) {
+            results.append(SearchResult(type: .location, sourceID: location.id, preview: location.displayName, navigationTarget: "location:\(location.id)"))
         }
 
         for item in project.inboxItems where matches(item.body, normalizedQuery) {
@@ -535,6 +1255,9 @@ public enum SnapshotManager {
             mode: snapshot.project.mode,
             template: snapshot.project.template,
             characters: snapshot.project.characters,
+            ignoredDetectedCharacterKeys: snapshot.project.ignoredDetectedCharacterKeys,
+            locations: snapshot.project.locations,
+            ignoredDetectedLocationKeys: snapshot.project.ignoredDetectedLocationKeys,
             notes: snapshot.project.notes,
             inboxItems: snapshot.project.inboxItems,
             sceneCards: snapshot.project.sceneCards,
@@ -640,8 +1363,8 @@ public enum DashboardBuilder {
     }
 }
 
-enum TextNormalization {
-    static func key(for value: String) -> String {
+public enum TextNormalization {
+    public static func key(for value: String) -> String {
         value.trimmingCharacters(in: .whitespacesAndNewlines)
             .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))
             .uppercased()

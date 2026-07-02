@@ -71,6 +71,19 @@ Status: implemented.
 - Maintain passive empty editor guidance that disappears or stops obstructing once typing starts.
 - Preserve Milestone 6 dirty state, save/reopen, recent projects, and Fountain export in every editor path.
 
+## Milestone 8 Character, Location, Notes, and Scene Workflow
+
+Status: implemented with deferred polish.
+
+- Maintain executable specs for character profile create/edit/save/reopen, detected character convert/ignore, generic-role suppression, duplicate collapse, malformed text safety, Unicode preservation, dirty state, and ignored-key package persistence.
+- Maintain executable specs for location profile create/edit/save/reopen, detected location extraction from scene headings, time-of-day exclusion, convert/ignore, duplicate collapse, Unicode preservation, and ignored-key package persistence.
+- Maintain scene card workflow that separates derived screenplay facts from user-authored status, summaries, tags, and links.
+- Maintain notes workflow for project, scene, character, and location notes with open/resolved state and parsed script TODO notes that do not become canonical manual notes.
+- Maintain dashboard workspace summary counts for scenes, profiles, unresolved detections, open notes, TODOs, dirty state, and saved information.
+- Maintain search coverage for character profiles, location profiles, notes, and scene card metadata using rebuildable indexes.
+- Preserve Milestone 6 document lifecycle and Milestone 7 editor behavior across all M8 metadata changes.
+- Defer character/location archive and delete UI, richer profile fields, bulk merge/rename, and full note filtering/search polish.
+
 ## Apple UI
 
 - Maintain the SwiftPM-generated `DreamJotterMac` macOS app scheme.

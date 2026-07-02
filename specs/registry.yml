@@ -1199,6 +1199,372 @@
       "notes": "TextKit and fallback document workflow remain covered while M7 keyboard, suggestion, navigation, styling, and guidance behavior preserve canonical save/export behavior."
     },
     {
+      "id": "M8-CHARACTER-LOCATION-NOTES-SCENE-WORKFLOW",
+      "title": "Milestone 8 Character, Location, Notes, and Scene Workflow v1",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/milestones/milestone-8-character-location-notes-scene-workflow.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/character-profile.md",
+        "docs/data-contracts/detected-character.md",
+        "docs/data-contracts/location-profile.md",
+        "docs/data-contracts/detected-location.md",
+        "docs/data-contracts/scene-card.md",
+        "docs/data-contracts/project-note.md",
+        "docs/data-contracts/project-workspace-summary.md"
+      ],
+      "planned_modules": [
+        "ProjectWorkspaceWorkflow",
+        "CharacterWorkflow",
+        "LocationWorkflow",
+        "SceneCardWorkflow",
+        "NotesWorkflow",
+        "ProjectWorkspaceSummary"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "M8 workspace workflow is implemented with deferred polish: character/location profile create and edit, detected object convert/ignore, scene-card status, notes/TODOs, dashboard summary, search, and package persistence are covered by executable specs. Archive/delete UI, richer profile fields, and bulk merge/rename remain deferred."
+    },
+    {
+      "id": "CHARACTER-PROFILE-WORKFLOW",
+      "title": "Character Profile Workflow",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/characters/character-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/character-profile.md"
+      ],
+      "planned_modules": [
+        "CharacterManager",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Basic character profile create/edit/save/reopen and profile-backed autocomplete are implemented through project records and document view-model actions. Archive/delete UI and richer profile fields remain deferred polish."
+    },
+    {
+      "id": "DETECTED-CHARACTER-RESOLUTION",
+      "title": "Detected Character Resolution",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/characters/detected-character-resolution.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/detected-character.md",
+        "docs/data-contracts/character-profile.md"
+      ],
+      "planned_modules": [
+        "CharacterManager",
+        "ProjectDocumentViewModel",
+        "CharacterListView",
+        "ScreenplayParser",
+        "DreamJotterPackageStore"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Implemented through portable core and app UI support: unresolved cue detection, existing-profile matching, convert-to-profile, ignore, Unicode duplicate collapse, malformed safety, dirty state, and package persistence."
+    },
+    {
+      "id": "LOCATION-PROFILE-WORKFLOW",
+      "title": "Location Profile Workflow",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/locations/location-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/location-profile.md"
+      ],
+      "planned_modules": [
+        "LocationManager",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Basic location profile create/edit/save/reopen and profile-backed scene-heading suggestions are implemented through project records and document view-model actions. Archive/delete UI and richer profile fields remain deferred polish."
+    },
+    {
+      "id": "DETECTED-LOCATION-RESOLUTION",
+      "title": "Detected Location Resolution",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/locations/detected-location-resolution.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/detected-location.md",
+        "docs/data-contracts/location-profile.md"
+      ],
+      "planned_modules": [
+        "LocationManager",
+        "ScreenplayParser",
+        "ProjectDocumentViewModel",
+        "LocationListView",
+        "DreamJotterPackageStore"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Implemented through portable core and app UI support: scene-heading location extraction, time-of-day exclusion, existing-profile matching, convert-to-profile, ignore, Unicode duplicate collapse, dirty state, and package persistence."
+    },
+    {
+      "id": "SCENE-CARD-WORKFLOW",
+      "title": "Scene Card Workflow",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/scenes/scene-card-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/scene-card.md",
+        "docs/data-contracts/project-note.md"
+      ],
+      "planned_modules": [
+        "SceneCardWorkflow",
+        "SceneCardBuilder",
+        "EditorNavigationState"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Implemented: scene cards derive heading/location/time/characters in screenplay order, preserve user-authored status, and navigate through existing editor scene-navigation state."
+    },
+    {
+      "id": "NOTES-WORKFLOW",
+      "title": "Notes Workflow",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/notes/notes-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/project-note.md"
+      ],
+      "planned_modules": [
+        "NotesWorkflow",
+        "NotesIndex",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Implemented: notes link to project, scene, character, and location targets; open/resolved status is supported; manual notes save/reopen through package storage."
+    },
+    {
+      "id": "SCRIPT-TODO-DETECTION",
+      "title": "Script TODO Detection",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/notes/notes-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/project-note.md"
+      ],
+      "planned_modules": [
+        "NotesIndex",
+        "ScreenplayParser"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Implemented as derived `ProjectNote` values from screenplay note syntax such as [[TODO: improve this dialogue]], without converting parsed TODOs into canonical manual notes."
+    },
+    {
+      "id": "DASHBOARD-WORKSPACE-SUMMARY",
+      "title": "Dashboard Workspace Summary",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/dashboard/project-dashboard-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/project-workspace-summary.md",
+        "docs/data-contracts/detected-character.md",
+        "docs/data-contracts/detected-location.md"
+      ],
+      "planned_modules": [
+        "ProjectWorkspaceSummaryBuilder",
+        "DashboardViewModel",
+        "ProjectDocumentViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Implemented through `ProjectWorkspaceSummaryBuilder` and macOS dashboard state for scenes, profiles, unresolved detections, open notes, TODOs, dirty state, and saved status."
+    },
+    {
+      "id": "PROJECT-OBJECT-SEARCH-INTEGRATION",
+      "title": "Project Object Search Integration",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/dashboard/project-dashboard-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/character-profile.md",
+        "docs/data-contracts/location-profile.md",
+        "docs/data-contracts/project-note.md",
+        "docs/data-contracts/scene-card.md"
+      ],
+      "planned_modules": [
+        "ProjectSearch",
+        "CharacterWorkflow",
+        "LocationWorkflow",
+        "NotesWorkflow",
+        "SceneCardWorkflow"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Implemented through rebuildable project search indexes for character profiles, location profiles, notes, and scene card metadata."
+    },
+    {
+      "id": "M8-DOCUMENT-WORKFLOW-PRESERVATION",
+      "title": "Milestone 8 Document Workflow Preservation",
+      "milestone": "M8",
+      "status": "implemented",
+      "spec": "docs/specs/dashboard/project-dashboard-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-8-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": [
+        "docs/data-contracts/app-document-state.md",
+        "docs/data-contracts/character-profile.md",
+        "docs/data-contracts/location-profile.md",
+        "docs/data-contracts/project-note.md",
+        "docs/data-contracts/scene-card.md"
+      ],
+      "planned_modules": [
+        "ProjectDocumentViewModel",
+        "DreamJotterPackageStore",
+        "FountainIO",
+        "MacAppViewModel"
+      ],
+      "guardrails": [
+        "portable-core-preserved",
+        "semantic-model-canonical",
+        "dreamjotter-package-canonical",
+        "no-swiftdata-canonical-storage",
+        "thin-swiftui-views",
+        "no-external-services",
+        "no-plugin-runtime",
+        "no-ios-in-this-milestone",
+        "preserve-document-lifecycle",
+        "preserve-editor-usability",
+        "parsed-data-vs-user-authored-metadata-separated"
+      ],
+      "notes": "Implemented: M8 metadata dirties, saves, reopens, preserves document/editor workflows, and remains excluded from Fountain export."
+    },
+    {
       "id": "ROUTINE-SYSTEM-V1",
       "title": "Routine System v1 Spec",
       "milestone": "M4",

@@ -39,7 +39,17 @@ struct ProjectDashboardView: View {
                 GridRow {
                     metric("Scenes", document.dashboard.sceneCount)
                     metric("Characters", document.dashboard.characterCount)
+                    metric("Unresolved Characters", document.dashboard.unresolvedCharacterCount)
+                }
+                GridRow {
+                    metric("Locations", document.dashboard.locationCount)
+                    metric("Unresolved Locations", document.dashboard.unresolvedLocationCount)
                     metric("Notes", document.dashboard.noteCount)
+                }
+                GridRow {
+                    metric("TODOs", document.dashboard.todoCount)
+                    metric("Dirty", document.workspaceSummary.isDirty ? 1 : 0)
+                    metric("Saved", document.workspaceSummary.lastSavedAt == nil ? 0 : 1)
                 }
             }
         }

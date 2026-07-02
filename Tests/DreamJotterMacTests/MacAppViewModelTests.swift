@@ -38,6 +38,70 @@ struct MacAppViewModelTests {
         #expect(document.isDirty)
     }
 
+    @Test("Converting detected character through document creates profile and marks dirty")
+    func convertingDetectedCharacterThroughDocumentCreatesProfileAndMarksDirty() throws {
+        var document = ProjectDocumentViewModel(project: project(), isDirty: false)
+        document.updateScriptText("""
+        INT. ROOM - DAY
+
+        SOFIA
+        We stay.
+        """)
+        document.clearDirtyForTesting()
+        let detection = try #require(document.unresolvedDetectedCharacters.first)
+
+        document.convertDetectedCharacterToProfile(detection, now: now)
+
+        #expect(document.project.characters.map(\.displayName) == ["SOFIA"])
+        #expect(document.project.characters.first?.source == .manual)
+        #expect(document.unresolvedDetectedCharacters.isEmpty)
+        #expect(document.isDirty)
+    }
+
+    @Test("Manual character and location profiles mark dirty and survive save reopen")
+    func manualProfilesMarkDirtyAndSurviveSaveReopen() throws {
+        var document = ProjectDocumentViewModel(project: project(), isDirty: false)
+        let packageURL = temporaryPackageURL()
+        defer { try? FileManager.default.removeItem(at: packageURL.deletingLastPathComponent()) }
+
+        document.createCharacterProfile(name: "ELENA", note: "Lead", now: now)
+        document.createLocationProfile(name: "COFFEE SHOP", note: "Opening location", now: now.addingTimeInterval(1))
+        let character = try #require(document.project.characters.first)
+        let location = try #require(document.project.locations.first)
+
+        document.updateCharacterProfile(character, name: "ELENA CRUZ", note: "Lead detective", now: now.addingTimeInterval(2))
+        document.updateLocationProfile(location, name: "CAFÉ CENTRAL", note: "Opening location", now: now.addingTimeInterval(3))
+
+        #expect(document.isDirty)
+        try document.save(to: packageURL, now: now.addingTimeInterval(4))
+        let loaded = try #require(DreamJotterPackageStore.load(from: packageURL).project)
+
+        #expect(loaded.characters.map(\.displayName) == ["ELENA CRUZ"])
+        #expect(loaded.characters.first?.note == "Lead detective")
+        #expect(loaded.locations.map(\.displayName) == ["CAFÉ CENTRAL"])
+        #expect(loaded.locations.first?.note == "Opening location")
+    }
+
+    @Test("Ignoring detected character through document marks dirty and suppresses unresolved")
+    func ignoringDetectedCharacterThroughDocumentMarksDirtyAndSuppressesUnresolved() throws {
+        var document = ProjectDocumentViewModel(project: project(), isDirty: false)
+        document.updateScriptText("""
+        EXT. STREET - NIGHT
+
+        MAN
+        Wait here.
+        """)
+        document.clearDirtyForTesting()
+        let detection = try #require(document.unresolvedDetectedCharacters.first)
+
+        document.ignoreDetectedCharacter(detection, now: now)
+
+        #expect(document.project.ignoredDetectedCharacterKeys == ["MAN"])
+        #expect(document.unresolvedDetectedCharacters.isEmpty)
+        #expect(document.detectedCharacters.first?.resolutionStatus == .ignored)
+        #expect(document.isDirty)
+    }
+
     @Test("Editor adapter text updates use the shared semantic view model path")
     func editorAdapterTextUpdatesUseSharedViewModelPath() {
         var document = ProjectDocumentViewModel(project: project())
@@ -519,6 +583,30 @@ struct MacAppViewModelTests {
         #expect(reopened.packageURL == packageURL)
     }
 
+    @Test("Converted character profile saves and reopens")
+    func convertedCharacterProfileSavesAndReopens() throws {
+        var document = ProjectDocumentViewModel(project: project())
+        document.updateScriptText("""
+        INT. ROOM - DAY
+
+        SOFIA
+        We stay.
+        """)
+        let detection = try #require(document.unresolvedDetectedCharacters.first)
+        document.convertDetectedCharacterToProfile(detection, now: now)
+        let root = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("DreamJotterConvertedCharacter-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let packageURL = root.appendingPathComponent("First Draft.dreamjotter", isDirectory: true)
+
+        try document.save(to: packageURL, now: now)
+        var app = MacAppViewModel()
+        try app.openPackage(at: packageURL)
+
+        let reopened = try #require(app.currentDocument)
+        #expect(reopened.project.characters.map(\.displayName) == ["SOFIA"])
+        #expect(reopened.unresolvedDetectedCharacters.isEmpty)
+    }
+
     @Test("Fountain export writes parser-backed text")
     func exportFountainWritesText() throws {
         var document = ProjectDocumentViewModel(project: project())
@@ -559,10 +647,27 @@ struct MacAppViewModelTests {
         URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(name)-\(UUID().uuidString)", isDirectory: true)
     }
 
+    private func temporaryPackageURL() -> URL {
+        temporaryDirectory(named: "DreamJotterManualProfiles")
+            .appendingPathComponent("Manual Profiles.dreamjotter", isDirectory: true)
+    }
+
     private func writeJSON<T: Encodable>(_ value: T, to url: URL) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         try encoder.encode(value).write(to: url, options: .atomic)
+    }
+}
+
+private extension ProjectDocumentViewModel {
+    mutating func clearDirtyForTesting() {
+        do {
+            let root = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("DreamJotterDirtyReset-\(UUID().uuidString)", isDirectory: true)
+            defer { try? FileManager.default.removeItem(at: root) }
+            try save(to: root.appendingPathComponent("Reset.dreamjotter", isDirectory: true))
+        } catch {
+            Issue.record("Unable to clear dirty state for test: \(error)")
+        }
     }
 }

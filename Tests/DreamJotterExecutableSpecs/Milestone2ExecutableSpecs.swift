@@ -136,6 +136,8 @@ struct Milestone2ExecutableSpecs {
             id: "scene-card-kitchen",
             sourceSceneHeading: "INT. KITCHEN - NIGHT",
             title: "INT. KITCHEN - NIGHT",
+            location: "KITCHEN",
+            timeOfDay: "NIGHT",
             summary: "The opening disturbance.",
             order: 0
         )
