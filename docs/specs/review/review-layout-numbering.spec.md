@@ -18,11 +18,7 @@ Expose M10 PDF layout numbering in the macOS Review tab as read-only review coor
 
 ## Numbering Level Controls
 
-The Review UI exposes only three user-facing numbering levels:
-
-- Page
-- Paragraph
-- Line
+The Review UI exposes only Page, Paragraph, and Line controls.
 
 Defaults:
 
@@ -30,33 +26,30 @@ Defaults:
 - Paragraph: enabled.
 - Line: disabled.
 
-Block and source-element numbering remain available in the internal layout plan for diagnostics and tests, but are not exposed as Review UI controls because they overlap with paragraph numbering for normal review workflows.
+Block and source-element numbering remain internal for diagnostics and tests.
 
 ## Display
 
-- Page appears once as a page header.
-- Paragraph appears in a compact gutter when line numbering is disabled.
-- When line numbering is disabled, planner-wrapped lines are rejoined into one logical paragraph and SwiftUI wraps to the available pane width.
-- When line numbering is enabled, Review Mode uses wider desktop-oriented planner wrapping rather than the narrower production-PDF body width.
-- Paragraph and line numbers share one compact gutter in line mode.
-- The paragraph marker appears only on the first wrapped line of its paragraph.
-- Continuation lines do not reserve a separate empty paragraph column.
+- Page does not appear as a standalone row.
+- Page does not reserve a separate column.
+- When Page and Paragraph are enabled, the gutter uses `page.paragraph`, such as `1.4`.
+- When only Paragraph is enabled, the gutter uses `P4`.
+- When only Page is enabled, the gutter uses the page number.
+- When Line is disabled, planner lines are rejoined into one paragraph and SwiftUI wraps to the available width.
+- When Line is enabled, page, paragraph, and line numbers share one compact gutter.
+- The page and paragraph address appears only on the first wrapped line.
+- Continuation lines show only their line number.
 - Title-page blocks are excluded.
-- Renderer role labels are not shown in the Review address.
 
-The Review pane must keep screenplay text left-aligned and readable. It must not reuse PDF renderer centering, right-alignment, or narrow fixed screenplay column widths.
-
-Review numbering is derived from `PDFLayoutPlanner` with the built-in Reader Copy preset and explicit Review layout settings. It is plan-local metadata, not persistent identity across edits.
+The Review pane keeps text left-aligned and does not reuse renderer-specific alignment or narrow PDF columns.
 
 ## Acceptance Criteria
 
 - The Review tab exposes Page, Paragraph, and Line controls only.
 - Page and Paragraph are enabled by default.
 - Line is disabled by default.
-- Block and Source remain internal and are not shown as controls.
-- Page metadata is not repeated for every paragraph.
-- Paragraph text uses the available pane width when line numbering is disabled.
-- Enabling Line uses a wider Review wrapping width than production PDF defaults.
-- Line mode does not reserve separate paragraph and line gutters.
+- Page metadata creates no standalone row or dedicated column.
+- Page and paragraph numbering share one compact gutter address.
+- Line mode does not reserve separate page, paragraph, and line gutters.
 - Disabling the master toggle restores plain Fountain text.
 - Reading numbering preserves project data and dirty state.
