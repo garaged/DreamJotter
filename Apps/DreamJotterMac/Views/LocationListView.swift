@@ -1,6 +1,14 @@
 import DreamJotterCore
 import SwiftUI
 
+private enum LocationListScope: String, CaseIterable, Identifiable {
+    case all = "All"
+    case profiles = "Profiles"
+    case detected = "Detected"
+
+    var id: String { rawValue }
+}
+
 struct LocationListView: View {
     let locations: [LocationRecord]
     let unresolvedDetectedLocations: [DetectedLocation]
@@ -9,15 +17,38 @@ struct LocationListView: View {
     let deleteAction: (LocationRecord) -> Void
     let convertAction: (DetectedLocation) -> Void
     let ignoreAction: (DetectedLocation) -> Void
+
     @State private var newLocationName = ""
     @State private var newLocationNote = ""
+    @State private var searchText = ""
+    @State private var scope: LocationListScope = .all
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Locations").font(.headline)
+            filterBar
             createProfileSection
-            profilesSection
-            detectedSection
+            if scope != .detected { profilesSection }
+            if scope != .profiles { detectedSection }
+        }
+    }
+
+    private var filterBar: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                TextField("Search location names and notes", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+                Picker("Scope", selection: $scope) {
+                    ForEach(LocationListScope.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .frame(width: 130)
+                if !searchText.isEmpty {
+                    Button("Clear") { searchText = "" }
+                }
+            }
+            Text("\(filteredProfiles.count) profile\(filteredProfiles.count == 1 ? "" : "s"), \(filteredDetections.count) detected")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -39,12 +70,11 @@ struct LocationListView: View {
     private var profilesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Profiles").font(.subheadline).foregroundStyle(.secondary)
-            let profiles = locations.filter { $0.source != .detected }
-            if profiles.isEmpty {
-                Text("No location profiles yet. Add one here or convert a detected location from a scene heading.")
+            if filteredProfiles.isEmpty {
+                Text(searchText.isEmpty ? "No location profiles yet." : "No location profiles match the search.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(profiles, id: \.id) { location in
+                ForEach(filteredProfiles, id: \.id) { location in
                     LocationProfileRow(location: location, updateAction: updateAction, deleteAction: deleteAction)
                 }
             }
@@ -55,11 +85,11 @@ struct LocationListView: View {
     private var detectedSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Detected in Scene Headings").font(.subheadline).foregroundStyle(.secondary)
-            if unresolvedDetectedLocations.isEmpty {
-                Text("No unresolved detected locations. Scene heading locations without profiles will appear here.")
+            if filteredDetections.isEmpty {
+                Text(searchText.isEmpty ? "No unresolved detected locations." : "No detected locations match the search.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(unresolvedDetectedLocations, id: \.id) { detection in
+                ForEach(filteredDetections, id: \.id) { detection in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(detection.name).lineLimit(1)
@@ -74,6 +104,25 @@ struct LocationListView: View {
                 }
             }
         }
+    }
+
+    private var filteredProfiles: [LocationRecord] {
+        let profiles = locations.filter { $0.source != .detected }
+        guard !normalizedSearch.isEmpty else { return profiles }
+        return profiles.filter {
+            TextNormalization.key(for: "\($0.displayName) \($0.note)").contains(normalizedSearch)
+        }
+    }
+
+    private var filteredDetections: [DetectedLocation] {
+        guard !normalizedSearch.isEmpty else { return unresolvedDetectedLocations }
+        return unresolvedDetectedLocations.filter {
+            TextNormalization.key(for: $0.name).contains(normalizedSearch)
+        }
+    }
+
+    private var normalizedSearch: String {
+        TextNormalization.key(for: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 }
 
