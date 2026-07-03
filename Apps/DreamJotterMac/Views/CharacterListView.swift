@@ -84,7 +84,7 @@ struct CharacterListView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Profiles").font(.subheadline).foregroundStyle(.secondary)
             if filteredProfiles.isEmpty {
-                Text(searchText.isEmpty ? "No character profiles yet." : "No character profiles match the search.")
+                Text(emptyProfilesMessage)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(filteredProfiles, id: \.id) { character in
@@ -99,7 +99,7 @@ struct CharacterListView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Detected in Script").font(.subheadline).foregroundStyle(.secondary)
             if filteredDetections.isEmpty {
-                Text(searchText.isEmpty ? "No unresolved detected characters." : "No detected characters match the search.")
+                Text(emptyDetectionsMessage)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(filteredDetections, id: \.id) { detection in
@@ -108,7 +108,7 @@ struct CharacterListView: View {
                             Text(detection.name).lineLimit(1)
                             HStack(spacing: 4) {
                                 Text(detection.occurrenceCount.formatted())
-                                Text(detection.occurrenceCount == 1 ? "appearance" : "appearances")
+                                Text(appearanceLabel(for: detection.occurrenceCount))
                             }
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -120,6 +120,18 @@ struct CharacterListView: View {
                 }
             }
         }
+    }
+
+    private var emptyProfilesMessage: LocalizedStringKey {
+        searchText.isEmpty ? "No character profiles yet." : "No character profiles match the search."
+    }
+
+    private var emptyDetectionsMessage: LocalizedStringKey {
+        searchText.isEmpty ? "No unresolved detected characters." : "No detected characters match the search."
+    }
+
+    private func appearanceLabel(for count: Int) -> LocalizedStringKey {
+        count == 1 ? "appearance" : "appearances"
     }
 
     private var filteredProfiles: [CharacterRecord] {
