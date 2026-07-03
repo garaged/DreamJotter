@@ -28,7 +28,7 @@ struct SceneListView: View {
             filterBar
 
             if filteredCards.isEmpty {
-                Text(sceneCards.isEmpty ? "No scenes yet. Add a scene heading in the Script pane." : "No scenes match the current filters.")
+                Text(emptyMessage)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(filteredCards, id: \.id) { card in
@@ -52,6 +52,7 @@ struct SceneListView: View {
                                 Spacer()
                                 Image(systemName: "arrow.right.circle")
                                     .foregroundStyle(.secondary)
+                                    .accessibilityLabel("Open in Script")
                             }
                             .padding(8)
                             .background(selectedSceneID == "scene-\(card.order + 1)" ? Color.accentColor.opacity(0.14) : Color.clear)
@@ -61,7 +62,7 @@ struct SceneListView: View {
 
                         Picker("Status", selection: statusBinding(for: card)) {
                             ForEach(SceneCardStatus.allCases, id: \.self) { status in
-                                Text(status.rawValue).tag(status)
+                                Text(status.sceneListLocalizedTitle).tag(status)
                             }
                         }
                         .labelsHidden()
@@ -79,7 +80,7 @@ struct SceneListView: View {
                 Picker("Status", selection: $selectedStatus) {
                     Text("All statuses").tag(SceneCardStatus?.none)
                     ForEach(SceneCardStatus.allCases, id: \.self) { status in
-                        Text(status.rawValue).tag(Optional(status))
+                        Text(status.sceneListLocalizedTitle).tag(Optional(status))
                     }
                 }
                 .frame(width: 160)
@@ -90,10 +91,22 @@ struct SceneListView: View {
                     }
                 }
             }
-            Text("Showing \(filteredCards.count) of \(sceneCards.count) scenes")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                Text("Showing")
+                Text(filteredCards.count.formatted())
+                Text("of")
+                Text(sceneCards.count.formatted())
+                Text("scenes")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
+    }
+
+    private var emptyMessage: LocalizedStringKey {
+        sceneCards.isEmpty
+            ? "No scenes yet. Add a scene heading in the Script pane."
+            : "No scenes match the current filters."
     }
 
     private var filteredCards: [SceneCard] {
@@ -120,5 +133,19 @@ struct SceneListView: View {
             get: { card.status },
             set: { updateStatusAction(card, $0) }
         )
+    }
+}
+
+private extension SceneCardStatus {
+    var sceneListLocalizedTitle: LocalizedStringKey {
+        switch self {
+        case .idea: "Idea"
+        case .outlined: "Outlined"
+        case .drafted: "Drafted"
+        case .needsRewrite: "Needs Rewrite"
+        case .reviewed: "Reviewed"
+        case .locked: "Locked"
+        case .ready: "Ready"
+        }
     }
 }
