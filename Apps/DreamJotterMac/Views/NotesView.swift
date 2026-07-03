@@ -3,6 +3,8 @@ import SwiftUI
 
 struct NotesView: View {
     @Binding var document: ProjectDocumentViewModel
+    let navigateAction: (NoteLink) -> Void
+
     @State private var noteTitle = ""
     @State private var noteBody = ""
     @State private var searchText = ""
@@ -17,10 +19,14 @@ struct NotesView: View {
             HStack {
                 TextField("Search notes", text: $searchText)
                 Picker("State", selection: $stateFilter) {
-                    ForEach(NotesWorkspaceStateFilter.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
+                    ForEach(NotesWorkspaceStateFilter.allCases, id: \.self) {
+                        Text($0.rawValue.capitalized).tag($0)
+                    }
                 }
                 Picker("Target", selection: $targetFilter) {
-                    ForEach(NotesWorkspaceTargetFilter.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
+                    ForEach(NotesWorkspaceTargetFilter.allCases, id: \.self) {
+                        Text($0.rawValue.capitalized).tag($0)
+                    }
                 }
             }
 
@@ -57,26 +63,46 @@ struct NotesView: View {
                             selectedNoteIDs.remove(note.id)
                         }
                     },
-                    updateAction: { title, text in execute(.update, noteIDs: [note.id], title: title, body: text) },
-                    resolveAction: { execute(note.status == .open ? .resolve : .reopen, noteIDs: [note.id]) },
-                    deleteAction: { execute(.delete, noteIDs: [note.id], confirmed: true) },
-                    unlinkAction: { execute(.unlinkOrphans, noteIDs: [note.id], confirmed: true) }
+                    updateAction: { title, text in
+                        execute(.update, noteIDs: [note.id], title: title, body: text)
+                    },
+                    resolveAction: {
+                        execute(note.status == .open ? .resolve : .reopen, noteIDs: [note.id])
+                    },
+                    deleteAction: {
+                        execute(.delete, noteIDs: [note.id], confirmed: true)
+                    },
+                    unlinkAction: {
+                        execute(.unlinkOrphans, noteIDs: [note.id], confirmed: true)
+                    },
+                    navigateAction: navigateAction
                 )
                 Divider()
             }
 
             Text("Parsed Script TODOs").font(.subheadline.weight(.semibold))
-            let todos = NotesWorkspace.unresolvedParsedTodos(in: document.project, now: document.project.metadata.modifiedAt)
+            let todos = NotesWorkspace.unresolvedParsedTodos(
+                in: document.project,
+                now: document.project.metadata.modifiedAt
+            )
             if todos.isEmpty {
                 Text("No unresolved parsed TODOs.").foregroundStyle(.secondary)
             } else {
                 ForEach(todos, id: \.id) { todo in
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(todo.title ?? "Script TODO").font(.subheadline.weight(.semibold))
                         Text(todo.body).foregroundStyle(.secondary)
-                        Text("Derived from screenplay; edit the script to remove it.")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
+                        HStack {
+                            Text("Derived from screenplay; edit the script to remove it.")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                            if let target = NotesWorkspace.navigationTarget(for: todo, in: document.project) {
+                                Button("Open in Script") {
+                                    navigateAction(target)
+                                }
+                                .font(.caption)
+                            }
+                        }
                     }
                 }
             }
@@ -135,6 +161,7 @@ private struct NoteWorkspaceRow: View {
     let resolveAction: () -> Void
     let deleteAction: () -> Void
     let unlinkAction: () -> Void
+    let navigateAction: (NoteLink) -> Void
 
     @State private var title: String
     @State private var noteText: String
@@ -148,7 +175,8 @@ private struct NoteWorkspaceRow: View {
         updateAction: @escaping (String, String) -> Void,
         resolveAction: @escaping () -> Void,
         deleteAction: @escaping () -> Void,
-        unlinkAction: @escaping () -> Void
+        unlinkAction: @escaping () -> Void,
+        navigateAction: @escaping (NoteLink) -> Void
     ) {
         self.note = note
         self.project = project
@@ -158,6 +186,7 @@ private struct NoteWorkspaceRow: View {
         self.resolveAction = resolveAction
         self.deleteAction = deleteAction
         self.unlinkAction = unlinkAction
+        self.navigateAction = navigateAction
         _title = State(initialValue: note.title ?? "")
         _noteText = State(initialValue: note.body)
     }
@@ -168,15 +197,31 @@ private struct NoteWorkspaceRow: View {
                 "Select",
                 isOn: Binding(
                     get: { isSelected },
-                    set: { newValue in
-                        selectionChanged(newValue)
-                    }
+                    set: { newValue in selectionChanged(newValue) }
                 )
             )
             .toggleStyle(.checkbox)
 
             TextField("Title", text: $title)
             TextField("Body", text: $noteText, axis: .vertical)
+
+            if !note.links.isEmpty {
+                HStack(spacing: 6) {
+                    ForEach(Array(note.links.enumerated()), id: \.offset) { _, link in
+                        if NotesWorkspace.orphanedLinks(for: note, in: project).contains(link) {
+                            Text("Missing \(link.targetKind.rawValue)")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        } else {
+                            Button("Open \(link.targetKind.rawValue.capitalized)") {
+                                navigateAction(link)
+                            }
+                            .font(.caption)
+                        }
+                    }
+                }
+            }
+
             HStack {
                 Button("Save") { updateAction(title, noteText) }
                     .disabled(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -187,6 +232,7 @@ private struct NoteWorkspaceRow: View {
                 Spacer()
                 Button("Delete", role: .destructive) { confirmDelete = true }
             }
+
             Text(note.status.rawValue.capitalized)
                 .font(.caption)
                 .foregroundStyle(.secondary)
