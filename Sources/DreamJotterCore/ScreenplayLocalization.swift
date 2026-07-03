@@ -48,12 +48,12 @@ public enum ScreenplayLexiconCatalog {
             "FADE IN:", "FADE OUT."
         ],
         shots: ["CLOSE ON:", "ANGLE ON:", "WIDE SHOT:", "INSERT:", "POV:"],
-        titlePageAliases: [
+        titlePageAliases: normalizedAliases([
             "title": "title", "credit": "credit", "author": "author",
             "authors": "author", "written by": "author", "source": "source",
             "draft date": "draftDate", "date": "draftDate", "contact": "contact",
             "copyright": "copyright", "notes": "notes"
-        ],
+        ]),
         timeOfDayValues: ["DAY", "NIGHT", "DAWN", "DUSK", "NOON", "CONTINUOUS", "LATER", "SAME TIME"],
         todoTokens: ["TODO:"],
         cueExtensions: ["V.O.", "O.S.", "O.C.", "CONT'D", "CONT."]
@@ -69,13 +69,13 @@ public enum ScreenplayLexiconCatalog {
             "PRIMER PLANO:", "PLANO GENERAL:", "PLANO DETALLE:",
             "ÁNGULO SOBRE:", "INSERTAR:", "PUNTO DE VISTA:"
         ],
-        titlePageAliases: [
+        titlePageAliases: normalizedAliases([
             "título": "title", "titulo": "title", "crédito": "credit", "credito": "credit",
             "autor": "author", "autores": "author", "escrito por": "author",
             "fuente": "source", "basado en": "source", "fecha de borrador": "draftDate",
             "fecha": "draftDate", "contacto": "contact", "derechos": "copyright",
             "derechos de autor": "copyright", "notas": "notes"
-        ],
+        ]),
         timeOfDayValues: [
             "DÍA", "NOCHE", "AMANECER", "ATARDECER", "MEDIODÍA", "MADRUGADA",
             "CONTINUO", "MOMENTOS DESPUÉS", "MÁS TARDE", "MISMO TIEMPO"
@@ -93,6 +93,10 @@ public enum ScreenplayLexiconCatalog {
         case .automatic:
             return merged(primary: english, secondary: spanishLatinAmerica)
         }
+    }
+
+    private static func normalizedAliases(_ aliases: [String: String]) -> [String: String] {
+        Dictionary(uniqueKeysWithValues: aliases.map { (TextNormalization.key(for: $0.key), $0.value) })
     }
 
     private static func merged(primary: ScreenplayLexicon, secondary: ScreenplayLexicon) -> ScreenplayLexicon {
