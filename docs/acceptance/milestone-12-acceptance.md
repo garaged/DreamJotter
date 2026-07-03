@@ -1,68 +1,55 @@
 # Milestone 12 Acceptance — Writer Workflow Polish
 
-Status: in progress
+Status: implemented pending local validation
 
 ## Shared Acceptance
 
-Milestone 12 is accepted only when:
+Milestone 12 acceptance requires:
 
-- every destructive operation is represented by a command request and executed through `CommandEngine`;
-- removal, merge, bulk resolve, bulk rename, and screenplay scene reorder require a snapshot;
-- failed snapshot creation leaves project state unchanged;
-- save and reopen preserve all accepted mutations;
-- Unicode profile names, note text, scene summaries, and tags survive mutation and persistence;
-- search results and dashboard counts reflect updated canonical project state;
-- metadata-only actions do not change screenplay order, editor cursor, or selected scene;
-- explicit screenplay reorder updates semantic screenplay order and reports affected elements.
+- command-backed project changes;
+- snapshots for high-impact changes;
+- unchanged project state when snapshot creation fails;
+- Unicode-safe mutation and persistence;
+- correct search and dashboard projections;
+- stable editor navigation for metadata-only changes;
+- save and reopen coverage for persisted fields.
 
 ## M12.1 Character and Location Management
 
 Status: implemented.
 
-Executable coverage includes:
-
-- archive and restore of character and location profiles;
-- explicit user confirmation before profile removal;
-- merge into a selected surviving profile;
-- deterministic bulk-rename preview listing affected screenplay elements;
-- snapshot-protected bulk rename that changes only matching semantic character cues or scene-heading locations;
-- no partial mutation when snapshot creation fails;
-- ignored-detection state cleanup so renamed or merged profiles can match derived detections;
-- duplicate collapse using Unicode-aware normalized keys;
-- linked-note and scene-card metadata remapping;
-- `.dreamjotter` save and reopen persistence for archive markers, snapshots, merges, and rename results.
-
-The macOS workspace exposes persisted profile create, read, update, and confirmed delete flows. Archive, restore, merge, and rename-preview presentation may continue as later UI refinements without changing the accepted command contract.
+Coverage includes profile archive and restore, confirmed removal, duplicate merge, rename previews, Unicode rename, detection cleanup, linked metadata updates, snapshot failure handling, package persistence, and macOS CRUD adapters.
 
 ## M12.2 Notes and TODO Workspace
 
 Status: implemented.
 
-Executable and adapter coverage includes:
-
-- filtering stored notes by state and target kind;
-- Unicode-aware search across title and body;
-- unresolved parsed-script TODO projection kept separate from canonical stored notes;
-- valid linked-target resolution and macOS navigation to project, script scene, screenplay element, character, or location workspace;
-- stored-note create, read, update, resolve, reopen, and confirmed delete;
-- explicit confirmation and snapshot protection for bulk resolve;
-- no mutation when snapshot creation fails;
-- orphan-link detection and snapshot-protected unlinking that preserves note content;
-- search and dashboard projections rebuilt from canonical state;
-- Unicode note mutation and `.dreamjotter` save/reopen persistence.
+Coverage includes stored-note CRUD, state and target filters, Unicode search, parsed TODO separation, linked-target navigation, bulk resolution, orphan handling, projection updates, and package persistence.
 
 ## M12.3 Scene Workflow Polish
 
-Status: planned.
+Status: implemented pending local validation.
 
-Executable coverage must include editable scene-card metadata, planning-order separation, filters, navigation targets, explicit snapshot-protected screenplay reorder, persistence, and editor navigation stability.
+Coverage includes:
 
-## Manual Acceptance
+- editable scene summary, note, status, and plotline tags;
+- Unicode-aware search across scene identity, participants, and metadata;
+- status and plotline filtering;
+- planning order independent from screenplay order;
+- scene-card navigation to the corresponding script scene;
+- deterministic screenplay-order preview;
+- snapshot-protected screenplay-order application;
+- unchanged state when snapshot creation fails;
+- movement of complete scene blocks while preserving pre-scene content;
+- scene metadata and planning-order save/reopen persistence.
 
-Before each UI-bearing slice is merged:
+## Validation Before Merge
 
-- open an existing `.dreamjotter` package containing Unicode names and linked notes;
-- perform the slice's primary workflow;
-- save, close, and reopen the package;
-- confirm dashboard and search projections are correct;
-- confirm the screenplay editor remains at the expected scene after metadata-only actions.
+- Run `python3 scripts/spec-check`.
+- Run `python3 scripts/spec-trace`.
+- Run the complete Swift test suite.
+- Build `DreamJotterMac` using a clean scratch path.
+- Verify Unicode metadata after save and reopen.
+- Verify planning-order changes do not move screenplay text.
+- Verify applying planning order moves complete scene blocks.
+- Verify search and navigation across Characters, Locations, Scenes, Notes, Script, and Review.
