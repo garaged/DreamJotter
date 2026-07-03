@@ -18,23 +18,27 @@ struct ReviewLayoutNumberingTests {
         #expect(options.showLine == false)
     }
 
-    @Test("Review numbering exposes hierarchical addresses without dirtying clean project")
+    @Test("Review uses the print PDF preset with visible page numbers")
+    func reviewUsesNumberedPrintPreset() throws {
+        let document = ProjectDocumentViewModel(project: project(), isDirty: false)
+        let plan = try #require(document.reviewPDFLayoutPlan)
+
+        #expect(ProjectDocumentViewModel.reviewNumberedPDFPresetID == "print-script")
+        #expect(plan.settings.includePageNumbers)
+        #expect(plan.settings.includeTitlePage)
+        #expect(plan.settings.suppressIdentifyingMetadata == false)
+        #expect(plan.contentPages.first?.screenplayPageNumber == 1)
+    }
+
+    @Test("Review numbering exposes page paragraph and line coordinates without dirtying clean project")
     func reviewNumberingPreservesCleanState() throws {
-        let project = DreamJotterProject(
-            metadata: metadata(),
-            screenplay: ScreenplayDocument(elements: [
-                ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY"),
-                ScriptElement(kind: .action, text: "Elena crosses the room."),
-                ScriptElement(kind: .characterCue, text: "ELENA"),
-                ScriptElement(kind: .dialogue, text: "We go now.")
-            ])
-        )
-        let document = ProjectDocumentViewModel(project: project, isDirty: false)
+        let document = ProjectDocumentViewModel(project: project(), isDirty: false)
 
         let plan = try #require(document.reviewPDFLayoutPlan)
         let lines = document.reviewLayoutLines
 
         #expect(document.isDirty == false)
+        #expect(plan.settings.includePageNumbers)
         #expect(plan.contentPages.first?.screenplayPageNumber == 1)
         #expect(lines.first?.screenplayPageNumber == 1)
         #expect(lines.first?.paragraphNumber == 1)
@@ -44,20 +48,45 @@ struct ReviewLayoutNumberingTests {
         #expect(lines.first?.addressLabel == "Page 1 · Paragraph 1 · Block 1 · Source 0")
     }
 
-    @Test("Review numbering preserves existing dirty state")
-    func reviewNumberingPreservesDirtyState() {
+    @Test("Wrapped screenplay paragraphs retain sequential line numbering")
+    func wrappedParagraphLineNumbering() throws {
+        let longAction = Array(repeating: "A measured action continues across the page.", count: 8)
+            .joined(separator: " ")
         let project = DreamJotterProject(
             metadata: metadata(),
             screenplay: ScreenplayDocument(elements: [
-                ScriptElement(kind: .action, text: "Visible action.")
+                ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY"),
+                ScriptElement(kind: .action, text: longAction)
             ])
         )
-        let document = ProjectDocumentViewModel(project: project, isDirty: true)
+        let document = ProjectDocumentViewModel(project: project, isDirty: false)
+        let actionLines = document.reviewLayoutLines.filter { $0.role == .action }
+
+        #expect(actionLines.count > 1)
+        #expect(actionLines.map(\.paragraphNumber).allSatisfy { $0 == actionLines.first?.paragraphNumber })
+        #expect(actionLines.map(\.lineNumber) == Array(1...actionLines.count))
+    }
+
+    @Test("Review numbering preserves existing dirty state")
+    func reviewNumberingPreservesDirtyState() {
+        let document = ProjectDocumentViewModel(project: project(), isDirty: true)
 
         _ = document.reviewPDFLayoutPlan
         _ = document.reviewLayoutLines
 
         #expect(document.isDirty)
+    }
+
+    private func project() -> DreamJotterProject {
+        DreamJotterProject(
+            metadata: metadata(),
+            screenplay: ScreenplayDocument(elements: [
+                ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY"),
+                ScriptElement(kind: .action, text: "Elena crosses the room."),
+                ScriptElement(kind: .characterCue, text: "ELENA"),
+                ScriptElement(kind: .dialogue, text: "We go now.")
+            ])
+        )
     }
 
     private func metadata() -> ProjectMetadata {
