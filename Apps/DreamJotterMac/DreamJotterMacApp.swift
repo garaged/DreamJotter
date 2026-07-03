@@ -4,10 +4,13 @@ import SwiftUI
 @main
 struct DreamJotterMacApp: App {
     @NSApplicationDelegateAdaptor(DreamJotterMacApplicationDelegate.self) private var appDelegate
+    @StateObject private var localizationSettings = LocalizationSettings()
 
     var body: some Scene {
         WindowGroup {
             AppRootView()
+                .environmentObject(localizationSettings)
+                .environment(\.locale, localizationSettings.locale)
         }
         .windowStyle(.titleBar)
         .commands {
@@ -42,6 +45,12 @@ struct DreamJotterMacApp: App {
                     NotificationCenter.default.post(name: .dreamJotterExportFountain, object: nil)
                 }
             }
+        }
+
+        Settings {
+            LocalizationSettingsView()
+                .environmentObject(localizationSettings)
+                .environment(\.locale, localizationSettings.locale)
         }
     }
 }
