@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""Validate DreamJotter macOS localization coverage.
+
+Checks that common SwiftUI user-facing literals exist in the String Catalog and
+that every catalog entry has completed es-MX and es-419 translations.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+UI_PATTERNS = [
+    re.compile(r'\b(?:Text|Button|Label|TextField|SecureField|Picker|Section|GroupBox|Menu|Toggle)\(\s*"((?:[^"\\]|\\.)*)"'),
+    re.compile(r'\.(?:help|navigationTitle|accessibilityLabel|accessibilityHint)\(\s*"((?:[^"\\]|\\.)*)"'),
+    re.compile(r'\b(?:confirmationDialog|alert)\(\s*"((?:[^"\\]|\\.)*)"'),
+]
+
+ALLOWLIST = {
+    "DreamJotter",
+    "TextKit",
+    "TextEditor",
+    "Fountain",
+    "FDX",
+    "PDF",
+    "JSON",
+    "Markdown",
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--target", default="Apps/DreamJotterMac")
+    parser.add_argument("--catalog", default="Apps/DreamJotterMac/Resources/Localizable.xcstrings")
+    parser.add_argument("--locales", default="es-MX,es-419")
+    return parser.parse_args()
+
+
+def swift_literals(root: Path) -> set[str]:
+    values: set[str] = set()
+    for path in root.rglob("*.swift"):
+        text = path.read_text(encoding="utf-8")
+        for pattern in UI_PATTERNS:
+            for match in pattern.finditer(text):
+                value = bytes(match.group(1), "utf-8").decode("unicode_escape")
+                if "\\(" in match.group(1):
+                    continue
+                if value and value not in ALLOWLIST:
+                    values.add(value)
+    return values
+
+
+def main() -> int:
+    args = parse_args()
+    target = Path(args.target)
+    catalog_path = Path(args.catalog)
+    locales = [item.strip() for item in args.locales.split(",") if item.strip()]
+
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    strings = catalog.get("strings", {})
+    errors: list[str] = []
+
+    for literal in sorted(swift_literals(target)):
+        if literal not in strings:
+            errors.append(f"missing catalog key: {literal}")
+
+    for key, entry in sorted(strings.items()):
+        localizations = entry.get("localizations", {})
+        for locale in locales:
+            unit = localizations.get(locale, {}).get("stringUnit", {})
+            value = unit.get("value", "")
+            state = unit.get("state", "")
+            if not value.strip():
+                errors.append(f"{key}: missing {locale} translation")
+            elif state != "translated":
+                errors.append(f"{key}: {locale} state is {state or 'missing'}")
+
+    if errors:
+        print("Localization audit failed:")
+        for error in errors:
+            print(f"- {error}")
+        return 1
+
+    print(f"Localization audit passed: {len(strings)} keys, locales {', '.join(locales)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
