@@ -20,16 +20,25 @@ struct ReviewLayoutLine: Equatable, Identifiable {
 }
 
 extension ProjectDocumentViewModel {
+    static let reviewNumberedPDFPresetID = "print-script"
+
     var reviewPDFLayoutPlan: PDFLayoutPlan? {
-        guard let preset = ExportPresetCatalog.builtInPresets().first(where: { $0.id == "reader-copy" }) else {
+        guard let preset = ExportPresetCatalog.builtInPresets().first(where: {
+            $0.id == Self.reviewNumberedPDFPresetID
+        }) else {
             return nil
         }
+
+        let defaults = PDFLayoutSettings.defaults(for: preset)
         let settings = PDFLayoutSettings(
+            pageSize: defaults.pageSize,
+            margins: defaults.margins,
+            lineHeight: defaults.lineHeight,
             charactersPerBodyLine: 96,
             contentLinesPerPage: 54,
-            includeTitlePage: true,
-            includePageNumbers: false,
-            suppressIdentifyingMetadata: true
+            includeTitlePage: defaults.includeTitlePage,
+            includePageNumbers: defaults.includePageNumbers,
+            suppressIdentifyingMetadata: defaults.suppressIdentifyingMetadata
         )
         return PDFLayoutPlanner.plan(for: project, preset: preset, settings: settings)
     }
