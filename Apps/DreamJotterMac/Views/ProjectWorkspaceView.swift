@@ -144,7 +144,11 @@ struct ProjectWorkspaceView: View {
             }
         case .notes:
             ScrollView {
-                NotesView(document: $document).padding()
+                NotesView(
+                    document: $document,
+                    navigateAction: navigateToNoteTarget
+                )
+                .padding()
             }
         case .review:
             ReviewModeView(
@@ -157,6 +161,44 @@ struct ProjectWorkspaceView: View {
                 HealthReportView(findings: document.healthFindings).padding()
             }
         }
+    }
+
+    private func navigateToNoteTarget(_ link: NoteLink) {
+        switch link.targetKind {
+        case .project:
+            selectedSection = .dashboard
+        case .character:
+            selectedSection = .characters
+        case .location:
+            selectedSection = .locations
+        case .scene:
+            if let sceneIndex = document.scenes.firstIndex(where: { $0.heading == link.targetID }) {
+                document.requestNavigation(toSceneAt: sceneIndex)
+            }
+            selectedSection = .script
+        case .screenplayElement:
+            if let sceneIndex = owningSceneIndex(forElementID: link.targetID) {
+                document.requestNavigation(toSceneAt: sceneIndex)
+            }
+            selectedSection = .script
+        }
+    }
+
+    private func owningSceneIndex(forElementID elementID: String) -> Int? {
+        guard elementID.hasPrefix("element-"),
+              let oneBasedElementIndex = Int(elementID.dropFirst("element-".count)),
+              oneBasedElementIndex > 0,
+              oneBasedElementIndex <= document.project.screenplay.elements.count else {
+            return nil
+        }
+
+        var sceneIndex: Int?
+        for index in 0..<oneBasedElementIndex {
+            if document.project.screenplay.elements[index].kind == .sceneHeading {
+                sceneIndex = (sceneIndex ?? -1) + 1
+            }
+        }
+        return sceneIndex
     }
 
     private func deleteProfile(id: String, kind: ProfileKind) {
