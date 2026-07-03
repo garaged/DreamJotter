@@ -214,7 +214,7 @@ struct AppRootView: View {
 
     private func finishPendingReplacementAfterSave(shouldCloseWindow: Bool) {
         do {
-            try appModel.confirmPendingReplacementAfterExternalSave()
+            try appModel.confirmPendingReplacementAfterExternalSaveRespectingLanguage()
             replacementConfirmationMessage = nil
             closeWindowIfNeeded(shouldCloseWindow)
         } catch {
@@ -246,13 +246,13 @@ struct AppRootView: View {
     }
 
     private func discardPendingRestore() {
-        let result = appModel.discardPendingRestore()
+        let result = appModel.discardPendingRestoreRespectingLanguage()
         finishRestore(result)
     }
 
     private func finishPendingRestoreAfterSave() {
         do {
-            let result = try appModel.confirmPendingRestoreAfterExternalSave()
+            let result = try appModel.confirmPendingRestoreAfterExternalSaveRespectingLanguage()
             finishRestore(result)
         } catch {
             restoreConfirmationMessage = nil
