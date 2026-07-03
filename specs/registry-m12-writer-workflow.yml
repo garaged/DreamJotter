@@ -13,7 +13,7 @@
       "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
       "planned_modules": ["CommandEngine", "ProjectDocumentViewModel", "WriterOrganization"],
       "guardrails": ["Destructive operations are command-backed; bulk mutations are snapshot-protected; metadata-only workflows preserve screenplay order and editor navigation."],
-      "notes": "M12.1 is implemented; M12.2 is in progress; M12.3 remains planned."
+      "notes": "M12.1 and M12.2 are implemented; M12.3 remains planned."
     },
     {
       "id": "M12-PROFILE-MANAGEMENT",
@@ -32,14 +32,14 @@
       "id": "M12-NOTES-WORKSPACE",
       "title": "Notes and TODO Workspace",
       "milestone": "M12.2",
-      "status": "in-progress",
+      "status": "implemented",
       "spec": "docs/specs/writer-workflow/m12-notes-workspace.spec.md",
       "acceptance": "docs/acceptance/milestone-12-acceptance.md",
       "related_adrs": [],
       "related_data_contracts": ["docs/data-contracts/core-domain-model.md"],
-      "planned_modules": ["NotesWorkspace", "CommandEngine", "NotesView"],
+      "planned_modules": ["NotesWorkspace", "CommandEngine", "NotesView", "ProjectWorkspaceView"],
       "guardrails": ["Bulk note mutations require snapshot protection and orphan handling preserves note content."],
-      "notes": "Stored-note CRUD, Unicode search, filters, parsed TODO separation, bulk resolve, and orphan unlinking are implemented; linked-target UI navigation and local validation remain."
+      "notes": "Stored-note CRUD, Unicode search and filters, parsed TODO separation, linked-target navigation, snapshot-protected bulk resolve, orphan unlinking, and package persistence are implemented."
     },
     {
       "id": "M12-SCENE-WORKFLOW",
