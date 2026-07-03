@@ -4,14 +4,16 @@ import SwiftUI
 @MainActor
 final class LocalizationSettings: ObservableObject {
     private static let defaultsKey = "dreamjotter.applicationLanguage"
+    private let defaults: UserDefaults
 
     @Published var preference: ApplicationLanguagePreference {
         didSet {
-            UserDefaults.standard.set(preference.rawValue, forKey: Self.defaultsKey)
+            defaults.set(preference.rawValue, forKey: Self.defaultsKey)
         }
     }
 
     init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         let rawValue = defaults.string(forKey: Self.defaultsKey)
         preference = rawValue.flatMap(ApplicationLanguagePreference.init(rawValue:)) ?? .system
     }
