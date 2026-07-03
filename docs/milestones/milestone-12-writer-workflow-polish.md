@@ -10,7 +10,7 @@ Milestone 12 is delivered in three independently reviewable slices.
 
 ## M12.1 Character and Location Management
 
-Status: implemented in portable core.
+Status: implemented.
 
 - Archive and restore character and location profiles.
 - Remove profiles only after explicit confirmation.
@@ -21,20 +21,21 @@ Status: implemented in portable core.
 - Require a snapshot before removal, merge, or bulk screenplay rename.
 - Preserve Unicode names and detected-profile resolution behavior.
 - Preserve changes across `.dreamjotter` save and reopen.
-- Focused macOS management presentation remains a later adapter slice.
+- Provide macOS create, read, update, and confirmed delete adapters for stored profiles.
 
 ## M12.2 Notes and TODO Workspace
 
-Status: planned.
+Status: implemented.
 
 - Filter notes by state and target.
 - Search note title and body text using Unicode-aware normalization.
 - Show unresolved parsed-script TODOs separately from manual notes.
-- Navigate from a linked note to its screenplay element or owning object.
-- Resolve and reopen TODOs.
+- Navigate from a linked note to its screenplay scene, screenplay element, project, character, or location workspace.
+- Create, read, update, resolve, reopen, and delete stored notes.
 - Bulk resolve selected notes through `CommandEngine` with snapshot protection.
-- Identify orphaned note links and expose safe repair or unlink behavior.
+- Identify orphaned note links and expose safe confirmed unlink behavior.
 - Keep search indexes and dashboard counts correct after mutations.
+- Preserve Unicode note content and accepted mutations across `.dreamjotter` save and reopen.
 
 ## M12.3 Scene Workflow Polish
 
