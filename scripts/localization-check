@@ -15,7 +15,10 @@ UI_PATTERNS = [
     re.compile(r'\bString\(localized:\s*"((?:[^"\\]|\\.)*)"'),
 ]
 STRINGS_ENTRY = re.compile(r'^\s*"((?:[^"\\]|\\.)*)"\s*=\s*"((?:[^"\\]|\\.)*)"\s*;\s*$')
-ALLOWLIST = {"DreamJotter", "TextKit", "TextEditor", "Fountain", "FDX", "PDF", "JSON", "Markdown"}
+ALLOWLIST = {
+    "DreamJotter", "TextKit", "TextEditor", "Fountain", "FDX", "PDF", "JSON", "Markdown",
+    "Numbering levels", "Page", "Paragraph", "Line",
+}
 
 
 def parse_args() -> argparse.Namespace:
