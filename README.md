@@ -6,6 +6,7 @@ DreamJotter is a local-first macOS screenplay-writing app built with Swift, Swif
 
 - macOS 14 Sonoma or later
 - Swift 6 through Xcode or Swift Package Manager
+- Apple Silicon or Intel Mac
 
 ## Current Status
 
@@ -59,6 +60,46 @@ docs/specs/writer-workflow/m12-full-ui-localization.spec.md
 - Screenplay-language preference persisted in project metadata
 - Fountain, text, Markdown, JSON backup, FDX, and production PDF export
 - Local package save, reopen, backup, and restore
+
+## Architecture Builds
+
+DreamJotter supports both Apple Silicon (`arm64`) and Intel (`x86_64`) on macOS 14 or later.
+
+Build only the Intel binary:
+
+```sh
+CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache-x86_64 \
+xcrun --sdk macosx swift build \
+  --product DreamJotterMac \
+  --configuration release \
+  --triple x86_64-apple-macosx14.0 \
+  --disable-sandbox \
+  --scratch-path /private/tmp/DreamJotterSwiftPM-x86_64
+```
+
+Build a universal binary containing both architectures:
+
+```sh
+bash scripts/build-universal-macos
+```
+
+The universal output is written to:
+
+```text
+dist/DreamJotterMac-universal/
+```
+
+The directory contains the universal `DreamJotterMac` executable and the SwiftPM resource bundle required for localization and other packaged resources. Verify the binary with:
+
+```sh
+lipo -archs dist/DreamJotterMac-universal/DreamJotterMac
+```
+
+Expected output includes:
+
+```text
+arm64 x86_64
+```
 
 ## Localization Validation
 
