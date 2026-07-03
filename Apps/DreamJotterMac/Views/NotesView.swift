@@ -48,30 +48,61 @@ struct NotesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Notes and TODOs").font(.headline)
+            filterBar
+            createSection
+            storedNotesSection
+            parsedTodosSection
+        }
+    }
 
+    private var filterBar: some View {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
-                TextField("Search notes", text: $searchText)
+                TextField("Search note title or body", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
                 Picker("State", selection: $stateFilter) {
-                    ForEach(NotesWorkspaceStateFilter.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
-                }
-                Picker("Target", selection: $targetFilter) {
-                    ForEach(NotesWorkspaceTargetFilter.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
-                }
-            }
-
-            GroupBox("Add Manual Note") {
-                VStack(alignment: .leading, spacing: 8) {
-                    TextField("Title", text: $noteTitle)
-                    TextField("Body", text: $noteBody, axis: .vertical)
-                    Picker("Target", selection: newTargetBinding) {
-                        ForEach(targetOptions) { Text($0.label).tag($0.id) }
+                    ForEach(NotesWorkspaceStateFilter.allCases, id: \.self) {
+                        Text($0.rawValue.capitalized).tag($0)
                     }
-                    Button("Add Note") { addNote() }
-                        .disabled(noteBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
-                .padding(.vertical, 4)
+                .frame(width: 125)
+                Picker("Target", selection: $targetFilter) {
+                    ForEach(NotesWorkspaceTargetFilter.allCases, id: \.self) {
+                        Text(targetFilterLabel($0)).tag($0)
+                    }
+                }
+                .frame(width: 155)
+                if filtersAreActive {
+                    Button("Clear") {
+                        searchText = ""
+                        stateFilter = .all
+                        targetFilter = .all
+                    }
+                }
             }
+            Text("Showing \(filteredNotes.count) of \(document.project.notes.count) stored notes")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
 
+    private var createSection: some View {
+        GroupBox("Add Manual Note") {
+            VStack(alignment: .leading, spacing: 8) {
+                TextField("Title", text: $noteTitle)
+                TextField("Body", text: $noteBody, axis: .vertical)
+                Picker("Target", selection: newTargetBinding) {
+                    ForEach(targetOptions) { Text($0.label).tag($0.id) }
+                }
+                Button("Add Note") { addNote() }
+                    .disabled(noteBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    private var storedNotesSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Stored Notes").font(.subheadline.weight(.semibold))
                 Spacer()
@@ -79,37 +110,47 @@ struct NotesView: View {
                     .disabled(selectedNoteIDs.isEmpty)
             }
 
-            ForEach(filteredNotes, id: \.id) { note in
-                NoteWorkspaceRow(
-                    note: note,
-                    project: document.project,
-                    targetOptions: targetOptions,
-                    isSelected: selectedNoteIDs.contains(note.id),
-                    selectionChanged: { selected in
-                        if selected { selectedNoteIDs.insert(note.id) } else { selectedNoteIDs.remove(note.id) }
-                    },
-                    updateAction: { title, text, link in
-                        execute(.update, noteIDs: [note.id], title: title, body: text, links: [link])
-                    },
-                    resolveAction: { execute(note.status == .open ? .resolve : .reopen, noteIDs: [note.id]) },
-                    deleteAction: { execute(.delete, noteIDs: [note.id], confirmed: true) },
-                    unlinkAction: { execute(.unlinkOrphans, noteIDs: [note.id], confirmed: true) },
-                    navigateAction: navigateAction
-                )
-                Divider()
-            }
-
-            Text("Parsed Script TODOs").font(.subheadline.weight(.semibold))
-            let todos = NotesWorkspace.unresolvedParsedTodos(in: document.project, now: document.project.metadata.modifiedAt)
-            if todos.isEmpty {
-                Text("No unresolved parsed TODOs.").foregroundStyle(.secondary)
+            if filteredNotes.isEmpty {
+                Text(document.project.notes.isEmpty ? "No stored notes yet." : "No stored notes match the current search and filters.")
+                    .foregroundStyle(.secondary)
             } else {
-                ForEach(todos, id: \.id) { todo in
+                ForEach(filteredNotes, id: \.id) { note in
+                    NoteWorkspaceRow(
+                        note: note,
+                        project: document.project,
+                        targetOptions: targetOptions,
+                        isSelected: selectedNoteIDs.contains(note.id),
+                        selectionChanged: { selected in
+                            if selected { selectedNoteIDs.insert(note.id) } else { selectedNoteIDs.remove(note.id) }
+                        },
+                        updateAction: { title, text, link in
+                            execute(.update, noteIDs: [note.id], title: title, body: text, links: [link])
+                        },
+                        resolveAction: { execute(note.status == .open ? .resolve : .reopen, noteIDs: [note.id]) },
+                        deleteAction: { execute(.delete, noteIDs: [note.id], confirmed: true) },
+                        unlinkAction: { execute(.unlinkOrphans, noteIDs: [note.id], confirmed: true) },
+                        navigateAction: navigateAction
+                    )
+                    Divider()
+                }
+            }
+        }
+    }
+
+    private var parsedTodosSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Parsed Script TODOs").font(.subheadline.weight(.semibold))
+            if filteredTodos.isEmpty {
+                Text(searchText.isEmpty ? "No unresolved parsed TODOs." : "No parsed TODOs match the search.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(filteredTodos, id: \.id) { todo in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(todo.title ?? "Script TODO").font(.subheadline.weight(.semibold))
                         Text(todo.body).foregroundStyle(.secondary)
                         if let target = NotesWorkspace.navigationTarget(for: todo, in: document.project) {
-                            Button("Open in Script") { navigateAction(target) }.font(.caption)
+                            Button("Open in Script") { navigateAction(target) }
+                                .font(.caption)
                         }
                     }
                 }
@@ -117,7 +158,9 @@ struct NotesView: View {
         }
     }
 
-    private var targetOptions: [NoteTargetOption] { NoteTargetOption.options(for: document.project) }
+    private var targetOptions: [NoteTargetOption] {
+        NoteTargetOption.options(for: document.project)
+    }
 
     private var newTargetBinding: Binding<String> {
         Binding(
@@ -128,8 +171,59 @@ struct NotesView: View {
         )
     }
 
+    private var filtersAreActive: Bool {
+        !searchText.isEmpty || stateFilter != .all || targetFilter != .all
+    }
+
+    private var normalizedSearch: String {
+        TextNormalization.key(for: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+
     private var filteredNotes: [ProjectNote] {
-        NotesWorkspace.filteredNotes(in: document.project, query: NotesWorkspaceQuery(text: searchText, state: stateFilter, target: targetFilter))
+        document.project.notes.filter { note in
+            stateMatches(note) && targetMatches(note) && textMatches(note)
+        }
+    }
+
+    private var filteredTodos: [ProjectNote] {
+        let todos = NotesWorkspace.unresolvedParsedTodos(in: document.project, now: document.project.metadata.modifiedAt)
+        guard !normalizedSearch.isEmpty else { return todos }
+        return todos.filter { TextNormalization.key(for: "\($0.title ?? "") \($0.body)").contains(normalizedSearch) }
+    }
+
+    private func stateMatches(_ note: ProjectNote) -> Bool {
+        switch stateFilter {
+        case .all: return true
+        case .open: return note.status == .open
+        case .resolved: return note.status == .resolved
+        case .archived: return note.status == .archived
+        }
+    }
+
+    private func targetMatches(_ note: ProjectNote) -> Bool {
+        switch targetFilter {
+        case .all: return true
+        case .project: return note.links.contains { $0.targetKind == .project }
+        case .scene: return note.links.contains { $0.targetKind == .scene }
+        case .character: return note.links.contains { $0.targetKind == .character }
+        case .location: return note.links.contains { $0.targetKind == .location }
+        case .screenplayElement: return note.links.contains { $0.targetKind == .screenplayElement }
+        case .orphaned: return NotesWorkspace.hasOrphanedLinks(note, in: document.project)
+        }
+    }
+
+    private func textMatches(_ note: ProjectNote) -> Bool {
+        guard !normalizedSearch.isEmpty else { return true }
+        return TextNormalization.key(for: "\(note.title ?? "") \(note.body)").contains(normalizedSearch)
+    }
+
+    private func targetFilterLabel(_ filter: NotesWorkspaceTargetFilter) -> String {
+        switch filter {
+        case .all: return "All targets"
+        case .screenplayElement: return "Script elements"
+        case .orphaned: return "Missing targets"
+        default: return filter.rawValue.capitalized
+        }
     }
 
     private func addNote() {
@@ -169,6 +263,7 @@ struct NotesView: View {
         )
         guard output.result.status == .succeeded else { return }
         document = ProjectDocumentViewModel(project: output.project, packageURL: document.packageURL, scriptText: document.scriptText, isDirty: true)
+        selectedNoteIDs = selectedNoteIDs.intersection(Set(output.project.notes.map(\.id)))
     }
 }
 
