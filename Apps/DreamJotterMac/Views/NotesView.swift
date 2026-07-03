@@ -51,9 +51,13 @@ struct NotesView: View {
                     project: document.project,
                     isSelected: selectedNoteIDs.contains(note.id),
                     selectionChanged: { selected in
-                        if selected { selectedNoteIDs.insert(note.id) } else { selectedNoteIDs.remove(note.id) }
+                        if selected {
+                            selectedNoteIDs.insert(note.id)
+                        } else {
+                            selectedNoteIDs.remove(note.id)
+                        }
                     },
-                    updateAction: { title, body in execute(.update, noteIDs: [note.id], title: title, body: body) },
+                    updateAction: { title, text in execute(.update, noteIDs: [note.id], title: title, body: text) },
                     resolveAction: { execute(note.status == .open ? .resolve : .reopen, noteIDs: [note.id]) },
                     deleteAction: { execute(.delete, noteIDs: [note.id], confirmed: true) },
                     unlinkAction: { execute(.unlinkOrphans, noteIDs: [note.id], confirmed: true) }
@@ -133,7 +137,7 @@ private struct NoteWorkspaceRow: View {
     let unlinkAction: () -> Void
 
     @State private var title: String
-    @State private var body: String
+    @State private var noteText: String
     @State private var confirmDelete = false
 
     init(
@@ -155,18 +159,27 @@ private struct NoteWorkspaceRow: View {
         self.deleteAction = deleteAction
         self.unlinkAction = unlinkAction
         _title = State(initialValue: note.title ?? "")
-        _body = State(initialValue: note.body)
+        _noteText = State(initialValue: note.body)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Toggle("Select", isOn: Binding(get: { isSelected }, set: selectionChanged))
-                .toggleStyle(.checkbox)
+            Toggle(
+                "Select",
+                isOn: Binding(
+                    get: { isSelected },
+                    set: { newValue in
+                        selectionChanged(newValue)
+                    }
+                )
+            )
+            .toggleStyle(.checkbox)
+
             TextField("Title", text: $title)
-            TextField("Body", text: $body, axis: .vertical)
+            TextField("Body", text: $noteText, axis: .vertical)
             HStack {
-                Button("Save") { updateAction(title, body) }
-                    .disabled(body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                Button("Save") { updateAction(title, noteText) }
+                    .disabled(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 Button(note.status == .open ? "Resolve" : "Reopen") { resolveAction() }
                 if NotesWorkspace.hasOrphanedLinks(note, in: project) {
                     Button("Unlink Missing Target") { unlinkAction() }
