@@ -39,11 +39,11 @@ struct ScriptEditorView: View {
             )
         }
         .padding()
-        .onChange(of: searchText) { _ in
+        .onChange(of: searchText) { _, _ in
             selectedMatchIndex = 0
             navigateToSelectedMatch()
         }
-        .onChange(of: document.scriptText) { _ in
+        .onChange(of: document.scriptText) { _, _ in
             selectedMatchIndex = min(selectedMatchIndex, max(matches.count - 1, 0))
         }
     }
