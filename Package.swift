@@ -43,6 +43,9 @@ let package = Package(
             dependencies: [
                 "DreamJotterCore",
                 "SpecSupport"
+            ],
+            resources: [
+                .process("Fixtures/Localization")
             ]
         ),
         .testTarget(
