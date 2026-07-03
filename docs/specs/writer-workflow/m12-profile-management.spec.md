@@ -1,16 +1,28 @@
 # M12.1 Character and Location Management
 
-Status: implemented in portable core
+Status: implemented
 
 ## Purpose
 
-Provide safe lifecycle and bulk-edit workflows for canonical character and location profiles while keeping screenplay edits semantic, previewable, command-backed, snapshot-protected, Unicode-safe, and persistent.
+Provide safe lifecycle, CRUD, search, and bulk-edit workflows for canonical character and location profiles while keeping screenplay edits semantic, previewable, command-backed, snapshot-protected, Unicode-safe, and persistent.
 
 ## Profile Lifecycle Contract
 
 Archive state is stored as reserved project metadata inside the already persisted Pro-state envelope. Existing packages contain no archive markers and therefore decode every profile as active without migration or a package-format change.
 
 Archive and restore are reversible command operations. Profile removal is irreversible from current project state and requires explicit user confirmation. Removal clears links to the removed profile but does not rewrite screenplay text automatically.
+
+Persisted character and location profiles expose create, read, update, and confirmed delete operations in the macOS workspace. Detected screenplay entities remain derived projections and expose Convert and Ignore rather than independent CRUD.
+
+## Search and Filtering Contract
+
+Character and location workspaces provide Unicode-aware search across:
+
+- persisted profile display name;
+- persisted profile note;
+- unresolved detected entity name.
+
+The workspace exposes All, Profiles, and Detected scopes, visible result counts, clear actions, and explicit no-match states. Matching uses `TextNormalization.key`; stored graphemes are not rewritten during search.
 
 ## Duplicate Merge Contract
 
@@ -71,6 +83,6 @@ Removal, merge, and bulk rename set `requiresSnapshot` to true. Archive and rest
 
 Archive markers persist through the existing `pro.json` package section. Accepted profile, screenplay, note-link, scene-card, and snapshot mutations persist through their existing package sections. The package format version remains compatible.
 
-## Current UI Boundary
+## macOS Adapter Contract
 
-This slice implements the portable core and command contract. Confirmation and preview presentation remain UI responsibilities for a later focused adapter change. Core mutations do not change editor selection or scene-navigation state.
+The macOS workspace provides profile creation, editing, confirmed deletion, Unicode-aware search, detected-entity conversion, and ignore actions. Core lifecycle and bulk-rename behavior remains the source of truth. Metadata-only profile operations must not change editor cursor or scene-navigation state.
