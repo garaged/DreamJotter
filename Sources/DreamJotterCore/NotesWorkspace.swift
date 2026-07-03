@@ -111,7 +111,7 @@ public enum NotesWorkspace {
     }
 
     public static func unresolvedParsedTodos(in project: DreamJotterProject, now: Date) -> [ProjectNote] {
-        NotesIndex.detectedScriptTodos(in: project, now: now).filter { $0.status == .open }
+        LocalizedNotesProjection.unresolvedScriptTodos(in: project, now: now)
     }
 
     public static func orphanedLinks(for note: ProjectNote, in project: DreamJotterProject) -> [NoteLink] {
