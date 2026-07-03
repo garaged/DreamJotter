@@ -4,7 +4,7 @@ import Testing
 
 @Suite("M12.5 Complete Spanish UI Localization")
 struct LocalizationResourceTests {
-    private let requiredTables = ["Localizable", "Errors", "Review", "Settings"]
+    private let requiredTables = ["Localizable", "Errors", "Review", "Settings", "SpanishCorrections"]
 
     private var repositoryRoot: URL {
         URL(fileURLWithPath: #filePath)
@@ -54,6 +54,20 @@ struct LocalizationResourceTests {
         #expect(review["Numbering levels"] == "Niveles de numeración")
         #expect(review["Page"] == "Página")
         #expect(settings["Quit and reopen DreamJotter after changing the language to update the entire interface."] != nil)
+    }
+
+    @Test("Reviewed Spanish copy corrections remain in place")
+    func reviewedSpanishCopyCorrections() throws {
+        for locale in ["es-MX", "es-419"] {
+            let corrections = try stringsTable(locale: locale, table: "SpanishCorrections")
+
+            #expect(corrections["Script"] == "Guión")
+            #expect(corrections["Health Report"] == "Informe de estado")
+            #expect(corrections["All severities"] == "Todos los niveles de gravedad")
+            #expect(corrections["Open script TODO"] == "Abrir pendiente del guión")
+            #expect(corrections["Success"] == "Éxito")
+            #expect(corrections.values.allSatisfy { !$0.contains("guion") })
+        }
     }
 
     @Test("Spanish locale names are region appropriate")
