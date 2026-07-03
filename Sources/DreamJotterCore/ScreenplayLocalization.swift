@@ -96,7 +96,14 @@ public enum ScreenplayLexiconCatalog {
     }
 
     private static func normalizedAliases(_ aliases: [String: String]) -> [String: String] {
-        Dictionary(uniqueKeysWithValues: aliases.map { (TextNormalization.key(for: $0.key), $0.value) })
+        aliases.reduce(into: [:]) { result, alias in
+            let key = TextNormalization.key(for: alias.key)
+            if let existing = result[key], existing != alias.value {
+                assertionFailure("Conflicting screenplay title-page aliases normalize to \(key).")
+                return
+            }
+            result[key] = alias.value
+        }
     }
 
     private static func merged(primary: ScreenplayLexicon, secondary: ScreenplayLexicon) -> ScreenplayLexicon {
