@@ -15,12 +15,12 @@ struct HealthReportView: View {
             } else {
                 ForEach(Array(findings.enumerated()), id: \.offset) { _, finding in
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(finding.severity.rawValue.capitalized)
+                        Text(localizedSeverity(finding.severity.rawValue))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
-                        Text(finding.message)
+                        Text(localized(finding.message))
                         if let suggestedAction = finding.suggestedAction {
-                            Text(suggestedAction)
+                            Text(localized(suggestedAction))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -28,6 +28,19 @@ struct HealthReportView: View {
                     Divider()
                 }
             }
+        }
+    }
+
+    private func localized(_ value: String) -> String {
+        String(localized: String.LocalizationValue(value))
+    }
+
+    private func localizedSeverity(_ rawValue: String) -> String {
+        switch rawValue {
+        case "info": String(localized: "Information")
+        case "warning": String(localized: "Warning")
+        case "issue", "error": String(localized: "Issue")
+        default: localized(rawValue)
         }
     }
 }

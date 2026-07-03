@@ -39,22 +39,22 @@ struct ExportPickerView: View {
     private var title: String {
         switch state.sourceContext {
         case .workspace:
-            return "Export Project"
+            String(localized: "Export Project")
         case .reviewMode:
-            return "Export from Review Mode"
+            String(localized: "Export from Review Mode")
         case .backup:
-            return "Backup and Restore"
+            String(localized: "Backup and Restore")
         }
     }
 
     private var subtitle: String {
         switch state.sourceContext {
         case .workspace:
-            return "Choose a reader-friendly format and destination."
+            String(localized: "Choose a reader-friendly format and destination.")
         case .reviewMode:
-            return "The preview stays read-only while exports use the same project data."
+            String(localized: "The preview stays read-only while exports use the same project data.")
         case .backup:
-            return "Create or restore a structured DreamJotter backup."
+            String(localized: "Create or restore a structured DreamJotter backup.")
         }
     }
 
@@ -68,17 +68,17 @@ struct ExportPickerView: View {
                 set: { state.selectPreset($0, presets: presentedPresets) }
             )) {
                 ForEach(presentedPresets, id: \.id) { preset in
-                    Text(preset.title)
+                    Text(localized(preset.title))
                         .tag(preset.id)
                 }
             }
             .pickerStyle(.radioGroup)
 
             if let preset = state.selectedPreset(in: presentedPresets) {
-                Text(preset.goal)
+                Text(localized(preset.goal))
                     .foregroundStyle(.secondary)
                 if let warning = preset.privacyWarning {
-                    Label(warning, systemImage: "exclamationmark.triangle")
+                    Label(localized(warning), systemImage: "exclamationmark.triangle")
                         .foregroundStyle(.orange)
                         .font(.caption)
                 }
@@ -96,18 +96,18 @@ struct ExportPickerView: View {
                 set: { state.selectFormat($0, presets: presentedPresets) }
             )) {
                 ForEach(state.availableFormats) { format in
-                    Text(format.displayName)
+                    Text(localized(format.displayName))
                         .tag(format)
                         .disabled(state.disabledReason(for: format) != nil)
                 }
             }
             .pickerStyle(.segmented)
 
-            Text(state.selectedFormat.writerDescription)
+            Text(localized(state.selectedFormat.writerDescription))
                 .foregroundStyle(.secondary)
 
             if let reason = state.disabledReason(for: state.selectedFormat) {
-                Label(reason, systemImage: "info.circle")
+                Label(localized(reason), systemImage: "info.circle")
                     .foregroundStyle(.orange)
                     .font(.caption)
             }
@@ -120,7 +120,7 @@ struct ExportPickerView: View {
                 .font(.headline)
 
             HStack {
-                Text(state.destinationPath ?? "No destination selected.")
+                Text(state.destinationPath ?? String(localized: "No destination selected."))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .foregroundStyle(state.destinationPath == nil ? .secondary : .primary)
@@ -144,7 +144,7 @@ struct ExportPickerView: View {
     private var feedbackSection: some View {
         if let feedback = state.lastFeedback {
             VStack(alignment: .leading, spacing: 8) {
-                Label(feedback.userMessage, systemImage: iconName(for: feedback.kind))
+                Label(localized(feedback.userMessage), systemImage: iconName(for: feedback.kind))
                     .foregroundStyle(color(for: feedback.kind))
 
                 if let outputPath = feedback.outputPath {
@@ -189,29 +189,33 @@ struct ExportPickerView: View {
         }
     }
 
+    private func localized(_ value: String) -> String {
+        String(localized: String.LocalizationValue(value))
+    }
+
     private func iconName(for kind: ExportFeedbackKind) -> String {
         switch kind {
         case .success:
-            return "checkmark.circle"
+            "checkmark.circle"
         case .warning:
-            return "exclamationmark.triangle"
+            "exclamationmark.triangle"
         case .error:
-            return "xmark.octagon"
+            "xmark.octagon"
         case .canceled:
-            return "minus.circle"
+            "minus.circle"
         }
     }
 
     private func color(for kind: ExportFeedbackKind) -> Color {
         switch kind {
         case .success:
-            return .green
+            .green
         case .warning:
-            return .orange
+            .orange
         case .error:
-            return .red
+            .red
         case .canceled:
-            return .secondary
+            .secondary
         }
     }
 }

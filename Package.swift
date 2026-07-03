@@ -3,8 +3,9 @@ import PackageDescription
 
 let package = Package(
     name: "DreamJotter",
+    defaultLocalization: "en",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v14)
     ],
     products: [
         .executable(
@@ -32,13 +33,19 @@ let package = Package(
             dependencies: [
                 "DreamJotterCore"
             ],
-            path: "Apps/DreamJotterMac"
+            path: "Apps/DreamJotterMac",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "DreamJotterExecutableSpecs",
             dependencies: [
                 "DreamJotterCore",
                 "SpecSupport"
+            ],
+            resources: [
+                .process("Fixtures/Localization")
             ]
         ),
         .testTarget(

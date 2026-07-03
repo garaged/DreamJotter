@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "registry": "m12-writer-workflow-polish",
+  "items": [
+    {
+      "id": "M12-WRITER-WORKFLOW-POLISH",
+      "title": "Writer Workflow Polish",
+      "milestone": "M12",
+      "status": "implemented-pending-validation",
+      "spec": "docs/milestones/milestone-12-writer-workflow-polish.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md", "docs/adr/0002-local-first-dreamjotter-package.md"],
+      "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
+      "planned_modules": ["CommandEngine", "ProjectDocumentViewModel", "WriterOrganization", "SceneWorkflow", "Localization", "ScreenplayLanguageProfile", "LocalizationAudit"],
+      "guardrails": ["Project data remains local-first and Unicode-safe; localization never rewrites screenplay content; every required Spanish workflow uses localized labels, messages, statuses, and accessibility text."],
+      "notes": "All M12 slices are implemented. M12.3, M12.4, and M12.5 remain pending local build, test, UI, accessibility, and native-speaker validation."
+    },
+    {
+      "id": "M12-PROFILE-MANAGEMENT",
+      "title": "Character and Location Management",
+      "milestone": "M12.1",
+      "status": "implemented",
+      "spec": "docs/specs/writer-workflow/m12-profile-management.spec.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
+      "planned_modules": ["ProfileManagement", "CommandEngine"],
+      "guardrails": ["Profile lifecycle and bulk changes preserve project integrity."],
+      "notes": "Profile lifecycle, CRUD, search, rename, merge, and persistence are implemented."
+    },
+    {
+      "id": "M12-NOTES-WORKSPACE",
+      "title": "Notes and TODO Workspace",
+      "milestone": "M12.2",
+      "status": "implemented",
+      "spec": "docs/specs/writer-workflow/m12-notes-workspace.spec.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": ["docs/data-contracts/core-domain-model.md"],
+      "planned_modules": ["NotesWorkspace", "CommandEngine", "NotesView", "ProjectWorkspaceView"],
+      "guardrails": ["Note workflows preserve content, links, and snapshot safety."],
+      "notes": "Stored-note CRUD, filters, search, localized TODO projection, navigation, orphan handling, and persistence are implemented."
+    },
+    {
+      "id": "M12-SCENE-WORKFLOW",
+      "title": "Scene Workflow Polish",
+      "milestone": "M12.3",
+      "status": "implemented-pending-validation",
+      "spec": "docs/specs/writer-workflow/m12-scene-workflow.spec.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": [],
+      "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
+      "planned_modules": ["SceneWorkflow", "CommandEngine", "EditorNavigationState", "SceneWorkflowView"],
+      "guardrails": ["Planning order remains separate from screenplay order until explicitly applied."],
+      "notes": "Scene metadata, search, planning order, navigation, reorder, and persistence are implemented."
+    },
+    {
+      "id": "M12-LOCALIZATION-SPANISH",
+      "title": "Localization and Spanish Screenplay Support",
+      "milestone": "M12.4",
+      "status": "implemented-pending-validation",
+      "spec": "docs/specs/writer-workflow/m12-localization-spanish.spec.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md"],
+      "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
+      "planned_modules": ["ScreenplayLanguageProfile", "LocalizedParserLexicons", "LocalizedResources", "LocalizedDiagnostics", "EditorSuggestions"],
+      "guardrails": ["Application language and screenplay language remain independent; original screenplay text is preserved."],
+      "notes": "Spanish screenplay constructs, localization resources, diagnostics, project language persistence, fixtures, and executable coverage are implemented pending validation."
+    },
+    {
+      "id": "M12-FULL-SPANISH-UI",
+      "title": "Complete Spanish UI Localization",
+      "milestone": "M12.5",
+      "status": "implemented-pending-validation",
+      "spec": "docs/specs/writer-workflow/m12-full-ui-localization.spec.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md"],
+      "related_data_contracts": [],
+      "planned_modules": ["LocalizedResources", "LocalizationAudit", "LocalizedErrors", "LocalizedAccessibility", "SpanishUITests"],
+      "guardrails": ["Every required workflow is localized in es-MX and es-419; source screenplay content, identifiers, and file-format syntax are never translated."],
+      "notes": "Implemented 293-key es-MX and es-419 resources; localized navigation, profiles, scenes, notes, review, health, export, backup, restore, panels, runtime messages, statuses, suggestions, and accessibility labels; added a source audit and localization resource tests. Manual layout, VoiceOver, native-speaker, and full-suite validation remain."
+    }
+  ]
+}

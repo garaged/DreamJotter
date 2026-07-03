@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+APP_EXECUTABLE="DreamJotterMac"
+APP_DISPLAY_NAME="DreamJotter"
+BUNDLE_IDENTIFIER="com.garaged.DreamJotter"
+VERSION="0.1.0"
+BUILD_NUMBER="1"
+
+REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DIST_DIR="${REPOSITORY_ROOT}/dist"
+APP_DIR="${DIST_DIR}/${APP_DISPLAY_NAME}.app"
+EXECUTABLE_PATH="${APP_DIR}/Contents/MacOS/${APP_EXECUTABLE}"
+ZIP_PATH="${DIST_DIR}/${APP_DISPLAY_NAME}-${VERSION}-first-tester.zip"
+
+cd "${REPOSITORY_ROOT}"
+
+echo "Building ${APP_EXECUTABLE}..."
+swift build -c release --product "${APP_EXECUTABLE}"
+
+SOURCE_EXECUTABLE="${REPOSITORY_ROOT}/.build/release/${APP_EXECUTABLE}"
+
+if [[ ! -f "${SOURCE_EXECUTABLE}" ]]; then
+    echo "Error: executable not found at ${SOURCE_EXECUTABLE}" >&2
+    exit 1
+fi
+
+echo "Creating application bundle..."
+rm -rf "${APP_DIR}"
+mkdir -p "${APP_DIR}/Contents/MacOS"
+mkdir -p "${APP_DIR}/Contents/Resources"
+
+cp "${SOURCE_EXECUTABLE}" "${EXECUTABLE_PATH}"
+chmod +x "${EXECUTABLE_PATH}"
+
+cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>${APP_EXECUTABLE}</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>${BUNDLE_IDENTIFIER}</string>
+
+    <key>CFBundleName</key>
+    <string>${APP_DISPLAY_NAME}</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>${APP_DISPLAY_NAME}</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>${VERSION}</string>
+
+    <key>CFBundleVersion</key>
+    <string>${BUILD_NUMBER}</string>
+
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+
+    <key>NSHighResolutionCapable</key>
+    <true/>
+
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.productivity</string>
+</dict>
+</plist>
+PLIST
+
+echo "Signing application bundle..."
+codesign --force --deep --sign - "${APP_DIR}"
+
+echo "Verifying signature..."
+codesign --verify --deep --strict --verbose=2 "${APP_DIR}"
+
+echo "Creating ZIP archive..."
+rm -f "${ZIP_PATH}"
+ditto -c -k --keepParent "${APP_DIR}" "${ZIP_PATH}"
+
+echo
+echo "Created:"
+echo "  App: ${APP_DIR}"
+echo "  ZIP: ${ZIP_PATH}"

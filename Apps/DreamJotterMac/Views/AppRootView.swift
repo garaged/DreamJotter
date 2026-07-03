@@ -39,17 +39,11 @@ struct AppRootView: View {
         .frame(minWidth: 1100, minHeight: 720)
         .background(WindowCloseGuardView(allowClose: $allowWindowClose, shouldClose: requestWindowClose))
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterNewProject)) { _ in
-            createProject("Untitled")
+            createProject(String(localized: "Untitled"))
         }
-        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterOpenProject)) { _ in
-            openProject()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterSaveProject)) { _ in
-            saveProject()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterSaveProjectAs)) { _ in
-            _ = saveProjectAs()
-        }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterOpenProject)) { _ in openProject() }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterSaveProject)) { _ in saveProject() }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterSaveProjectAs)) { _ in _ = saveProjectAs() }
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterExportFountain)) { _ in
             openExportPicker(sourceContext: .workspace, preferredFormat: .fountain)
         }
@@ -79,12 +73,8 @@ struct AppRootView: View {
             get: { replacementConfirmationMessage != nil },
             set: { if !$0 { replacementConfirmationMessage = nil } }
         )) {
-            Button("Save") {
-                saveAndConfirmPendingReplacement()
-            }
-            Button("Discard Changes", role: .destructive) {
-                discardPendingReplacement()
-            }
+            Button("Save") { saveAndConfirmPendingReplacement() }
+            Button("Discard Changes", role: .destructive) { discardPendingReplacement() }
             Button("Cancel", role: .cancel) {
                 appModel.cancelPendingReplacement()
                 replacementConfirmationMessage = nil
@@ -96,12 +86,8 @@ struct AppRootView: View {
             get: { restoreConfirmationMessage != nil },
             set: { if !$0 { restoreConfirmationMessage = nil } }
         )) {
-            Button("Save and Restore") {
-                saveAndConfirmPendingRestore()
-            }
-            Button("Discard and Restore", role: .destructive) {
-                discardPendingRestore()
-            }
+            Button("Save and Restore") { saveAndConfirmPendingRestore() }
+            Button("Discard and Restore", role: .destructive) { discardPendingRestore() }
             Button("Cancel", role: .cancel) {
                 appModel.cancelPendingRestore()
                 restoreConfirmationMessage = nil
@@ -115,7 +101,7 @@ struct AppRootView: View {
     private var windowTitle: String {
         guard let document = appModel.currentDocument else { return "DreamJotter" }
         let unsavedMarker = document.isDirty ? " *" : ""
-        let location = document.packageURL == nil ? " - Unsaved" : ""
+        let location = document.packageURL == nil ? " - \(String(localized: "Unsaved"))" : ""
         return "\(document.project.metadata.title)\(unsavedMarker)\(location)"
     }
 
@@ -124,25 +110,22 @@ struct AppRootView: View {
     }
 
     private func createProject(_ title: String) {
-        let decision = appModel.requestNewProject(title: title)
-        presentReplacementDecision(decision)
+        presentReplacementDecision(appModel.requestNewProject(title: title))
     }
 
     private func openProject() {
         let panel = NSOpenPanel()
-        panel.title = "Open DreamJotter Package"
+        panel.title = String(localized: "Open DreamJotter Package")
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-
         guard panel.runModal() == .OK, let url = panel.url else { return }
         openRecentProject(url)
     }
 
     private func openRecentProject(_ url: URL) {
         do {
-            let decision = try appModel.requestOpenPackage(at: url)
-            presentReplacementDecision(decision)
+            presentReplacementDecision(try appModel.requestOpenPackageRespectingLanguage(at: url))
         } catch {
             appModel.forgetInvalidRecentProject(url)
             present(error, operation: .recentProjectOpen)
@@ -151,8 +134,7 @@ struct AppRootView: View {
 
     private func saveProject() {
         do {
-            let result = try appModel.saveCurrentProject()
-            if result == .requiresSaveAs {
+            if try appModel.saveCurrentProjectRespectingLanguage() == .requiresSaveAs {
                 saveProjectAs()
             }
         } catch {
@@ -161,35 +143,30 @@ struct AppRootView: View {
     }
 
     private func closeProject() {
-        let decision = appModel.requestCloseProject()
-        presentReplacementDecision(decision)
+        presentReplacementDecision(appModel.requestCloseProject())
     }
 
     private func requestWindowClose() -> Bool {
-        let decision = appModel.requestCloseWindow()
-        switch decision {
+        switch appModel.requestCloseWindow() {
         case .replaced:
             return true
         case .requiresConfirmation(let message):
-            replacementConfirmationMessage = message
+            replacementConfirmationMessage = localized(message)
             return false
         }
     }
 
     private func presentReplacementDecision(_ decision: ProjectReplacementDecision) {
         if case .requiresConfirmation(let message) = decision {
-            replacementConfirmationMessage = message
+            replacementConfirmationMessage = localized(message)
         }
     }
 
     private func saveAndConfirmPendingReplacement() {
         let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
         do {
-            let result = try appModel.saveAndConfirmPendingReplacement()
-            if result == .requiresSaveAs {
-                _ = saveProjectAs {
-                    finishPendingReplacementAfterSave(shouldCloseWindow: shouldCloseWindow)
-                }
+            if try appModel.saveAndConfirmPendingReplacementRespectingLanguage() == .requiresSaveAs {
+                _ = saveProjectAs { finishPendingReplacementAfterSave(shouldCloseWindow: shouldCloseWindow) }
                 return
             }
             replacementConfirmationMessage = nil
@@ -214,7 +191,7 @@ struct AppRootView: View {
 
     private func finishPendingReplacementAfterSave(shouldCloseWindow: Bool) {
         do {
-            try appModel.confirmPendingReplacementAfterExternalSave()
+            try appModel.confirmPendingReplacementAfterExternalSaveRespectingLanguage()
             replacementConfirmationMessage = nil
             closeWindowIfNeeded(shouldCloseWindow)
         } catch {
@@ -225,14 +202,11 @@ struct AppRootView: View {
 
     private func saveAndConfirmPendingRestore() {
         do {
-            let result = try appModel.saveAndConfirmPendingRestore()
-            switch result {
+            switch try appModel.saveAndConfirmPendingRestoreRespectingLanguage() {
             case .restored(let restoreResult):
                 finishRestore(restoreResult)
             case .requiresSaveAs:
-                let saveResult = saveProjectAs {
-                    finishPendingRestoreAfterSave()
-                }
+                let saveResult = saveProjectAs { finishPendingRestoreAfterSave() }
                 if saveResult == .canceled {
                     appModel.cancelPendingRestore()
                     restoreConfirmationMessage = nil
@@ -246,14 +220,12 @@ struct AppRootView: View {
     }
 
     private func discardPendingRestore() {
-        let result = appModel.discardPendingRestore()
-        finishRestore(result)
+        finishRestore(appModel.discardPendingRestoreRespectingLanguage())
     }
 
     private func finishPendingRestoreAfterSave() {
         do {
-            let result = try appModel.confirmPendingRestoreAfterExternalSave()
-            finishRestore(result)
+            finishRestore(try appModel.confirmPendingRestoreAfterExternalSaveRespectingLanguage())
         } catch {
             restoreConfirmationMessage = nil
             present(error, operation: .save)
@@ -266,23 +238,23 @@ struct AppRootView: View {
         case .restored:
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .success,
-                userMessage: result.userMessage,
+                userMessage: localized(result.userMessage),
                 technicalDetail: result.technicalDetail,
                 sourceOperation: "restore"
             ))
             isExportPickerPresented = false
         case .confirmationRequired:
-            restoreConfirmationMessage = result.userMessage
+            restoreConfirmationMessage = localized(result.userMessage)
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .warning,
-                userMessage: result.userMessage,
+                userMessage: localized(result.userMessage),
                 technicalDetail: result.technicalDetail,
                 sourceOperation: "restore"
             ))
         case .failed:
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .error,
-                userMessage: result.userMessage,
+                userMessage: localized(result.userMessage),
                 technicalDetail: result.technicalDetail,
                 sourceOperation: "restore"
             ))
@@ -300,19 +272,17 @@ struct AppRootView: View {
     private func saveProjectAs(afterSuccessfulSave: (() -> Void)? = nil) -> SaveAsRequestResult {
         guard let document = appModel.currentDocument else { return .canceled }
         let panel = NSSavePanel()
-        panel.title = "Save DreamJotter Package"
+        panel.title = String(localized: "Save DreamJotter Package")
         panel.nameFieldStringValue = "\(document.project.metadata.title).dreamjotter"
         panel.canCreateDirectories = true
-
         guard panel.runModal() == .OK, let selectedURL = panel.url else {
             return appModel.cancelSaveAs()
         }
         let packageURL = selectedURL.pathExtension == "dreamjotter"
             ? selectedURL
             : selectedURL.appendingPathExtension("dreamjotter")
-
         do {
-            let result = try appModel.saveCurrentProject(to: packageURL)
+            let result = try appModel.saveCurrentProjectRespectingLanguage(to: packageURL)
             afterSuccessfulSave?()
             return result
         } catch {
@@ -323,9 +293,7 @@ struct AppRootView: View {
 
     private func openExportPicker(sourceContext: ExportSourceContext, preferredFormat: ExportFormat? = nil) {
         var state = ExportUIState.initial(presets: exportPresets, sourceContext: sourceContext)
-        if let preferredFormat {
-            state.selectFormat(preferredFormat, presets: exportPresets)
-        }
+        if let preferredFormat { state.selectFormat(preferredFormat, presets: exportPresets) }
         exportUIState = state
         isExportPickerPresented = true
     }
@@ -333,77 +301,76 @@ struct AppRootView: View {
     private func chooseExportDestination() {
         guard let document = appModel.currentDocument else { return }
         let panel = NSSavePanel()
-        panel.title = exportUIState.selectedFormat == .jsonBackup ? "Create DreamJotter Backup" : "Export DreamJotter Project"
+        panel.title = exportUIState.selectedFormat == .jsonBackup
+            ? String(localized: "Create DreamJotter Backup")
+            : String(localized: "Export DreamJotter Project")
         panel.nameFieldStringValue = suggestedExportFilename(for: document)
         panel.canCreateDirectories = true
-
         guard panel.runModal() == .OK, let selectedURL = panel.url else {
             exportUIState.setDestination(nil)
             return
         }
-
         let fileExtension = exportUIState.selectedFormat.fileExtension
-        let exportURL = selectedURL.pathExtension == fileExtension
-            ? selectedURL
-            : selectedURL.appendingPathExtension(fileExtension)
-        exportUIState.setDestination(exportURL)
+        exportUIState.setDestination(
+            selectedURL.pathExtension == fileExtension ? selectedURL : selectedURL.appendingPathExtension(fileExtension)
+        )
     }
 
     private func performSelectedExport() {
         guard let document = appModel.currentDocument,
               let preset = exportUIState.selectedPreset(in: exportPresets) else { return }
-
-        if exportUIState.destinationPath == nil {
-            chooseExportDestination()
-        }
-
+        if exportUIState.destinationPath == nil { chooseExportDestination() }
         guard let request = exportUIState.makeRequest(projectID: document.project.metadata.id) else {
             exportUIState.applyFeedback(.canceled(sourceOperation: "export"))
             return
         }
-
         exportUIState.beginExport()
         let feedback = appModel.exportCurrentProject(request: request, preset: preset)
-        exportUIState.applyFeedback(feedback)
+        exportUIState.applyFeedback(ExportFeedback(
+            kind: feedback.kind,
+            userMessage: localized(feedback.userMessage),
+            technicalDetail: feedback.technicalDetail,
+            outputPath: feedback.outputPath,
+            canRevealInFinder: feedback.canRevealInFinder,
+            sourceOperation: feedback.sourceOperation
+        ))
     }
 
     private func restoreBackup() {
         let panel = NSOpenPanel()
-        panel.title = "Restore DreamJotter Backup"
+        panel.title = String(localized: "Restore DreamJotter Backup")
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
-
         guard panel.runModal() == .OK, let url = panel.url else {
             exportUIState.applyFeedback(.canceled(sourceOperation: "restore"))
             return
         }
-
         do {
             let data = try Data(contentsOf: url)
-            let result = appModel.restoreBackup(from: data)
+            let result = appModel.restoreBackupRespectingLanguage(from: data)
             switch result.status {
             case .restored:
                 exportUIState.applyFeedback(ExportFeedback(
                     kind: .success,
-                    userMessage: result.userMessage,
+                    userMessage: localized(result.userMessage),
                     outputPath: url.path,
                     canRevealInFinder: false,
                     sourceOperation: "restore"
                 ))
                 isExportPickerPresented = false
             case .confirmationRequired:
-                restoreConfirmationMessage = result.userMessage
+                restoreConfirmationMessage = localized(result.userMessage)
                 exportUIState.applyFeedback(ExportFeedback(
                     kind: .warning,
-                    userMessage: result.userMessage,
+                    userMessage: localized(result.userMessage),
                     technicalDetail: result.technicalDetail,
                     sourceOperation: "restore"
                 ))
             case .failed:
                 exportUIState.applyFeedback(ExportFeedback(
                     kind: .error,
-                    userMessage: result.userMessage,
+                    userMessage: localized(result.userMessage),
                     technicalDetail: result.technicalDetail,
                     sourceOperation: "restore"
                 ))
@@ -412,7 +379,7 @@ struct AppRootView: View {
             let appError = AppError.wrap(error, operation: .open)
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .error,
-                userMessage: appError.userMessage,
+                userMessage: localized(appError.userMessage),
                 technicalDetail: appError.technicalDetail,
                 sourceOperation: "restore"
             ))
@@ -421,8 +388,8 @@ struct AppRootView: View {
 
     private func suggestedExportFilename(for document: ProjectDocumentViewModel) -> String {
         let preset = exportUIState.selectedPreset(in: exportPresets)
-        let base = "\(document.project.metadata.title) - \(preset?.filenameSuggestion ?? exportUIState.selectedFormat.displayName)"
-        return "\(base).\(exportUIState.selectedFormat.fileExtension)"
+        let suggestion = preset?.filenameSuggestion ?? exportUIState.selectedFormat.displayName
+        return "\(document.project.metadata.title) - \(localized(suggestion)).\(exportUIState.selectedFormat.fileExtension)"
     }
 
     private func revealInFinder(_ path: String) {
@@ -430,7 +397,19 @@ struct AppRootView: View {
     }
 
     private func present(_ error: Error, operation: AppErrorSourceOperation) {
-        errorMessage = AppError.wrap(error, operation: operation).localizedDescription
+        let appError = AppError.wrap(error, operation: operation)
+        let message = localized(appError.userMessage)
+        if let recovery = appError.recoverySuggestion, !recovery.isEmpty {
+            errorMessage = "\(message) \(localized(recovery))"
+        } else {
+            errorMessage = message
+        }
+    }
+
+    private func localized(_ value: String) -> String {
+        let errorValue = Bundle.main.localizedString(forKey: value, value: value, table: "Errors")
+        if errorValue != value { return errorValue }
+        return Bundle.main.localizedString(forKey: value, value: value, table: "Localizable")
     }
 }
 

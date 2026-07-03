@@ -1,38 +1,75 @@
 import DreamJotterCore
 import SwiftUI
 
+private enum LocationListScope: String, CaseIterable, Identifiable {
+    case all
+    case profiles
+    case detected
+
+    var id: String { rawValue }
+
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .all: "All"
+        case .profiles: "Profiles"
+        case .detected: "Detected"
+        }
+    }
+}
+
 struct LocationListView: View {
     let locations: [LocationRecord]
     let unresolvedDetectedLocations: [DetectedLocation]
     let createAction: (String, String) -> Void
     let updateAction: (LocationRecord, String, String) -> Void
+    let deleteAction: (LocationRecord) -> Void
     let convertAction: (DetectedLocation) -> Void
     let ignoreAction: (DetectedLocation) -> Void
+
     @State private var newLocationName = ""
     @State private var newLocationNote = ""
+    @State private var searchText = ""
+    @State private var scope: LocationListScope = .all
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Locations")
-                .font(.headline)
-
+            Text("Locations").font(.headline)
+            filterBar
             createProfileSection
-            profilesSection
-            detectedSection
+            if scope != .detected { profilesSection }
+            if scope != .profiles { detectedSection }
+        }
+    }
+
+    private var filterBar: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                TextField("Search location names and notes", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+                Picker("Scope", selection: $scope) {
+                    ForEach(LocationListScope.allCases) { Text($0.localizedTitle).tag($0) }
+                }
+                .frame(width: 130)
+                if !searchText.isEmpty {
+                    Button("Clear") { searchText = "" }
+                }
+            }
+            HStack(spacing: 4) {
+                Text("Profiles")
+                Text(filteredProfiles.count.formatted())
+                Text("Detected")
+                Text(filteredDetections.count.formatted())
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
     private var createProfileSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Add Profile")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            TextField("Location name", text: $newLocationName)
-                .textFieldStyle(.roundedBorder)
-            TextField("Notes", text: $newLocationNote, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
-
+            Text("Add Profile").font(.subheadline).foregroundStyle(.secondary)
+            TextField("Location name", text: $newLocationName).textFieldStyle(.roundedBorder)
+            TextField("Notes", text: $newLocationNote, axis: .vertical).textFieldStyle(.roundedBorder)
             Button("Add Location") {
                 createAction(newLocationName, newLocationNote)
                 newLocationName = ""
@@ -45,17 +82,13 @@ struct LocationListView: View {
     @ViewBuilder
     private var profilesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Profiles")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            let profiles = locations.filter { $0.source != .detected }
-            if profiles.isEmpty {
-                Text("No location profiles yet. Add one here or convert a detected location from a scene heading.")
+            Text("Profiles").font(.subheadline).foregroundStyle(.secondary)
+            if filteredProfiles.isEmpty {
+                Text(emptyProfilesMessage)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(profiles, id: \.id) { location in
-                    LocationProfileRow(location: location, updateAction: updateAction)
+                ForEach(filteredProfiles, id: \.id) { location in
+                    LocationProfileRow(location: location, updateAction: updateAction, deleteAction: deleteAction)
                 }
             }
         }
@@ -64,65 +97,97 @@ struct LocationListView: View {
     @ViewBuilder
     private var detectedSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Detected in Scene Headings")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            if unresolvedDetectedLocations.isEmpty {
-                Text("No unresolved detected locations. Scene heading locations without profiles will appear here.")
+            Text("Detected in Scene Headings").font(.subheadline).foregroundStyle(.secondary)
+            if filteredDetections.isEmpty {
+                Text(emptyDetectionsMessage)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(unresolvedDetectedLocations, id: \.id) { detection in
+                ForEach(filteredDetections, id: \.id) { detection in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(detection.name)
-                                .lineLimit(1)
-                            Text("\(detection.sceneCount) scene\(detection.sceneCount == 1 ? "" : "s")")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            Text(detection.name).lineLimit(1)
+                            HStack(spacing: 4) {
+                                Text(detection.sceneCount.formatted())
+                                Text(sceneLabel(for: detection.sceneCount))
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
-
                         Spacer()
-
-                        Button("Convert") {
-                            convertAction(detection)
-                        }
-
-                        Button("Ignore") {
-                            ignoreAction(detection)
-                        }
+                        Button("Convert") { convertAction(detection) }
+                        Button("Ignore") { ignoreAction(detection) }
                     }
                 }
             }
         }
+    }
+
+    private var emptyProfilesMessage: LocalizedStringKey {
+        searchText.isEmpty ? "No location profiles yet." : "No location profiles match the search."
+    }
+
+    private var emptyDetectionsMessage: LocalizedStringKey {
+        searchText.isEmpty ? "No unresolved detected locations." : "No detected locations match the search."
+    }
+
+    private func sceneLabel(for count: Int) -> LocalizedStringKey {
+        count == 1 ? "scene" : "scenes"
+    }
+
+    private var filteredProfiles: [LocationRecord] {
+        let profiles = locations.filter { $0.source != .detected }
+        guard !normalizedSearch.isEmpty else { return profiles }
+        return profiles.filter {
+            TextNormalization.key(for: "\($0.displayName) \($0.note)").contains(normalizedSearch)
+        }
+    }
+
+    private var filteredDetections: [DetectedLocation] {
+        guard !normalizedSearch.isEmpty else { return unresolvedDetectedLocations }
+        return unresolvedDetectedLocations.filter {
+            TextNormalization.key(for: $0.name).contains(normalizedSearch)
+        }
+    }
+
+    private var normalizedSearch: String {
+        TextNormalization.key(for: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 }
 
 private struct LocationProfileRow: View {
     let location: LocationRecord
     let updateAction: (LocationRecord, String, String) -> Void
+    let deleteAction: (LocationRecord) -> Void
     @State private var name: String
     @State private var note: String
+    @State private var confirmRemoval = false
 
-    init(location: LocationRecord, updateAction: @escaping (LocationRecord, String, String) -> Void) {
+    init(location: LocationRecord, updateAction: @escaping (LocationRecord, String, String) -> Void, deleteAction: @escaping (LocationRecord) -> Void) {
         self.location = location
         self.updateAction = updateAction
+        self.deleteAction = deleteAction
         _name = State(initialValue: location.displayName)
         _note = State(initialValue: location.note)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            TextField("Location name", text: $name)
-                .textFieldStyle(.roundedBorder)
-            TextField("Notes", text: $note, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
-            Button("Save Profile") {
-                updateAction(location, name, note)
+            TextField("Location name", text: $name).textFieldStyle(.roundedBorder)
+            TextField("Notes", text: $note, axis: .vertical).textFieldStyle(.roundedBorder)
+            HStack {
+                Button("Save Profile") { updateAction(location, name, note) }
+                    .disabled(!hasChanges || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                Spacer()
+                Button("Delete", role: .destructive) { confirmRemoval = true }
             }
-            .disabled(!hasChanges || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding(.vertical, 4)
+        .confirmationDialog("Delete \(location.displayName)?", isPresented: $confirmRemoval, titleVisibility: .visible) {
+            Button("Delete Location", role: .destructive) { deleteAction(location) }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("DreamJotter creates a snapshot first. Scene headings remain unchanged.")
+        }
     }
 
     private var hasChanges: Bool {

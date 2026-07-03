@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""Validate DreamJotter macOS localization coverage."""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+UI_PATTERNS = [
+    re.compile(r'\b(?:Text|Button|Label|TextField|SecureField|Picker|Section|GroupBox|Menu|Toggle)\(\s*"((?:[^"\\]|\\.)*)"'),
+    re.compile(r'\.(?:help|navigationTitle|accessibilityLabel|accessibilityHint)\(\s*"((?:[^"\\]|\\.)*)"'),
+    re.compile(r'\b(?:confirmationDialog|alert)\(\s*"((?:[^"\\]|\\.)*)"'),
+    re.compile(r'\bString\(localized:\s*"((?:[^"\\]|\\.)*)"'),
+]
+STRINGS_ENTRY = re.compile(r'^\s*"((?:[^"\\]|\\.)*)"\s*=\s*"((?:[^"\\]|\\.)*)"\s*;\s*$')
+ALLOWLIST = {
+    "DreamJotter", "TextKit", "TextEditor", "Fountain", "FDX", "PDF", "JSON", "Markdown",
+    "Numbering levels", "Page", "Paragraph", "Line",
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--target", default="Apps/DreamJotterMac")
+    parser.add_argument("--resources", default="Apps/DreamJotterMac/Resources")
+    parser.add_argument("--locales", default="es-MX,es-419")
+    return parser.parse_args()
+
+
+def decode_literal(value: str) -> str:
+    return value.replace(r'\"', '"').replace(r'\\', '\\').replace(r'\n', '\n')
+
+
+def swift_literals(root: Path) -> set[str]:
+    values: set[str] = set()
+    for path in root.rglob("*.swift"):
+        text = path.read_text(encoding="utf-8")
+        for pattern in UI_PATTERNS:
+            for match in pattern.finditer(text):
+                if r"\(" in match.group(1):
+                    continue
+                value = decode_literal(match.group(1))
+                if value and value not in ALLOWLIST:
+                    values.add(value)
+    return values
+
+
+def read_strings(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip() or line.lstrip().startswith(("//", "/*", "*")):
+            continue
+        match = STRINGS_ENTRY.match(line)
+        if not match:
+            raise ValueError(f"{path}:{line_number}: invalid .strings entry")
+        key, value = map(decode_literal, match.groups())
+        if key in values:
+            raise ValueError(f"{path}:{line_number}: duplicate key {key}")
+        values[key] = value
+    return values
+
+
+def locale_tables(resources: Path, locale: str) -> dict[str, dict[str, str]]:
+    directory = resources / f"{locale}.lproj"
+    return {path.stem: read_strings(path) for path in sorted(directory.glob("*.strings"))}
+
+
+def compare_tables(locales: list[str], tables: dict[str, dict[str, dict[str, str]]], errors: list[str]) -> None:
+    if not locales:
+        return
+    reference_locale = locales[0]
+    reference_tables = tables.get(reference_locale, {})
+    for locale in locales[1:]:
+        current_tables = tables.get(locale, {})
+        if set(reference_tables) != set(current_tables):
+            errors.append(f"table set differs between {reference_locale} and {locale}")
+        for table_name, reference in reference_tables.items():
+            current = current_tables.get(table_name, {})
+            for key in sorted(set(reference) - set(current)):
+                errors.append(f"{table_name}.{key}: absent from {locale}")
+            for key in sorted(set(current) - set(reference)):
+                errors.append(f"{table_name}.{key}: only present in {locale}")
+            for key, value in current.items():
+                if not value.strip():
+                    errors.append(f"{table_name}.{key}: empty {locale} translation")
+
+
+def main() -> int:
+    args = parse_args()
+    locales = [item.strip() for item in args.locales.split(",") if item.strip()]
+    resources = Path(args.resources)
+    required = swift_literals(Path(args.target))
+    errors: list[str] = []
+    tables: dict[str, dict[str, dict[str, str]]] = {}
+
+    for locale in locales:
+        try:
+            tables[locale] = locale_tables(resources, locale)
+        except ValueError as error:
+            errors.append(str(error))
+            continue
+        if "Localizable" not in tables[locale]:
+            errors.append(f"missing Localizable.strings for {locale}")
+
+    for key in sorted(required):
+        for locale in locales:
+            value = tables.get(locale, {}).get("Localizable", {}).get(key, "")
+            if not value.strip():
+                errors.append(f"{key}: missing {locale} translation")
+
+    compare_tables(locales, tables, errors)
+
+    if errors:
+        print("Localization audit failed:")
+        for error in errors:
+            print(f"- {error}")
+        return 1
+
+    table_count = sum(len(locale_tables) for locale_tables in tables.values())
+    print(f"Localization audit passed: {len(required)} UI keys, {table_count} locale tables")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

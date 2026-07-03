@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PRODUCT="DreamJotterMac"
+DEPLOYMENT_TARGET="14.0"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILD_ROOT="${BUILD_ROOT:-/private/tmp/DreamJotterUniversalBuild}"
+OUTPUT_DIR="${OUTPUT_DIR:-${ROOT_DIR}/dist/DreamJotterMac-universal}"
+ARM_SCRATCH="${BUILD_ROOT}/arm64"
+INTEL_SCRATCH="${BUILD_ROOT}/x86_64"
+
+require_tool() {
+    command -v "$1" >/dev/null 2>&1 || {
+        echo "error: required tool '$1' was not found" >&2
+        exit 1
+    }
+}
+
+require_tool swift
+require_tool xcrun
+require_tool lipo
+require_tool file
+
+mkdir -p "${BUILD_ROOT}"
+rm -rf "${ARM_SCRATCH}" "${INTEL_SCRATCH}" "${OUTPUT_DIR}"
+mkdir -p "${OUTPUT_DIR}"
+
+build_architecture() {
+    local architecture="$1"
+    local scratch_path="$2"
+    local triple="${architecture}-apple-macosx${DEPLOYMENT_TARGET}"
+
+    echo "Building ${PRODUCT} for ${architecture}..."
+    CLANG_MODULE_CACHE_PATH="${BUILD_ROOT}/clang-module-cache-${architecture}" \
+    xcrun --sdk macosx swift build \
+        --product "${PRODUCT}" \
+        --configuration release \
+        --triple "${triple}" \
+        --disable-sandbox \
+        --scratch-path "${scratch_path}"
+}
+
+binary_path() {
+    local architecture="$1"
+    local scratch_path="$2"
+    local triple="${architecture}-apple-macosx${DEPLOYMENT_TARGET}"
+    local bin_path
+
+    bin_path="$(
+        CLANG_MODULE_CACHE_PATH="${BUILD_ROOT}/clang-module-cache-${architecture}" \
+        xcrun --sdk macosx swift build \
+            --show-bin-path \
+            --configuration release \
+            --triple "${triple}" \
+            --disable-sandbox \
+            --scratch-path "${scratch_path}"
+    )"
+
+    printf '%s/%s' "${bin_path}" "${PRODUCT}"
+}
+
+build_architecture arm64 "${ARM_SCRATCH}"
+build_architecture x86_64 "${INTEL_SCRATCH}"
+
+ARM_BINARY="$(binary_path arm64 "${ARM_SCRATCH}")"
+INTEL_BINARY="$(binary_path x86_64 "${INTEL_SCRATCH}")"
+UNIVERSAL_BINARY="${OUTPUT_DIR}/${PRODUCT}"
+
+[[ -x "${ARM_BINARY}" ]] || { echo "error: missing arm64 binary at ${ARM_BINARY}" >&2; exit 1; }
+[[ -x "${INTEL_BINARY}" ]] || { echo "error: missing x86_64 binary at ${INTEL_BINARY}" >&2; exit 1; }
+
+lipo -create \
+    "${ARM_BINARY}" \
+    "${INTEL_BINARY}" \
+    -output "${UNIVERSAL_BINARY}"
+chmod +x "${UNIVERSAL_BINARY}"
+
+ARM_BIN_DIR="$(dirname "${ARM_BINARY}")"
+while IFS= read -r -d '' resource_bundle; do
+    cp -R "${resource_bundle}" "${OUTPUT_DIR}/"
+done < <(find "${ARM_BIN_DIR}" -maxdepth 1 -type d -name '*.bundle' -print0)
+
+ARCHITECTURES="$(lipo -archs "${UNIVERSAL_BINARY}")"
+case " ${ARCHITECTURES} " in
+    *" arm64 "*) ;;
+    *) echo "error: universal binary is missing arm64" >&2; exit 1 ;;
+esac
+case " ${ARCHITECTURES} " in
+    *" x86_64 "*) ;;
+    *) echo "error: universal binary is missing x86_64" >&2; exit 1 ;;
+esac
+
+echo
+echo "Universal build complete:"
+echo "  ${UNIVERSAL_BINARY}"
+echo "  Architectures: ${ARCHITECTURES}"
+file "${UNIVERSAL_BINARY}"

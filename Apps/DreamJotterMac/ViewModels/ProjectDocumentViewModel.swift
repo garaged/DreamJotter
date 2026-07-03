@@ -71,61 +71,20 @@ struct ProjectDocumentViewModel: Equatable {
         )
     }
 
-    var scenes: [Scene] {
-        project.screenplay.scenes
-    }
-
-    var characters: [CharacterRecord] {
-        CharacterManager.records(for: project, now: project.metadata.modifiedAt)
-    }
-
-    var detectedCharacters: [DetectedCharacter] {
-        CharacterManager.detectedCharacters(for: project)
-    }
-
-    var unresolvedDetectedCharacters: [DetectedCharacter] {
-        CharacterManager.unresolvedDetectedCharacters(for: project)
-    }
-
-    var locations: [LocationRecord] {
-        LocationManager.records(for: project, now: project.metadata.modifiedAt)
-    }
-
-    var detectedLocations: [DetectedLocation] {
-        LocationManager.detectedLocations(for: project)
-    }
-
-    var unresolvedDetectedLocations: [DetectedLocation] {
-        LocationManager.unresolvedDetectedLocations(for: project)
-    }
-
-    var sceneCards: [SceneCard] {
-        SceneCardBuilder.cards(for: project)
-    }
-
-    var notes: [ProjectNote] {
-        project.notes
-    }
-
-    var openNotes: [ProjectNote] {
-        NotesIndex.openNotes(in: project)
-    }
-
-    var scriptTodoNotes: [ProjectNote] {
-        NotesIndex.detectedScriptTodos(in: project, now: project.metadata.modifiedAt)
-    }
-
-    var loglineText: String {
-        project.story.logline?.text ?? ""
-    }
-
-    var synopsisText: String {
-        project.story.synopsis?.text ?? ""
-    }
-
-    var healthFindings: [HealthFinding] {
-        HealthReport.findings(for: project)
-    }
+    var scenes: [Scene] { project.screenplay.scenes }
+    var characters: [CharacterRecord] { CharacterManager.records(for: project, now: project.metadata.modifiedAt) }
+    var detectedCharacters: [DetectedCharacter] { CharacterManager.detectedCharacters(for: project) }
+    var unresolvedDetectedCharacters: [DetectedCharacter] { CharacterManager.unresolvedDetectedCharacters(for: project) }
+    var locations: [LocationRecord] { LocationManager.records(for: project, now: project.metadata.modifiedAt) }
+    var detectedLocations: [DetectedLocation] { LocationManager.detectedLocations(for: project) }
+    var unresolvedDetectedLocations: [DetectedLocation] { LocationManager.unresolvedDetectedLocations(for: project) }
+    var sceneCards: [SceneCard] { SceneCardBuilder.cards(for: project) }
+    var notes: [ProjectNote] { project.notes }
+    var openNotes: [ProjectNote] { NotesIndex.openNotes(in: project) }
+    var scriptTodoNotes: [ProjectNote] { NotesIndex.detectedScriptTodos(in: project, now: project.metadata.modifiedAt) }
+    var loglineText: String { project.story.logline?.text ?? "" }
+    var synopsisText: String { project.story.synopsis?.text ?? "" }
+    var healthFindings: [HealthFinding] { HealthReport.findings(for: project) }
 
     var scriptHealthReport: ScriptHealthReport {
         currentScriptHealthReport ?? ScriptHealthReportBuilder.report(
@@ -135,9 +94,7 @@ struct ProjectDocumentViewModel: Equatable {
         )
     }
 
-    var fountainExportText: String {
-        FountainIO.exportScreenplay(project.screenplay)
-    }
+    var fountainExportText: String { FountainIO.exportScreenplay(project.screenplay) }
 
     mutating func save(to packageURL: URL, now: Date = Date()) throws {
         reparseScript(modifiedAt: now)
@@ -150,81 +107,42 @@ struct ProjectDocumentViewModel: Equatable {
         try fountainExportText.write(to: fileURL, atomically: true, encoding: .utf8)
     }
 
-    mutating func updateScriptText(_ text: String) {
-        scriptText = text
-    }
-
-    mutating func refreshParse(now: Date = Date()) {
-        reparseScript(parseDate: now)
-    }
-
-    func smartEnterNextKind(from currentKind: ScriptElementKind?) -> ScriptElementKind {
-        EditorUsabilityService.nextKindAfterEnter(from: currentKind, mode: project.mode)
-    }
-
-    func tabCycleNextKind(from currentKind: ScriptElementKind) -> ScriptElementKind {
-        EditorUsabilityService.cycleKindAfterTab(from: currentKind)
-    }
+    mutating func updateScriptText(_ text: String) { scriptText = text }
+    mutating func refreshParse(now: Date = Date()) { reparseScript(parseDate: now) }
+    func smartEnterNextKind(from currentKind: ScriptElementKind?) -> ScriptElementKind { EditorUsabilityService.nextKindAfterEnter(from: currentKind, mode: project.mode) }
+    func tabCycleNextKind(from currentKind: ScriptElementKind) -> ScriptElementKind { EditorUsabilityService.cycleKindAfterTab(from: currentKind) }
 
     func characterSuggestions(prefix: String, replacementRange: EditorTextRange) -> [EditorSuggestion] {
-        EditorUsabilityService.characterSuggestions(
-            prefix: prefix,
-            characters: characters.map(\.displayName),
-            replacementRange: replacementRange
-        )
+        EditorUsabilityService.characterSuggestions(prefix: prefix, characters: characters.map(\.displayName), replacementRange: replacementRange)
     }
 
     func sceneHeadingSuggestions(prefix: String, replacementRange: EditorTextRange) -> [EditorSuggestion] {
-        EditorUsabilityService.sceneHeadingSuggestions(
-            prefix: prefix,
-            scenes: scenes,
-            replacementRange: replacementRange
-        )
+        EditorUsabilityService.sceneHeadingSuggestions(prefix: prefix, scenes: scenes, replacementRange: replacementRange)
     }
 
-    var isEmptyEditorGuidanceVisible: Bool {
-        scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    var isEmptyEditorGuidanceVisible: Bool { scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    var editorStyleRuns: [EditorLineStyleRun] { EditorUsabilityService.styleRuns(in: scriptText) }
 
-    var editorStyleRuns: [EditorLineStyleRun] {
-        EditorUsabilityService.styleRuns(in: scriptText)
-    }
-
-    mutating func refreshEditorSuggestions(cursorLocation: Int) {
-        editorSuggestions = suggestions(at: cursorLocation)
-    }
+    mutating func refreshEditorSuggestions(cursorLocation: Int) { editorSuggestions = suggestions(at: cursorLocation) }
 
     mutating func acceptEditorSuggestion(_ suggestion: EditorSuggestion) {
-        scriptText = EditorUsabilityService.replacing(
-            range: suggestion.textRange,
-            in: scriptText,
-            with: suggestion.replacementText
-        )
+        scriptText = EditorUsabilityService.replacing(range: suggestion.textRange, in: scriptText, with: suggestion.replacementText)
         editorSuggestions = []
     }
 
-    mutating func ignoreEditorSuggestions() {
-        editorSuggestions = []
-    }
+    mutating func ignoreEditorSuggestions() { editorSuggestions = [] }
 
     mutating func performSmartEnter(at cursorLocation: Int) {
         let currentKind = currentLineKind(at: cursorLocation)
         let insertion = EditorUsabilityService.smartEnterInsertion(after: currentKind, mode: project.mode)
         let targetLocation = cursorLocation + (insertion as NSString).length
-        scriptText = EditorUsabilityService.replacing(
-            range: EditorTextRange(location: cursorLocation, length: 0),
-            in: scriptText,
-            with: insertion
-        )
+        scriptText = EditorUsabilityService.replacing(range: EditorTextRange(location: cursorLocation, length: 0), in: scriptText, with: insertion)
         requestEditorCursorNavigation(to: targetLocation)
     }
 
     mutating func performTabCycle(at cursorLocation: Int) {
         let currentLine = EditorUsabilityService.currentLine(in: scriptText, cursorLocation: cursorLocation)
-        let contentRange = EditorTextRange(
-            location: currentLine.range.location,
-            length: (currentLine.text as NSString).length
-        )
+        let contentRange = EditorTextRange(location: currentLine.range.location, length: (currentLine.text as NSString).length)
         let currentKind = EditorUsabilityService.lineKind(for: currentLine.text)
         let cycled = EditorUsabilityService.tabCycledLineText(currentLine.text, currentKind: currentKind)
         scriptText = EditorUsabilityService.replacing(range: contentRange, in: scriptText, with: cycled.text)
@@ -232,70 +150,49 @@ struct ProjectDocumentViewModel: Equatable {
     }
 
     mutating func requestNavigation(toSceneAt index: Int) {
-        editorNavigationState = EditorUsabilityService.navigationStateForScene(
-            at: index,
-            text: scriptText,
-            scenes: scenes,
-            parseRevision: editorParseState.currentTextRevision
+        editorNavigationState = EditorUsabilityService.navigationStateForScene(at: index, text: scriptText, scenes: scenes, parseRevision: editorParseState.currentTextRevision)
+    }
+
+    mutating func requestNavigation(toTextRange range: EditorTextRange) {
+        updateSelectedSceneForCursor(location: range.location)
+        editorNavigationState = EditorNavigationState(
+            selectedSceneID: editorNavigationState.selectedSceneID,
+            selectedScriptElementID: editorNavigationState.selectedScriptElementID,
+            cursorTextRange: range,
+            scrollTarget: EditorScrollTarget(kind: .textRange, textRange: range),
+            lastKnownParseRevision: editorParseState.currentTextRevision,
+            syncStatus: .pendingSceneToEditor
         )
     }
 
     mutating func enterReviewMode(now: Date = Date()) {
-        let report = ScriptHealthReportBuilder.report(
-            for: project,
-            generatedAt: now,
-            lastSavedAt: packageURL == nil ? nil : project.metadata.modifiedAt
-        )
+        let report = ScriptHealthReportBuilder.report(for: project, generatedAt: now, lastSavedAt: packageURL == nil ? nil : project.metadata.modifiedAt)
         currentScriptHealthReport = report
-        reviewModeState = ReviewModeState(
-            isActive: true,
-            isReadOnly: true,
-            selectedFindingID: reviewModeState.selectedFindingID,
-            selectedSceneID: editorNavigationState.selectedSceneID,
-            focus: .script,
-            generatedAt: now
-        )
+        reviewModeState = ReviewModeState(isActive: true, isReadOnly: true, selectedFindingID: reviewModeState.selectedFindingID, selectedSceneID: editorNavigationState.selectedSceneID, focus: .script, generatedAt: now)
     }
 
-    mutating func exitReviewMode() {
-        reviewModeState = .inactive
-    }
+    mutating func exitReviewMode() { reviewModeState = .inactive }
 
     mutating func selectReviewFinding(_ finding: ReviewFinding) {
         let sceneID = sceneID(for: finding)
-        reviewModeState = ReviewModeState(
-            isActive: true,
-            isReadOnly: true,
-            selectedFindingID: finding.id,
-            selectedSceneID: sceneID,
-            focus: .findings,
-            generatedAt: reviewModeState.generatedAt
-        )
-
-        if let sceneIndex = sceneIndex(from: sceneID) {
+        reviewModeState = ReviewModeState(isActive: true, isReadOnly: true, selectedFindingID: finding.id, selectedSceneID: sceneID, focus: .findings, generatedAt: reviewModeState.generatedAt)
+        if let range = finding.scriptRange {
+            requestNavigation(toTextRange: EditorTextRange(location: range.location, length: range.length))
+        } else if let sceneIndex = sceneIndex(from: sceneID) {
             requestNavigation(toSceneAt: sceneIndex)
         }
     }
 
     mutating func clearEditorNavigationRequest() {
-        editorNavigationState = EditorNavigationState(
-            selectedSceneID: editorNavigationState.selectedSceneID,
-            selectedScriptElementID: editorNavigationState.selectedScriptElementID,
-            cursorTextRange: editorNavigationState.cursorTextRange,
-            lastKnownParseRevision: editorNavigationState.lastKnownParseRevision,
-            syncStatus: editorNavigationState.syncStatus
-        )
+        editorNavigationState = EditorNavigationState(selectedSceneID: editorNavigationState.selectedSceneID, selectedScriptElementID: editorNavigationState.selectedScriptElementID, cursorTextRange: editorNavigationState.cursorTextRange, lastKnownParseRevision: editorNavigationState.lastKnownParseRevision, syncStatus: editorNavigationState.syncStatus)
     }
 
     mutating func updateSelectedSceneForCursor(location: Int) {
-        editorNavigationState = EditorUsabilityService.navigationStateForCursor(
-            location: location,
-            text: scriptText,
-            scenes: scenes,
-            parseRevision: editorParseState.currentTextRevision
-        )
+        editorNavigationState = EditorUsabilityService.navigationStateForCursor(location: location, text: scriptText, scenes: scenes, parseRevision: editorParseState.currentTextRevision)
     }
+}
 
+extension ProjectDocumentViewModel {
     mutating func updateTitle(_ title: String, now: Date = Date()) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedTitle = trimmed.isEmpty ? "Untitled" : trimmed
@@ -449,44 +346,28 @@ struct ProjectDocumentViewModel: Equatable {
     }
 
     mutating func convertDetectedCharacterToProfile(_ detection: DetectedCharacter, now: Date = Date()) {
-        let updated = CharacterManager.convertDetectedCharacter(
-            named: detection.name,
-            in: project,
-            now: now
-        )
+        let updated = CharacterManager.convertDetectedCharacter(named: detection.name, in: project, now: now)
         guard updated != project else { return }
         project = updated
         isDirty = true
     }
 
     mutating func ignoreDetectedCharacter(_ detection: DetectedCharacter, now: Date = Date()) {
-        let updated = CharacterManager.ignoreDetectedCharacter(
-            named: detection.name,
-            in: project,
-            now: now
-        )
+        let updated = CharacterManager.ignoreDetectedCharacter(named: detection.name, in: project, now: now)
         guard updated != project else { return }
         project = updated
         isDirty = true
     }
 
     mutating func convertDetectedLocationToProfile(_ detection: DetectedLocation, now: Date = Date()) {
-        let updated = LocationManager.convertDetectedLocation(
-            named: detection.name,
-            in: project,
-            now: now
-        )
+        let updated = LocationManager.convertDetectedLocation(named: detection.name, in: project, now: now)
         guard updated != project else { return }
         project = updated
         isDirty = true
     }
 
     mutating func ignoreDetectedLocation(_ detection: DetectedLocation, now: Date = Date()) {
-        let updated = LocationManager.ignoreDetectedLocation(
-            named: detection.name,
-            in: project,
-            now: now
-        )
+        let updated = LocationManager.ignoreDetectedLocation(named: detection.name, in: project, now: now)
         guard updated != project else { return }
         project = updated
         isDirty = true
