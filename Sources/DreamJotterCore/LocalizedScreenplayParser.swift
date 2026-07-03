@@ -2,14 +2,14 @@ import Foundation
 
 public extension ScreenplayParser {
     static func parse(_ source: String, language: ScreenplayLanguageProfile) -> ScreenplayDocument {
-        language == .english ? parse(source) : LocalizedScreenplayParser.parse(source, language: language)
+        language == .english ? LegacyScreenplayParser.parse(source) : LocalizedScreenplayParser.parse(source, language: language)
     }
 }
 
 private enum LocalizedScreenplayParser {
     static func parse(_ source: String, language: ScreenplayLanguageProfile) -> ScreenplayDocument {
         let transformed = transform(source, language: language)
-        let parsed = ScreenplayParser.parse(transformed.source)
+        let parsed = LegacyScreenplayParser.parse(transformed.source)
         var queues = transformed.originalsByTransformedLine
         var activeCharacter: String?
         var restoredElements: [ScriptElement] = []
