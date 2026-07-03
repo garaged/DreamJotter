@@ -4,6 +4,8 @@ import Testing
 
 @Suite("M12.4 Localization and Spanish Screenplay Support")
 struct LocalizationSpanishExecutableSpecs {
+    private let now = Date(timeIntervalSince1970: 1_730_000_000)
+
     @Test("Spanish screenplay constructs map to language-neutral semantic kinds")
     func spanishConstructs() {
         let source = """
@@ -63,11 +65,33 @@ struct LocalizationSpanishExecutableSpecs {
         #expect(document.scenes.first?.timeOfDay == "CONTINUO")
     }
 
-    @Test("Unicode cue extensions resolve a stable base character")
+    @Test("Unicode cue extensions parse and resolve a stable base character")
     func cueExtensions() {
+        let source = """
+        INT. CASA - NOCHE
+
+        ÍÑIGO (VOZ EN OFF)
+        No podemos volver.
+        """
+        let document = ScreenplayParser.parse(source, language: .spanishLatinAmerica)
+        #expect(document.elements.contains { $0.kind == .characterCue && $0.text == "ÍÑIGO (VOZ EN OFF)" })
+        #expect(document.characters == ["ÍÑIGO"])
+        #expect(document.elements.last?.characterName == "ÍÑIGO")
         #expect(ScreenplayConstructs.baseCharacterName(from: "SOFÍA (V.O.)") == "SOFÍA")
-        #expect(ScreenplayConstructs.baseCharacterName(from: "ÍÑIGO (VOZ EN OFF)") == "ÍÑIGO")
         #expect(ScreenplayConstructs.baseCharacterName(from: "DOÑA ÁNGELES") == "DOÑA ÁNGELES")
+    }
+
+    @Test("Unknown Unicode title fields are preserved")
+    func unicodeTitlePageFields() {
+        let source = """
+        Título: La última noche
+        Dedicatoria: Para Sofía
+
+        INT. CASA - NOCHE
+        """
+        let document = ScreenplayParser.parse(source, language: .spanishLatinAmerica)
+        #expect(document.elements.first?.kind == .titlePage)
+        #expect(document.elements.first?.text.contains("Dedicatoria: Para Sofía") == true)
     }
 
     @Test("Spanish TODO aliases remain note text and are detected")
@@ -80,15 +104,25 @@ struct LocalizationSpanishExecutableSpecs {
     }
 
     @Test("Language setting is backward compatible and persisted in project metadata")
-    func languagePersistence() {
-        let project = ProjectFactory.blankProject(title: "Idioma", now: Date(timeIntervalSince1970: 1_730_000_000))
+    func languagePersistence() throws {
+        let project = DreamJotterProject(
+            metadata: ProjectMetadata(
+                id: "project-language",
+                title: "Idioma",
+                createdAt: now,
+                modifiedAt: now,
+                schemaVersion: 1,
+                primaryScreenplayID: "screenplay-language"
+            ),
+            screenplay: ScreenplayDocument()
+        )
         #expect(ScreenplayLanguagePersistence.language(in: project) == .automatic)
 
         let spanish = ScreenplayLanguagePersistence.setting(.spanishLatinAmerica, in: project)
         #expect(ScreenplayLanguagePersistence.language(in: spanish) == .spanishLatinAmerica)
 
-        let data = try! JSONEncoder().encode(spanish)
-        let decoded = try! JSONDecoder().decode(DreamJotterProject.self, from: data)
+        let data = try JSONEncoder().encode(spanish)
+        let decoded = try JSONDecoder().decode(DreamJotterProject.self, from: data)
         #expect(ScreenplayLanguagePersistence.language(in: decoded) == .spanishLatinAmerica)
     }
 
