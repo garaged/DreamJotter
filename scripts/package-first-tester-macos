@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+APP_EXECUTABLE="DreamJotterMac"
+APP_DISPLAY_NAME="DreamJotter"
+BUNDLE_IDENTIFIER="com.garaged.DreamJotter"
+VERSION="0.1.0"
+BUILD_NUMBER="1"
+DEPLOYMENT_TARGET="14.0"
+
+REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DIST_DIR="${REPOSITORY_ROOT}/dist"
+APP_DIR="${DIST_DIR}/${APP_DISPLAY_NAME}.app"
+EXECUTABLE_PATH="${APP_DIR}/Contents/MacOS/${APP_EXECUTABLE}"
+ZIP_PATH="${DIST_DIR}/${APP_DISPLAY_NAME}-${VERSION}-first-tester.zip"
+BUILD_ROOT="${BUILD_ROOT:-/private/tmp/DreamJotterFirstTesterBuild}"
+ARM_SCRATCH="${BUILD_ROOT}/arm64"
+INTEL_SCRATCH="${BUILD_ROOT}/x86_64"
+
+cd "${REPOSITORY_ROOT}"
+
+require_tool() {
+    command -v "$1" >/dev/null 2>&1 || {
+        echo "Error: required tool '$1' was not found." >&2
+        exit 1
+    }
+}
+
+require_tool xcrun
+require_tool lipo
+require_tool codesign
+require_tool ditto
+require_tool file
+
+build_architecture() {
+    local architecture="$1"
+    local scratch_path="$2"
+    local triple="${architecture}-apple-macosx${DEPLOYMENT_TARGET}"
+
+    echo "Building ${APP_EXECUTABLE} for ${architecture}..."
+    CLANG_MODULE_CACHE_PATH="${BUILD_ROOT}/clang-module-cache-${architecture}" \
+    xcrun --sdk macosx swift build \
+        --configuration release \
+        --product "${APP_EXECUTABLE}" \
+        --triple "${triple}" \
+        --disable-sandbox \
+        --scratch-path "${scratch_path}"
+}
+
+binary_directory() {
+    local architecture="$1"
+    local scratch_path="$2"
+    local triple="${architecture}-apple-macosx${DEPLOYMENT_TARGET}"
+
+    CLANG_MODULE_CACHE_PATH="${BUILD_ROOT}/clang-module-cache-${architecture}" \
+    xcrun --sdk macosx swift build \
+        --show-bin-path \
+        --configuration release \
+        --triple "${triple}" \
+        --disable-sandbox \
+        --scratch-path "${scratch_path}"
+}
+
+rm -rf "${ARM_SCRATCH}" "${INTEL_SCRATCH}"
+mkdir -p "${BUILD_ROOT}" "${DIST_DIR}"
+
+build_architecture arm64 "${ARM_SCRATCH}"
+build_architecture x86_64 "${INTEL_SCRATCH}"
+
+ARM_BIN_DIR="$(binary_directory arm64 "${ARM_SCRATCH}")"
+INTEL_BIN_DIR="$(binary_directory x86_64 "${INTEL_SCRATCH}")"
+ARM_EXECUTABLE="${ARM_BIN_DIR}/${APP_EXECUTABLE}"
+INTEL_EXECUTABLE="${INTEL_BIN_DIR}/${APP_EXECUTABLE}"
+
+if [[ ! -f "${ARM_EXECUTABLE}" ]]; then
+    echo "Error: arm64 executable not found at ${ARM_EXECUTABLE}" >&2
+    exit 1
+fi
+
+if [[ ! -f "${INTEL_EXECUTABLE}" ]]; then
+    echo "Error: x86_64 executable not found at ${INTEL_EXECUTABLE}" >&2
+    exit 1
+fi
+
+echo "Creating universal executable..."
+rm -rf "${APP_DIR}"
+mkdir -p "${APP_DIR}/Contents/MacOS"
+mkdir -p "${APP_DIR}/Contents/Resources"
+
+lipo -create \
+    "${ARM_EXECUTABLE}" \
+    "${INTEL_EXECUTABLE}" \
+    -output "${EXECUTABLE_PATH}"
+chmod +x "${EXECUTABLE_PATH}"
+
+ARCHITECTURES="$(lipo -archs "${EXECUTABLE_PATH}")"
+if [[ " ${ARCHITECTURES} " != *" arm64 "* ]]; then
+    echo "Error: universal executable is missing arm64." >&2
+    exit 1
+fi
+if [[ " ${ARCHITECTURES} " != *" x86_64 "* ]]; then
+    echo "Error: universal executable is missing x86_64." >&2
+    exit 1
+fi
+
+echo "Copying SwiftPM resources..."
+RESOURCE_BUNDLE_COUNT=0
+while IFS= read -r -d '' resource_bundle; do
+    cp -R "${resource_bundle}" "${APP_DIR}/Contents/Resources/"
+    RESOURCE_BUNDLE_COUNT=$((RESOURCE_BUNDLE_COUNT + 1))
+done < <(find "${ARM_BIN_DIR}" -maxdepth 1 -type d -name '*.bundle' -print0)
+
+if [[ "${RESOURCE_BUNDLE_COUNT}" -eq 0 ]]; then
+    echo "Warning: no SwiftPM resource bundles were found next to the arm64 executable." >&2
+fi
+
+cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>${APP_EXECUTABLE}</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>${BUNDLE_IDENTIFIER}</string>
+
+    <key>CFBundleName</key>
+    <string>${APP_DISPLAY_NAME}</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>${APP_DISPLAY_NAME}</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>${VERSION}</string>
+
+    <key>CFBundleVersion</key>
+    <string>${BUILD_NUMBER}</string>
+
+    <key>LSMinimumSystemVersion</key>
+    <string>${DEPLOYMENT_TARGET}</string>
+
+    <key>NSHighResolutionCapable</key>
+    <true/>
+
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.productivity</string>
+</dict>
+</plist>
+PLIST
+
+echo "Signing application bundle..."
+codesign --force --deep --sign - "${APP_DIR}"
+
+echo "Verifying signature..."
+codesign --verify --deep --strict --verbose=2 "${APP_DIR}"
+
+echo "Verifying universal executable..."
+file "${EXECUTABLE_PATH}"
+echo "Architectures: ${ARCHITECTURES}"
+
+echo "Creating ZIP archive..."
+rm -f "${ZIP_PATH}"
+ditto -c -k --keepParent "${APP_DIR}" "${ZIP_PATH}"
+
+echo
+echo "Created:"
+echo "  App: ${APP_DIR}"
+echo "  ZIP: ${ZIP_PATH}"
+echo "  Architectures: ${ARCHITECTURES}"
