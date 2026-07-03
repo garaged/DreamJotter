@@ -9,17 +9,17 @@ private struct NoteTargetOption: Identifiable {
     static func options(for project: DreamJotterProject) -> [NoteTargetOption] {
         var result = [NoteTargetOption(
             id: token(kind: .project, targetID: project.metadata.id),
-            label: "Project: \(project.metadata.title)",
+            label: "\(String(localized: "Project")): \(project.metadata.title)",
             link: NoteLink(targetKind: .project, targetID: project.metadata.id)
         )]
         result += project.screenplay.scenes.map {
-            NoteTargetOption(id: token(kind: .scene, targetID: $0.heading), label: "Scene: \($0.heading)", link: NoteLink(targetKind: .scene, targetID: $0.heading))
+            NoteTargetOption(id: token(kind: .scene, targetID: $0.heading), label: "\(String(localized: "Scene")): \($0.heading)", link: NoteLink(targetKind: .scene, targetID: $0.heading))
         }
         result += project.characters.map {
-            NoteTargetOption(id: token(kind: .character, targetID: $0.id), label: "Character: \($0.displayName)", link: NoteLink(targetKind: .character, targetID: $0.id))
+            NoteTargetOption(id: token(kind: .character, targetID: $0.id), label: "\(String(localized: "Character")): \($0.displayName)", link: NoteLink(targetKind: .character, targetID: $0.id))
         }
         result += project.locations.map {
-            NoteTargetOption(id: token(kind: .location, targetID: $0.id), label: "Location: \($0.displayName)", link: NoteLink(targetKind: .location, targetID: $0.id))
+            NoteTargetOption(id: token(kind: .location, targetID: $0.id), label: "\(String(localized: "Location")): \($0.displayName)", link: NoteLink(targetKind: .location, targetID: $0.id))
         }
         return result
     }
@@ -62,13 +62,13 @@ struct NotesView: View {
                     .textFieldStyle(.roundedBorder)
                 Picker("State", selection: $stateFilter) {
                     ForEach(NotesWorkspaceStateFilter.allCases, id: \.self) {
-                        Text($0.rawValue.capitalized).tag($0)
+                        Text($0.localizedTitle).tag($0)
                     }
                 }
                 .frame(width: 125)
                 Picker("Target", selection: $targetFilter) {
                     ForEach(NotesWorkspaceTargetFilter.allCases, id: \.self) {
-                        Text(targetFilterLabel($0)).tag($0)
+                        Text($0.localizedTitle).tag($0)
                     }
                 }
                 .frame(width: 155)
@@ -80,9 +80,15 @@ struct NotesView: View {
                     }
                 }
             }
-            Text("Showing \(filteredNotes.count) of \(document.project.notes.count) stored notes")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                Text("Showing")
+                Text(filteredNotes.count.formatted())
+                Text("of")
+                Text(document.project.notes.count.formatted())
+                Text("stored notes")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -146,7 +152,7 @@ struct NotesView: View {
             } else {
                 ForEach(filteredTodos, id: \.id) { todo in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(todo.title ?? "Script TODO").font(.subheadline.weight(.semibold))
+                        Text(todo.title ?? String(localized: "Script TODO")).font(.subheadline.weight(.semibold))
                         Text(todo.body).foregroundStyle(.secondary)
                         if let target = NotesWorkspace.navigationTarget(for: todo, in: document.project) {
                             Button("Open in Script") { navigateAction(target) }
@@ -193,37 +199,28 @@ struct NotesView: View {
 
     private func stateMatches(_ note: ProjectNote) -> Bool {
         switch stateFilter {
-        case .all: return true
-        case .open: return note.status == .open
-        case .resolved: return note.status == .resolved
-        case .archived: return note.status == .archived
+        case .all: true
+        case .open: note.status == .open
+        case .resolved: note.status == .resolved
+        case .archived: note.status == .archived
         }
     }
 
     private func targetMatches(_ note: ProjectNote) -> Bool {
         switch targetFilter {
-        case .all: return true
-        case .project: return note.links.contains { $0.targetKind == .project }
-        case .scene: return note.links.contains { $0.targetKind == .scene }
-        case .character: return note.links.contains { $0.targetKind == .character }
-        case .location: return note.links.contains { $0.targetKind == .location }
-        case .screenplayElement: return note.links.contains { $0.targetKind == .screenplayElement }
-        case .orphaned: return NotesWorkspace.hasOrphanedLinks(note, in: document.project)
+        case .all: true
+        case .project: note.links.contains { $0.targetKind == .project }
+        case .scene: note.links.contains { $0.targetKind == .scene }
+        case .character: note.links.contains { $0.targetKind == .character }
+        case .location: note.links.contains { $0.targetKind == .location }
+        case .screenplayElement: note.links.contains { $0.targetKind == .screenplayElement }
+        case .orphaned: NotesWorkspace.hasOrphanedLinks(note, in: document.project)
         }
     }
 
     private func textMatches(_ note: ProjectNote) -> Bool {
         guard !normalizedSearch.isEmpty else { return true }
         return TextNormalization.key(for: "\(note.title ?? "") \(note.body)").contains(normalizedSearch)
-    }
-
-    private func targetFilterLabel(_ filter: NotesWorkspaceTargetFilter) -> String {
-        switch filter {
-        case .all: return "All targets"
-        case .screenplayElement: return "Script elements"
-        case .orphaned: return "Missing targets"
-        default: return filter.rawValue.capitalized
-        }
     }
 
     private func addNote() {
@@ -236,16 +233,11 @@ struct NotesView: View {
 
     private func noteLinkTarget(for link: NoteLink) -> NoteLinkTarget? {
         switch link.targetKind {
-        case .project:
-            return .project
-        case .scene:
-            return document.scenes.first(where: { $0.heading == link.targetID }).map(NoteLinkTarget.scene)
-        case .character:
-            return document.project.characters.first(where: { $0.id == link.targetID }).map(NoteLinkTarget.character)
-        case .location:
-            return document.project.locations.first(where: { $0.id == link.targetID }).map(NoteLinkTarget.location)
-        case .screenplayElement:
-            return nil
+        case .project: .project
+        case .scene: document.scenes.first(where: { $0.heading == link.targetID }).map(NoteLinkTarget.scene)
+        case .character: document.project.characters.first(where: { $0.id == link.targetID }).map(NoteLinkTarget.character)
+        case .location: document.project.locations.first(where: { $0.id == link.targetID }).map(NoteLinkTarget.location)
+        case .screenplayElement: nil
         }
     }
 
@@ -311,7 +303,7 @@ private struct NoteWorkspaceRow: View {
             }
 
             if let link = selectedLink {
-                Button("Open \(link.targetKind.rawValue.capitalized)") { navigateAction(link) }
+                Button("Open Target") { navigateAction(link) }
                     .font(.caption)
             } else if NotesWorkspace.hasOrphanedLinks(note, in: project) {
                 Text("Current target is missing").font(.caption).foregroundStyle(.red)
@@ -323,14 +315,16 @@ private struct NoteWorkspaceRow: View {
                     updateAction(title, noteText, link)
                 }
                 .disabled(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedLink == nil)
-                Button(note.status == .open ? "Resolve" : "Reopen") { resolveAction() }
+                Button { resolveAction() } label: {
+                    Text(note.status == .open ? "Resolve" : "Reopen")
+                }
                 if NotesWorkspace.hasOrphanedLinks(note, in: project) {
                     Button("Unlink Missing Target") { unlinkAction() }
                 }
                 Spacer()
                 Button("Delete", role: .destructive) { confirmDelete = true }
             }
-            Text(note.status.rawValue.capitalized).font(.caption).foregroundStyle(.secondary)
+            Text(note.status.localizedTitle).font(.caption).foregroundStyle(.secondary)
         }
         .confirmationDialog("Delete this note?", isPresented: $confirmDelete) {
             Button("Delete Note", role: .destructive) { deleteAction() }
@@ -359,6 +353,41 @@ struct NotesListView: View {
             } else {
                 ForEach(notes, id: \.id) { Text($0.title ?? $0.body).font(.subheadline) }
             }
+        }
+    }
+}
+
+private extension NotesWorkspaceStateFilter {
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .all: "All"
+        case .open: "Open"
+        case .resolved: "Resolved"
+        case .archived: "Archived"
+        }
+    }
+}
+
+private extension NotesWorkspaceTargetFilter {
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .all: "All targets"
+        case .project: "Project"
+        case .scene: "Scene"
+        case .character: "Character"
+        case .location: "Location"
+        case .screenplayElement: "Script elements"
+        case .orphaned: "Missing targets"
+        }
+    }
+}
+
+private extension ProjectNoteStatus {
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .open: "Open"
+        case .resolved: "Resolved"
+        case .archived: "Archived"
         }
     }
 }
