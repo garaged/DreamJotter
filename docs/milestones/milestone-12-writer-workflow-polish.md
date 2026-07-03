@@ -1,6 +1,6 @@
 # Milestone 12 — Writer Workflow Polish
 
-Status: in progress
+Status: implemented pending local validation
 
 ## Goal
 
@@ -38,7 +38,7 @@ Status: implemented.
 - Filter notes by state and target.
 - Search note title and body text using Unicode-aware normalization.
 - Show unresolved parsed-script TODOs separately from manual notes.
-- Apply text search to stored notes and parsed TODO projections.
+- Apply text search to stored notes and localized parsed TODO projections.
 - Assign project, scene, character, or location targets during note creation.
 - Reassign note targets during editing.
 - Navigate from a linked note to its screenplay scene, screenplay element, project, character, or location workspace.
@@ -66,24 +66,26 @@ Status: implemented pending local validation.
 
 ## M12.4 Localization and Spanish Screenplay Support
 
-Status: specified.
+Status: implemented pending local validation.
 
 Specification: `docs/specs/writer-workflow/m12-localization-spanish.spec.md`
 
 - Localize the macOS application in English, Spanish for Mexico, and Latin American Spanish fallback.
+- Follow the system language and provide a persisted application-language override.
 - Keep application language independent from screenplay language.
 - Add project screenplay-language profiles for Automatic, English, and Latin American Spanish.
 - Preserve the existing language-neutral semantic screenplay model.
 - Recognize Spanish and English screenplay constructs without translating source text.
 - Support Unicode character cues such as `SOFÍA`, `ÍÑIGO`, and `DOÑA ÁNGELES`.
-- Support shared scene prefixes such as `INT.`, `EXT.`, `INT./EXT.`, and optional Spanish `I/E.` aliasing.
+- Support shared scene prefixes such as `INT.`, `EXT.`, `INT./EXT.`, and Spanish `I/E.` aliasing.
 - Support Spanish time-of-day values, transitions, shots, title-page fields, TODO tokens, parentheticals, and cue extensions.
 - Replace ASCII-only title-page-field recognition with Unicode-aware aliases and custom-field preservation.
 - Keep Fountain control markers language-neutral and interoperable.
 - Localize diagnostics through stable codes and runtime message resolution.
-- Preserve accents and original wording across package storage, Fountain, FDX, PDF, Markdown, JSON backup, and plain text.
-- Add paired English, Spanish, mixed-language, normalization, title-page, transition, and malformed-construct fixtures.
-- Require native-speaker review and Spanish UI smoke coverage before release.
+- Preserve accents and original wording through semantic recognition and package persistence.
+- Add English, Spanish, mixed-language, and invalid-input fixture files.
+- Apply the selected screenplay language during editor parsing, suggestions, smart-enter, tab cycling, and manual refresh.
+- Require export round-trip, accessibility, native-speaker, and Spanish UI smoke validation before release.
 
 ## Shared Search and Navigation Polish
 
@@ -128,7 +130,9 @@ Milestone 12 also standardizes search and navigation across the writer workspace
 - Verify linked-note, scene-card, script-search, and Review navigation.
 - Verify planning-order changes do not alter screenplay text.
 - Verify screenplay-order application moves complete scene blocks and records a snapshot.
-- Implement and validate M12.4 before Milestone 12 is accepted.
+- Verify application-language override behavior.
+- Verify project-language parsing during editing and save/reopen.
+- Run export round-trip, accessibility, Spanish UI smoke, and native-speaker terminology review before Milestone 12 is accepted.
 
 ## Delivery Branches
 
