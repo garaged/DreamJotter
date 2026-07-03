@@ -17,7 +17,7 @@ struct LocalizationResourceTests {
         let latinAmerica = try stringsTable(locale: "es-419")
 
         #expect(mexico.count >= 290)
-        #expect(mexico.keys == latinAmerica.keys)
+        #expect(Set(mexico.keys) == Set(latinAmerica.keys))
         #expect(mexico.values.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
         #expect(latinAmerica.values.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
     }
