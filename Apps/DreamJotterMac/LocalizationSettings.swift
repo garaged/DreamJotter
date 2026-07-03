@@ -9,6 +9,7 @@ final class LocalizationSettings: ObservableObject {
     @Published var preference: ApplicationLanguagePreference {
         didSet {
             defaults.set(preference.rawValue, forKey: Self.defaultsKey)
+            ApplicationLanguageOverride.apply(preference, defaults: defaults)
         }
     }
 
@@ -16,6 +17,7 @@ final class LocalizationSettings: ObservableObject {
         self.defaults = defaults
         let rawValue = defaults.string(forKey: Self.defaultsKey)
         preference = rawValue.flatMap(ApplicationLanguagePreference.init(rawValue:)) ?? .system
+        ApplicationLanguageOverride.apply(preference, defaults: defaults)
     }
 
     var locale: Locale {
