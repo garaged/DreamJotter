@@ -1,0 +1,14 @@
+"DreamJotter does not have permission to complete this action." = "DreamJotter no tiene permiso para completar esta acción.";
+"Choose another location or update file permissions." = "Elige otra ubicación o actualiza los permisos del archivo.";
+"DreamJotter could not complete this action." = "DreamJotter no pudo completar esta acción.";
+"DreamJotter could not open this project package." = "DreamJotter no pudo abrir este paquete de proyecto.";
+"DreamJotter could not save this project." = "DreamJotter no pudo guardar este proyecto.";
+"Save As was canceled." = "Se canceló Guardar como.";
+"DreamJotter could not save this project to the chosen location." = "DreamJotter no pudo guardar este proyecto en la ubicación seleccionada.";
+"DreamJotter could not export the Fountain file." = "DreamJotter no pudo exportar el archivo Fountain.";
+"DreamJotter could not open this project because the package is not valid." = "DreamJotter no pudo abrir este proyecto porque el paquete no es válido.";
+"This project was saved by a newer version of DreamJotter." = "Este proyecto se guardó con una versión más reciente de DreamJotter.";
+"DreamJotter could not open this project because a required project file is missing." = "DreamJotter no pudo abrir este proyecto porque falta un archivo obligatorio.";
+"Choose another .dreamjotter package or restore this project from a backup." = "Elige otro paquete .dreamjotter o restaura este proyecto desde un respaldo.";
+"Open this project with a newer compatible version of DreamJotter." = "Abre este proyecto con una versión compatible más reciente de DreamJotter.";
+"Choose another location or check file permissions." = "Elige otra ubicación o revisa los permisos del archivo.";
