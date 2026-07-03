@@ -2,16 +2,29 @@ import DreamJotterCore
 import SwiftUI
 
 enum WorkspaceSection: String, CaseIterable, Identifiable {
-    case dashboard = "Dashboard"
-    case script = "Script"
-    case scenes = "Scenes"
-    case characters = "Characters"
-    case locations = "Locations"
-    case notes = "Notes"
-    case review = "Review"
-    case healthReport = "Health Report"
+    case dashboard
+    case script
+    case scenes
+    case characters
+    case locations
+    case notes
+    case review
+    case healthReport
 
     var id: String { rawValue }
+
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .dashboard: "Dashboard"
+        case .script: "Script"
+        case .scenes: "Scenes"
+        case .characters: "Characters"
+        case .locations: "Locations"
+        case .notes: "Notes"
+        case .review: "Review"
+        case .healthReport: "Health Report"
+        }
+    }
 }
 
 struct ProjectWorkspaceView: View {
@@ -30,7 +43,7 @@ struct ProjectWorkspaceView: View {
             List(selection: $selectedSection) {
                 Section("Project") {
                     ForEach(WorkspaceSection.allCases) { section in
-                        Text(section.rawValue).tag(section)
+                        Text(section.localizedTitle).tag(section)
                     }
                 }
             }
@@ -65,9 +78,13 @@ struct ProjectWorkspaceView: View {
 
     private var documentStatus: String {
         if document.packageURL == nil {
-            return document.isDirty ? "Unsaved changes" : "Unsaved project"
+            return document.isDirty
+                ? String(localized: "Unsaved changes")
+                : String(localized: "Unsaved project")
         }
-        return document.isDirty ? "Unsaved changes" : "Saved"
+        return document.isDirty
+            ? String(localized: "Unsaved changes")
+            : String(localized: "Saved")
     }
 
     @ViewBuilder
