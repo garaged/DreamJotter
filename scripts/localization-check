@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
@@ -15,21 +14,19 @@ UI_PATTERNS = [
     re.compile(r'\b(?:confirmationDialog|alert)\(\s*"((?:[^"\\]|\\.)*)"'),
     re.compile(r'\bString\(localized:\s*"((?:[^"\\]|\\.)*)"'),
 ]
-
-ALLOWLIST = {
-    "DreamJotter", "TextKit", "TextEditor", "Fountain", "FDX", "PDF", "JSON", "Markdown",
-}
+STRINGS_ENTRY = re.compile(r'^\s*"((?:[^"\\]|\\.)*)"\s*=\s*"((?:[^"\\]|\\.)*)"\s*;\s*$')
+ALLOWLIST = {"DreamJotter", "TextKit", "TextEditor", "Fountain", "FDX", "PDF", "JSON", "Markdown"}
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", default="Apps/DreamJotterMac")
-    parser.add_argument("--catalog", default="Apps/DreamJotterMac/Resources/Localizable.xcstrings")
+    parser.add_argument("--resources", default="Apps/DreamJotterMac/Resources")
     parser.add_argument("--locales", default="es-MX,es-419")
     return parser.parse_args()
 
 
-def decode_swift_literal(value: str) -> str:
+def decode_literal(value: str) -> str:
     return value.replace(r'\"', '"').replace(r'\\', '\\').replace(r'\n', '\n')
 
 
@@ -41,32 +38,61 @@ def swift_literals(root: Path) -> set[str]:
             for match in pattern.finditer(text):
                 if r"\(" in match.group(1):
                     continue
-                value = decode_swift_literal(match.group(1))
+                value = decode_literal(match.group(1))
                 if value and value not in ALLOWLIST:
                     values.add(value)
+    return values
+
+
+def read_strings(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip() or line.lstrip().startswith(("//", "/*", "*")):
+            continue
+        match = STRINGS_ENTRY.match(line)
+        if not match:
+            raise ValueError(f"{path}:{line_number}: invalid .strings entry")
+        key, value = map(decode_literal, match.groups())
+        if key in values:
+            raise ValueError(f"{path}:{line_number}: duplicate key {key}")
+        values[key] = value
     return values
 
 
 def main() -> int:
     args = parse_args()
     locales = [item.strip() for item in args.locales.split(",") if item.strip()]
-    strings = json.loads(Path(args.catalog).read_text(encoding="utf-8")).get("strings", {})
+    resources = Path(args.resources)
+    required = swift_literals(Path(args.target))
     errors: list[str] = []
+    tables: dict[str, dict[str, str]] = {}
 
-    for literal in sorted(swift_literals(Path(args.target))):
-        if literal not in strings:
-            errors.append(f"missing catalog key: {literal}")
+    for locale in locales:
+        path = resources / f"{locale}.lproj" / "Localizable.strings"
+        if not path.exists():
+            errors.append(f"missing locale table: {path}")
+            continue
+        try:
+            tables[locale] = read_strings(path)
+        except ValueError as error:
+            errors.append(str(error))
 
-    for key, entry in sorted(strings.items()):
-        localizations = entry.get("localizations", {})
+    for key in sorted(required):
         for locale in locales:
-            unit = localizations.get(locale, {}).get("stringUnit", {})
-            value = unit.get("value", "")
-            state = unit.get("state", "")
+            value = tables.get(locale, {}).get(key, "")
             if not value.strip():
                 errors.append(f"{key}: missing {locale} translation")
-            elif state != "translated":
-                errors.append(f"{key}: {locale} state is {state or 'missing'}")
+
+    if tables:
+        reference_locale = locales[0]
+        reference_keys = set(tables.get(reference_locale, {}))
+        for locale in locales[1:]:
+            missing = reference_keys - set(tables.get(locale, {}))
+            extra = set(tables.get(locale, {})) - reference_keys
+            for key in sorted(missing):
+                errors.append(f"{key}: absent from {locale}")
+            for key in sorted(extra):
+                errors.append(f"{key}: only present in {locale}")
 
     if errors:
         print("Localization audit failed:")
@@ -74,7 +100,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
 
-    print(f"Localization audit passed: {len(strings)} keys, locales {', '.join(locales)}")
+    print(f"Localization audit passed: {len(required)} UI keys across {', '.join(locales)}")
     return 0
 
 
