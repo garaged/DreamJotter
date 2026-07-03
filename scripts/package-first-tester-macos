@@ -106,14 +106,34 @@ fi
 
 echo "Copying SwiftPM resources..."
 RESOURCE_BUNDLE_COUNT=0
+LOCALIZATION_COUNT=0
 while IFS= read -r -d '' resource_bundle; do
     cp -R "${resource_bundle}" "${APP_DIR}/Contents/Resources/"
     RESOURCE_BUNDLE_COUNT=$((RESOURCE_BUNDLE_COUNT + 1))
+
+    while IFS= read -r -d '' localization_dir; do
+        localization_name="$(basename "${localization_dir}")"
+        rm -rf "${APP_DIR}/Contents/Resources/${localization_name}"
+        cp -R "${localization_dir}" "${APP_DIR}/Contents/Resources/${localization_name}"
+        LOCALIZATION_COUNT=$((LOCALIZATION_COUNT + 1))
+    done < <(find "${resource_bundle}" -maxdepth 1 -type d -name '*.lproj' -print0)
 done < <(find "${ARM_BIN_DIR}" -maxdepth 1 -type d -name '*.bundle' -print0)
 
 if [[ "${RESOURCE_BUNDLE_COUNT}" -eq 0 ]]; then
     echo "Warning: no SwiftPM resource bundles were found next to the arm64 executable." >&2
 fi
+
+if [[ "${LOCALIZATION_COUNT}" -eq 0 ]]; then
+    echo "Error: no localization directories were copied into the app main bundle." >&2
+    exit 1
+fi
+
+for locale in es-MX es-419; do
+    if [[ ! -d "${APP_DIR}/Contents/Resources/${locale}.lproj" ]]; then
+        echo "Error: missing ${locale}.lproj in app main bundle." >&2
+        exit 1
+    fi
+done
 
 cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -142,6 +162,17 @@ cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
     <key>CFBundleVersion</key>
     <string>${BUILD_NUMBER}</string>
 
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>es</string>
+        <string>es-MX</string>
+        <string>es-419</string>
+    </array>
+
     <key>LSMinimumSystemVersion</key>
     <string>${DEPLOYMENT_TARGET}</string>
 
@@ -164,6 +195,9 @@ echo "Verifying universal executable..."
 file "${EXECUTABLE_PATH}"
 echo "Architectures: ${ARCHITECTURES}"
 
+echo "Verifying packaged localizations..."
+find "${APP_DIR}/Contents/Resources" -maxdepth 2 -type f -name '*.strings' -print
+
 echo "Creating ZIP archive..."
 rm -f "${ZIP_PATH}"
 ditto -c -k --keepParent "${APP_DIR}" "${ZIP_PATH}"
@@ -173,3 +207,4 @@ echo "Created:"
 echo "  App: ${APP_DIR}"
 echo "  ZIP: ${ZIP_PATH}"
 echo "  Architectures: ${ARCHITECTURES}"
+echo "  Localizations copied: ${LOCALIZATION_COUNT}"
