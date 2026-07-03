@@ -1,4 +1,5 @@
 import AppKit
+import DreamJotterCore
 import SwiftUI
 
 @main
@@ -56,8 +57,48 @@ struct DreamJotterMacApp: App {
 }
 
 final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
+    private static let preferenceKey = "dreamjotter.applicationLanguage"
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        guard !ProcessInfo.processInfo.arguments.contains("-AppleLanguages") else {
+            return
+        }
+
+        let rawPreference = UserDefaults.standard.string(forKey: Self.preferenceKey)
+        let preference = rawPreference.flatMap(ApplicationLanguagePreference.init(rawValue:)) ?? .system
+        guard preference != .system else { return }
+
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = true
+        configuration.arguments = launchArguments(for: preference)
+
+        NSWorkspace.shared.openApplication(
+            at: Bundle.main.bundleURL,
+            configuration: configuration
+        ) { _, error in
+            guard error == nil else { return }
+            Task { @MainActor in
+                NSApplication.shared.terminate(nil)
+            }
+        }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func launchArguments(for preference: ApplicationLanguagePreference) -> [String] {
+        switch preference {
+        case .system:
+            return []
+        case .english:
+            return ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        case .spanishLatinAmerica:
+            return [
+                "-AppleLanguages", "(es-MX,es-419,es)",
+                "-AppleLocale", "es_MX"
+            ]
+        }
     }
 }
