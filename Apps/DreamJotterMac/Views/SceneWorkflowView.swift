@@ -52,7 +52,7 @@ struct SceneWorkflowView: View {
             isPresented: $confirmScreenplayReorder,
             titleVisibility: .visible
         ) {
-            Button("Reorder \(screenplayPreview.count) Scene\(screenplayPreview.count == 1 ? "" : "s")") {
+            Button("Reorder Scenes") {
                 screenplayReorderAction(orderedHeadings)
             }
             Button("Cancel", role: .cancel) {}
@@ -69,7 +69,7 @@ struct SceneWorkflowView: View {
                 Picker("Status", selection: $selectedStatus) {
                     Text("All statuses").tag(SceneCardStatus?.none)
                     ForEach(SceneCardStatus.allCases, id: \.self) { status in
-                        Text(status.rawValue).tag(Optional(status))
+                        Text(status.localizedTitle).tag(Optional(status))
                     }
                 }
                 .frame(width: 160)
@@ -88,9 +88,15 @@ struct SceneWorkflowView: View {
                     }
                 }
             }
-            Text("Showing \(filteredCards.count) of \(cards.count) scenes in planning order")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                Text("Showing")
+                Text(filteredCards.count.formatted())
+                Text("of")
+                Text(cards.count.formatted())
+                Text("scenes in planning order")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -207,9 +213,11 @@ private struct SceneWorkflowCardRow: View {
                 Button(action: moveUpAction) { Image(systemName: "arrow.up") }
                     .disabled(!canMoveUp)
                     .help("Move earlier in planning order")
+                    .accessibilityLabel("Move Earlier")
                 Button(action: moveDownAction) { Image(systemName: "arrow.down") }
                     .disabled(!canMoveDown)
                     .help("Move later in planning order")
+                    .accessibilityLabel("Move Later")
                 Button("Open in Script", action: openAction)
             }
 
@@ -221,7 +229,7 @@ private struct SceneWorkflowCardRow: View {
             HStack {
                 Picker("Status", selection: $status) {
                     ForEach(SceneCardStatus.allCases, id: \.self) { value in
-                        Text(value.rawValue).tag(value)
+                        Text(value.localizedTitle).tag(value)
                     }
                 }
                 TextField("Plotline tags, comma separated", text: $tagsText)
@@ -246,5 +254,19 @@ private struct SceneWorkflowCardRow: View {
             || note != card.note
             || status != card.status
             || parsedTags.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) } != card.plotlineTags
+    }
+}
+
+private extension SceneCardStatus {
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .idea: "Idea"
+        case .outlined: "Outlined"
+        case .drafted: "Drafted"
+        case .needsRewrite: "Needs Rewrite"
+        case .reviewed: "Reviewed"
+        case .locked: "Locked"
+        case .ready: "Ready"
+        }
     }
 }
