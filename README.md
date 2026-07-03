@@ -9,21 +9,23 @@ DreamJotter is a local-first macOS screenplay-writing app built with Swift, Swif
 
 ## Current Status
 
-Milestones 1 through 11 are implemented or accepted. All four Milestone 12 slices are implemented on the current development branch and remain pending local build, automated test, and manual acceptance results before merge.
+Milestones 1 through 11 are implemented or accepted. All five Milestone 12 slices are implemented on the current development branch and remain pending local build, automated test, accessibility, native-speaker, and manual acceptance results before merge.
 
 Milestone 12 includes:
 
 - M12.1 character and location profile management
 - M12.2 notes and TODO workspace
 - M12.3 scene workflow polish
-- M12.4 English and Spanish localization and screenplay-language support
+- M12.4 English and Spanish screenplay-language support
+- M12.5 complete Mexican and Latin American Spanish UI localization
 - Unicode-aware search across Characters, Locations, Scenes, Notes, Script, and Review
 - Direct navigation between planning, findings, linked notes, and script locations
 
-The M12.4 specification is located at:
+Specifications:
 
 ```text
 docs/specs/writer-workflow/m12-localization-spanish.spec.md
+docs/specs/writer-workflow/m12-full-ui-localization.spec.md
 ```
 
 ## Architecture
@@ -46,16 +48,31 @@ docs/specs/writer-workflow/m12-localization-spanish.spec.md
 - Scene summaries, notes, statuses, plotline tags, and planning order
 - Optional application of planning order to complete screenplay scene blocks
 - Review findings with filters and direct script navigation
-- English, Mexican Spanish, and Latin American Spanish UI resources
+- Complete `es-MX` and `es-419` resources for the macOS interface
+- Localized menus, panels, alerts, errors, accessibility labels, export, backup, and restore workflows
 - Automatic, English, and Spanish screenplay-language profiles
 - Unicode character cues such as `SOFÍA`, `ÍÑIGO`, and `DOÑA ÁNGELES`
 - Spanish scene headings such as `INT. CASA - NOCHE` and `I/E. AUTO - CONTINUO`
 - Spanish transitions such as `CORTE A:` and `FUNDIDO A NEGRO.`
 - Spanish shots, title-page aliases, TODO tokens, parentheticals, and cue extensions
 - Localized diagnostic message lookup using stable codes
-- Screenplay-language preference persisted in existing project metadata
+- Screenplay-language preference persisted in project metadata
 - Fountain, text, Markdown, JSON backup, FDX, and production PDF export
 - Local package save, reopen, backup, and restore
+
+## Localization Validation
+
+```sh
+python3 scripts/localization-check
+
+CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache \
+swift test \
+  --filter LocalizationResourceTests \
+  --disable-sandbox \
+  --scratch-path /private/tmp/DreamJotterSwiftPM
+```
+
+The localization audit checks SwiftUI literals, missing translations, locale parity, duplicate keys, empty values, and `.strings` syntax across `es-MX` and `es-419`.
 
 ## Specifications
 
@@ -64,6 +81,7 @@ docs/specs/writer-workflow/m12-localization-spanish.spec.md
 - `docs/specs/`
 - `docs/data-contracts/`
 - `Tests/DreamJotterExecutableSpecs/`
+- `Tests/DreamJotterMacTests/`
 
 ## Run
 
