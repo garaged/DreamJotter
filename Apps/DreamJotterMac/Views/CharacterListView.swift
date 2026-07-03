@@ -1,6 +1,14 @@
 import DreamJotterCore
 import SwiftUI
 
+private enum CharacterListScope: String, CaseIterable, Identifiable {
+    case all = "All"
+    case profiles = "Profiles"
+    case detected = "Detected"
+
+    var id: String { rawValue }
+}
+
 struct CharacterListView: View {
     let characters: [CharacterRecord]
     let unresolvedDetectedCharacters: [DetectedCharacter]
@@ -9,15 +17,38 @@ struct CharacterListView: View {
     let deleteAction: (CharacterRecord) -> Void
     let convertAction: (DetectedCharacter) -> Void
     let ignoreAction: (DetectedCharacter) -> Void
+
     @State private var newCharacterName = ""
     @State private var newCharacterNote = ""
+    @State private var searchText = ""
+    @State private var scope: CharacterListScope = .all
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Characters").font(.headline)
+            filterBar
             createProfileSection
-            activeProfilesSection
-            detectedCharactersSection
+            if scope != .detected { activeProfilesSection }
+            if scope != .profiles { detectedCharactersSection }
+        }
+    }
+
+    private var filterBar: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                TextField("Search character names and notes", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+                Picker("Scope", selection: $scope) {
+                    ForEach(CharacterListScope.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .frame(width: 130)
+                if !searchText.isEmpty {
+                    Button("Clear") { searchText = "" }
+                }
+            }
+            Text("\(filteredProfiles.count) profile\(filteredProfiles.count == 1 ? "" : "s"), \(filteredDetections.count) detected")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -39,12 +70,11 @@ struct CharacterListView: View {
     private var activeProfilesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Profiles").font(.subheadline).foregroundStyle(.secondary)
-            let profiles = characters.filter { $0.source != .detected }
-            if profiles.isEmpty {
-                Text("No character profiles yet. Add one here or convert a detected character below.")
+            if filteredProfiles.isEmpty {
+                Text(searchText.isEmpty ? "No character profiles yet." : "No character profiles match the search.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(profiles, id: \.id) { character in
+                ForEach(filteredProfiles, id: \.id) { character in
                     CharacterProfileRow(character: character, updateAction: updateAction, deleteAction: deleteAction)
                 }
             }
@@ -55,11 +85,11 @@ struct CharacterListView: View {
     private var detectedCharactersSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Detected in Script").font(.subheadline).foregroundStyle(.secondary)
-            if unresolvedDetectedCharacters.isEmpty {
-                Text("No unresolved detected characters. Uppercase character cues without profiles will appear here.")
+            if filteredDetections.isEmpty {
+                Text(searchText.isEmpty ? "No unresolved detected characters." : "No detected characters match the search.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(unresolvedDetectedCharacters, id: \.id) { detection in
+                ForEach(filteredDetections, id: \.id) { detection in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(detection.name).lineLimit(1)
@@ -74,6 +104,25 @@ struct CharacterListView: View {
                 }
             }
         }
+    }
+
+    private var filteredProfiles: [CharacterRecord] {
+        let profiles = characters.filter { $0.source != .detected }
+        guard !normalizedSearch.isEmpty else { return profiles }
+        return profiles.filter {
+            TextNormalization.key(for: "\($0.displayName) \($0.note)").contains(normalizedSearch)
+        }
+    }
+
+    private var filteredDetections: [DetectedCharacter] {
+        guard !normalizedSearch.isEmpty else { return unresolvedDetectedCharacters }
+        return unresolvedDetectedCharacters.filter {
+            TextNormalization.key(for: $0.name).contains(normalizedSearch)
+        }
+    }
+
+    private var normalizedSearch: String {
+        TextNormalization.key(for: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 }
 
