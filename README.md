@@ -4,6 +4,11 @@ DreamJotter is a screenplay and movie-script writing app for non-programmers. It
 
 Milestone 1 through Milestone 4 portable-core foundations are implemented and covered by executable specs. Milestone 5 adds the first launchable macOS SwiftUI vertical slice as a package executable target. Milestone 6 stabilizes document lifecycle behavior for saving, dirty state, recent projects, replacement protection, and basic commands. Milestone 7 implements screenplay editor usability v1 with TextKit Smart Enter, Tab cycling, suggestions, scene navigation/cursor sync, adapter-only styling, and passive blank-script guidance. Milestone 8 implements character, location, notes, and scene workflow v1 with detected object resolution, profile creation/editing, scene-card status, parsed TODO notes, dashboard summary, and search integration. Milestone 9 implements export, review, backup/restore, and script health v1. Milestone 9.5 implements export UX and release-readiness polish. Milestone 10 implements deterministic production PDF layout, numbering, pagination, rendering, diagnostics, and PDF-first screenplay preset behavior. Milestone 11 adds a portable FDX interoperability foundation. Milestone 12 is in progress, with M12.1 portable character and location management implemented. There is no plugin runtime, real AI provider, cloud sync, or external service integration.
 
+## System Requirements
+
+- macOS 14 Sonoma or later.
+- Swift 6 toolchain through Xcode or Swift Package Manager.
+
 ## Product Direction
 
 DreamJotter is built around a semantic screenplay model, not plain rich text. Scenes, action, character cues, dialogue, parentheticals, transitions, notes, outline data, and future production metadata must be represented as meaningful project data that can be parsed, validated, searched, exported, analyzed, and automated.
@@ -118,91 +123,3 @@ open Package.swift
 ```
 
 Select the `DreamJotterMac` scheme and a macOS run destination, then run. The app opens a Project Library window where you can create a blank project, type screenplay text, save/open `.dreamjotter` packages, export screenplay files, and inspect scenes, characters, dashboard data, notes, and health findings.
-
-In the Script pane, use the segmented `Editor` control to switch between `TextKit` and `TextEditor`. Both paths edit the same project text and feed the same semantic parser, save, reopen, and export behavior.
-
-Command-line validation for the app target:
-
-```sh
-CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift build --product DreamJotterMac --disable-sandbox --scratch-path /private/tmp/DreamJotterSwiftPM
-```
-
-## Spec Workflow
-
-1. Read `docs/constitution.md`.
-2. Find the owning row in `docs/acceptance/traceability-matrix.md`.
-3. Check `specs/registry.yml` for the registry ID and planned modules.
-4. Update specs, acceptance criteria, data contracts, and ADRs before implementation changes.
-5. Add or update executable specs when behavior is ready to be tested.
-6. Keep implementation scoped to documented registry IDs.
-
-## Validation Commands
-
-Run registry checks:
-
-```sh
-python3 scripts/spec-check
-```
-
-View traceability grouped by milestone:
-
-```sh
-python3 scripts/spec-trace
-```
-
-Create a new spec from the feature template:
-
-```sh
-python3 scripts/spec-new PRD-EDITOR-002 "Editor Commands" M2 docs/specs/editor-commands.md
-```
-
-Run executable documentation specs:
-
-```sh
-CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache swift test --disable-sandbox --scratch-path /private/tmp/DreamJotterSwiftPM
-```
-
-Plain `swift test` may work in a normal shell. The command above redirects SwiftPM scratch/cache paths for restricted sandbox environments.
-
-## Repo Layout
-
-```text
-DreamJotter/
-  AGENTS.md
-  README.md
-  CONTRIBUTING.md
-  TODO.md
-  Package.swift
-  Apps/
-    DreamJotterMac/
-  Sources/
-    DreamJotterCore/
-    SpecSupport/
-  Tests/
-    DreamJotterExecutableSpecs/
-    DreamJotterMacTests/
-  docs/
-    constitution.md
-    vision/
-    architecture/
-    adr/
-    milestones/
-    acceptance/
-    specs/
-    data-contracts/
-    editor/
-    storage/
-    export/
-    routines/
-    ai/
-    plugins/
-    ux/
-    templates/
-  specs/
-    registry.yml
-    fixtures/
-  scripts/
-    spec-check
-    spec-new
-    spec-trace
-```
