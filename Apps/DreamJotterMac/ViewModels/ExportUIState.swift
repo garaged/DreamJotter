@@ -70,7 +70,7 @@ struct ExportFeedback: Codable, Equatable, Identifiable {
     static func canceled(sourceOperation: String, timestamp: Date = Date()) -> ExportFeedback {
         ExportFeedback(
             kind: .canceled,
-            userMessage: "Export canceled.",
+            userMessage: String(localized: "Export canceled."),
             sourceOperation: sourceOperation,
             timestamp: timestamp
         )
@@ -229,13 +229,21 @@ struct ExportUIState: Codable, Equatable {
             guard !preset.allowedFormats.contains(format) else { return nil }
             return DisabledExportFormat(
                 format: format,
-                reason: "\(preset.title) does not support \(format.displayName)."
+                reason: String(
+                    format: String(localized: "%@ does not support %@."),
+                    localized(preset.title),
+                    localized(format.displayName)
+                )
             )
         }
         if copy.disabledReason(for: copy.selectedFormat) != nil {
             copy.selectedFormat = preset.allowedFormats.contains(.pdf) ? .pdf : preset.format
         }
         return copy
+    }
+
+    private func localized(_ value: String) -> String {
+        String(localized: String.LocalizationValue(value))
     }
 }
 
@@ -249,45 +257,45 @@ extension ExportFormat: Identifiable {
     var displayName: String {
         switch self {
         case .fountain:
-            return "Fountain"
+            "Fountain"
         case .pdf:
-            return "PDF"
+            "PDF"
         case .plainText:
-            return "Plain Text"
+            "Plain Text"
         case .markdown:
-            return "Markdown"
+            "Markdown"
         case .jsonBackup:
-            return "JSON Backup"
+            "JSON Backup"
         }
     }
 
     var writerDescription: String {
         switch self {
         case .fountain:
-            return "A screenplay text format that other writing tools can open."
+            "A screenplay text format that other writing tools can open."
         case .pdf:
-            return "A readable copy for sharing or printing."
+            "A readable copy for sharing or printing."
         case .plainText:
-            return "A durable text archive of the script."
+            "A durable text archive of the script."
         case .markdown:
-            return "A readable document with script text and optional notes."
+            "A readable document with script text and optional notes."
         case .jsonBackup:
-            return "A structured backup that can restore the project."
+            "A structured backup that can restore the project."
         }
     }
 
     var fileExtension: String {
         switch self {
         case .fountain:
-            return "fountain"
+            "fountain"
         case .pdf:
-            return "pdf"
+            "pdf"
         case .plainText:
-            return "txt"
+            "txt"
         case .markdown:
-            return "md"
+            "md"
         case .jsonBackup:
-            return "json"
+            "json"
         }
     }
 }
