@@ -1,12 +1,12 @@
 # Milestone 12 — Writer Workflow Polish
 
-Status: implemented pending local validation
+Status: in progress
 
 ## Goal
 
-Complete the highest-value writer workflows intentionally deferred from Milestone 8 while preserving the local-first package model, command-backed mutations, snapshot protection, Unicode safety, search correctness, dashboard correctness, and editor navigation stability.
+Complete the highest-value writer workflows intentionally deferred from Milestone 8 while preserving the local-first package model, command-backed mutations, snapshot protection, Unicode safety, search correctness, dashboard correctness, editor navigation stability, and multilingual screenplay fidelity.
 
-Milestone 12 is delivered in three independently reviewable slices and a shared cross-workspace search/navigation polish pass.
+Milestone 12 is delivered in four slices plus a shared cross-workspace search/navigation polish pass.
 
 ## Platform Baseline
 
@@ -64,6 +64,27 @@ Status: implemented pending local validation.
 - Preserve scene metadata, planning order, screenplay order, Unicode values, and snapshots across save and reopen.
 - Treat scene headings as the current scene identity; identical repeated headings remain a known limitation until stable scene IDs are introduced.
 
+## M12.4 Localization and Spanish Screenplay Support
+
+Status: specified.
+
+Specification: `docs/specs/writer-workflow/m12-localization-spanish.spec.md`
+
+- Localize the macOS application in English, Spanish for Mexico, and Latin American Spanish fallback.
+- Keep application language independent from screenplay language.
+- Add project screenplay-language profiles for Automatic, English, and Latin American Spanish.
+- Preserve the existing language-neutral semantic screenplay model.
+- Recognize Spanish and English screenplay constructs without translating source text.
+- Support Unicode character cues such as `SOFÍA`, `ÍÑIGO`, and `DOÑA ÁNGELES`.
+- Support shared scene prefixes such as `INT.`, `EXT.`, `INT./EXT.`, and optional Spanish `I/E.` aliasing.
+- Support Spanish time-of-day values, transitions, shots, title-page fields, TODO tokens, parentheticals, and cue extensions.
+- Replace ASCII-only title-page-field recognition with Unicode-aware aliases and custom-field preservation.
+- Keep Fountain control markers language-neutral and interoperable.
+- Localize diagnostics through stable codes and runtime message resolution.
+- Preserve accents and original wording across package storage, Fountain, FDX, PDF, Markdown, JSON backup, and plain text.
+- Add paired English, Spanish, mixed-language, normalization, title-page, transition, and malformed-construct fixtures.
+- Require native-speaker review and Spanish UI smoke coverage before release.
+
 ## Shared Search and Navigation Polish
 
 Milestone 12 also standardizes search and navigation across the writer workspace:
@@ -77,6 +98,7 @@ Milestone 12 also standardizes search and navigation across the writer workspace
 - Review filters cover severity and source.
 - Filtered surfaces show result counts, clear actions, and explicit no-match states.
 - Review findings and linked notes provide direct navigation to the relevant workspace or script location.
+- Search and navigation semantics remain identical under English and Spanish application locales.
 
 ## Shared Guardrails
 
@@ -87,6 +109,9 @@ Milestone 12 also standardizes search and navigation across the writer workspace
 - Preview operations are read-only and deterministic.
 - Unicode and grapheme content must not be narrowed or lossy-normalized.
 - Search normalization is used only for matching and filtering.
+- Application localization must never translate or rewrite screenplay content.
+- Screenplay-language parsing must not depend on the current application UI locale.
+- Stable semantic kinds, diagnostic codes, file formats, and internal identifiers are not localized.
 - Detected character and location resolution must remain consistent after archive, restore, merge, rename, save, and reopen.
 - Search indexes and dashboard summaries are rebuildable projections, not canonical data.
 - Planning order and screenplay order remain separate until the writer invokes the explicit screenplay-reorder command.
@@ -103,9 +128,11 @@ Milestone 12 also standardizes search and navigation across the writer workspace
 - Verify linked-note, scene-card, script-search, and Review navigation.
 - Verify planning-order changes do not alter screenplay text.
 - Verify screenplay-order application moves complete scene blocks and records a snapshot.
+- Implement and validate M12.4 before Milestone 12 is accepted.
 
 ## Delivery Branches
 
 - `feature/m12-profile-management`
 - `feature/m12-notes-workspace`
 - `feature/m12-scene-workflow`
+- `feature/m12-localization-spanish`
