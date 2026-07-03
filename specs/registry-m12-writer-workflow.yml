@@ -6,14 +6,14 @@
       "id": "M12-WRITER-WORKFLOW-POLISH",
       "title": "Writer Workflow Polish",
       "milestone": "M12",
-      "status": "implemented-pending-validation",
+      "status": "in-progress",
       "spec": "docs/milestones/milestone-12-writer-workflow-polish.md",
       "acceptance": "docs/acceptance/milestone-12-acceptance.md",
       "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md", "docs/adr/0002-local-first-dreamjotter-package.md"],
       "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
-      "planned_modules": ["CommandEngine", "ProjectDocumentViewModel", "WriterOrganization", "SceneWorkflow", "Localization", "ScreenplayLanguageProfile"],
-      "guardrails": ["Destructive operations are command-backed; bulk mutations are snapshot-protected; metadata-only workflows preserve screenplay order and editor navigation; localization never rewrites screenplay content."],
-      "notes": "M12.1 and M12.2 are implemented. M12.3 and M12.4 are implemented pending local validation."
+      "planned_modules": ["CommandEngine", "ProjectDocumentViewModel", "WriterOrganization", "SceneWorkflow", "Localization", "ScreenplayLanguageProfile", "LocalizationAudit"],
+      "guardrails": ["Project data remains local-first and Unicode-safe; localization never rewrites screenplay content; complete Spanish usability requires every visible string and accessibility label to be localized."],
+      "notes": "M12.1 and M12.2 are implemented. M12.3 and M12.4 are implemented pending validation. M12.5 complete Spanish UI localization is specified."
     },
     {
       "id": "M12-PROFILE-MANAGEMENT",
@@ -25,8 +25,8 @@
       "related_adrs": [],
       "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
       "planned_modules": ["ProfileManagement", "CommandEngine"],
-      "guardrails": ["Archive and restore are reversible commands. Removal, merge, and bulk rename require snapshots and deterministic previews."],
-      "notes": "Portable profile lifecycle and macOS CRUD adapters are implemented."
+      "guardrails": ["Profile lifecycle and bulk changes preserve project integrity."],
+      "notes": "Profile lifecycle, CRUD, search, rename, merge, and persistence are implemented."
     },
     {
       "id": "M12-NOTES-WORKSPACE",
@@ -38,8 +38,8 @@
       "related_adrs": [],
       "related_data_contracts": ["docs/data-contracts/core-domain-model.md"],
       "planned_modules": ["NotesWorkspace", "CommandEngine", "NotesView", "ProjectWorkspaceView"],
-      "guardrails": ["Bulk note mutations require snapshot protection and orphan handling preserves note content."],
-      "notes": "Stored-note CRUD, Unicode search and filters, localized parsed TODO separation, linked-target navigation, snapshot-protected bulk resolve, orphan unlinking, and package persistence are implemented."
+      "guardrails": ["Note workflows preserve content, links, and snapshot safety."],
+      "notes": "Stored-note CRUD, filters, search, localized TODO projection, navigation, orphan handling, and persistence are implemented."
     },
     {
       "id": "M12-SCENE-WORKFLOW",
@@ -51,8 +51,8 @@
       "related_adrs": [],
       "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
       "planned_modules": ["SceneWorkflow", "CommandEngine", "EditorNavigationState", "SceneWorkflowView"],
-      "guardrails": ["Planning order is separate from screenplay order; explicit screenplay reorder requires a snapshot and preserves navigation consistency."],
-      "notes": "Scene metadata, search and filters, planning order, navigation, screenplay reorder, persistence coverage, and macOS integration are implemented."
+      "guardrails": ["Planning order remains separate from screenplay order until explicitly applied."],
+      "notes": "Scene metadata, search, planning order, navigation, reorder, and persistence are implemented."
     },
     {
       "id": "M12-LOCALIZATION-SPANISH",
@@ -64,8 +64,21 @@
       "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md"],
       "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
       "planned_modules": ["ScreenplayLanguageProfile", "LocalizedParserLexicons", "StringCatalogs", "LocalizedDiagnostics", "EditorSuggestions"],
-      "guardrails": ["Application language and screenplay language are independent; original screenplay text is never translated or normalized destructively; English behavior remains regression-stable."],
-      "notes": "English, es-MX, and es-419 resources, bilingual parser support, Unicode screenplay constructs, localized TODOs and diagnostics, project language persistence, editor controls, fixtures, and executable coverage are implemented pending validation."
+      "guardrails": ["Application language and screenplay language remain independent; original screenplay text is preserved."],
+      "notes": "Spanish screenplay constructs, localization resources, diagnostics, project language persistence, fixtures, and executable coverage are implemented pending validation."
+    },
+    {
+      "id": "M12-FULL-SPANISH-UI",
+      "title": "Complete Spanish UI Localization",
+      "milestone": "M12.5",
+      "status": "specified",
+      "spec": "docs/specs/writer-workflow/m12-full-ui-localization.spec.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md"],
+      "related_data_contracts": [],
+      "planned_modules": ["StringCatalogs", "LocalizationAudit", "LocalizedErrors", "LocalizedAccessibility", "SpanishUISmokeTests"],
+      "guardrails": ["Every required workflow must be understandable in Spanish; no raw localization key, enum value, implementation identifier, or unintended English fallback may appear in normal use."],
+      "notes": "Defines the complete es-MX and es-419 translation inventory, terminology, pluralization, dynamic-message, accessibility, layout, audit, automated-test, and manual-journey requirements for the full macOS interface."
     }
   ]
 }
