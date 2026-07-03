@@ -39,7 +39,7 @@ struct AppRootView: View {
         .frame(minWidth: 1100, minHeight: 720)
         .background(WindowCloseGuardView(allowClose: $allowWindowClose, shouldClose: requestWindowClose))
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterNewProject)) { _ in
-            createProject("Untitled")
+            createProject(String(localized: "Untitled"))
         }
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterOpenProject)) { _ in
             openProject()
@@ -115,7 +115,7 @@ struct AppRootView: View {
     private var windowTitle: String {
         guard let document = appModel.currentDocument else { return "DreamJotter" }
         let unsavedMarker = document.isDirty ? " *" : ""
-        let location = document.packageURL == nil ? " - Unsaved" : ""
+        let location = document.packageURL == nil ? " - \(String(localized: "Unsaved"))" : ""
         return "\(document.project.metadata.title)\(unsavedMarker)\(location)"
     }
 
@@ -130,7 +130,7 @@ struct AppRootView: View {
 
     private func openProject() {
         let panel = NSOpenPanel()
-        panel.title = "Open DreamJotter Package"
+        panel.title = String(localized: "Open DreamJotter Package")
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
@@ -171,14 +171,14 @@ struct AppRootView: View {
         case .replaced:
             return true
         case .requiresConfirmation(let message):
-            replacementConfirmationMessage = message
+            replacementConfirmationMessage = localized(message)
             return false
         }
     }
 
     private func presentReplacementDecision(_ decision: ProjectReplacementDecision) {
         if case .requiresConfirmation(let message) = decision {
-            replacementConfirmationMessage = message
+            replacementConfirmationMessage = localized(message)
         }
     }
 
@@ -266,23 +266,23 @@ struct AppRootView: View {
         case .restored:
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .success,
-                userMessage: result.userMessage,
+                userMessage: localized(result.userMessage),
                 technicalDetail: result.technicalDetail,
                 sourceOperation: "restore"
             ))
             isExportPickerPresented = false
         case .confirmationRequired:
-            restoreConfirmationMessage = result.userMessage
+            restoreConfirmationMessage = localized(result.userMessage)
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .warning,
-                userMessage: result.userMessage,
+                userMessage: localized(result.userMessage),
                 technicalDetail: result.technicalDetail,
                 sourceOperation: "restore"
             ))
         case .failed:
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .error,
-                userMessage: result.userMessage,
+                userMessage: localized(result.userMessage),
                 technicalDetail: result.technicalDetail,
                 sourceOperation: "restore"
             ))
@@ -300,7 +300,7 @@ struct AppRootView: View {
     private func saveProjectAs(afterSuccessfulSave: (() -> Void)? = nil) -> SaveAsRequestResult {
         guard let document = appModel.currentDocument else { return .canceled }
         let panel = NSSavePanel()
-        panel.title = "Save DreamJotter Package"
+        panel.title = String(localized: "Save DreamJotter Package")
         panel.nameFieldStringValue = "\(document.project.metadata.title).dreamjotter"
         panel.canCreateDirectories = true
 
@@ -333,7 +333,9 @@ struct AppRootView: View {
     private func chooseExportDestination() {
         guard let document = appModel.currentDocument else { return }
         let panel = NSSavePanel()
-        panel.title = exportUIState.selectedFormat == .jsonBackup ? "Create DreamJotter Backup" : "Export DreamJotter Project"
+        panel.title = exportUIState.selectedFormat == .jsonBackup
+            ? String(localized: "Create DreamJotter Backup")
+            : String(localized: "Export DreamJotter Project")
         panel.nameFieldStringValue = suggestedExportFilename(for: document)
         panel.canCreateDirectories = true
 
@@ -364,12 +366,19 @@ struct AppRootView: View {
 
         exportUIState.beginExport()
         let feedback = appModel.exportCurrentProject(request: request, preset: preset)
-        exportUIState.applyFeedback(feedback)
+        exportUIState.applyFeedback(ExportFeedback(
+            kind: feedback.kind,
+            userMessage: localized(feedback.userMessage),
+            technicalDetail: feedback.technicalDetail,
+            outputPath: feedback.outputPath,
+            canRevealInFinder: feedback.canRevealInFinder,
+            sourceOperation: feedback.sourceOperation
+        ))
     }
 
     private func restoreBackup() {
         let panel = NSOpenPanel()
-        panel.title = "Restore DreamJotter Backup"
+        panel.title = String(localized: "Restore DreamJotter Backup")
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
@@ -386,24 +395,24 @@ struct AppRootView: View {
             case .restored:
                 exportUIState.applyFeedback(ExportFeedback(
                     kind: .success,
-                    userMessage: result.userMessage,
+                    userMessage: localized(result.userMessage),
                     outputPath: url.path,
                     canRevealInFinder: false,
                     sourceOperation: "restore"
                 ))
                 isExportPickerPresented = false
             case .confirmationRequired:
-                restoreConfirmationMessage = result.userMessage
+                restoreConfirmationMessage = localized(result.userMessage)
                 exportUIState.applyFeedback(ExportFeedback(
                     kind: .warning,
-                    userMessage: result.userMessage,
+                    userMessage: localized(result.userMessage),
                     technicalDetail: result.technicalDetail,
                     sourceOperation: "restore"
                 ))
             case .failed:
                 exportUIState.applyFeedback(ExportFeedback(
                     kind: .error,
-                    userMessage: result.userMessage,
+                    userMessage: localized(result.userMessage),
                     technicalDetail: result.technicalDetail,
                     sourceOperation: "restore"
                 ))
@@ -412,7 +421,7 @@ struct AppRootView: View {
             let appError = AppError.wrap(error, operation: .open)
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .error,
-                userMessage: appError.userMessage,
+                userMessage: localized(appError.userMessage),
                 technicalDetail: appError.technicalDetail,
                 sourceOperation: "restore"
             ))
@@ -421,7 +430,8 @@ struct AppRootView: View {
 
     private func suggestedExportFilename(for document: ProjectDocumentViewModel) -> String {
         let preset = exportUIState.selectedPreset(in: exportPresets)
-        let base = "\(document.project.metadata.title) - \(preset?.filenameSuggestion ?? exportUIState.selectedFormat.displayName)"
+        let suggestion = preset?.filenameSuggestion ?? exportUIState.selectedFormat.displayName
+        let base = "\(document.project.metadata.title) - \(localized(suggestion))"
         return "\(base).\(exportUIState.selectedFormat.fileExtension)"
     }
 
@@ -430,7 +440,12 @@ struct AppRootView: View {
     }
 
     private func present(_ error: Error, operation: AppErrorSourceOperation) {
-        errorMessage = AppError.wrap(error, operation: operation).localizedDescription
+        let appError = AppError.wrap(error, operation: operation)
+        errorMessage = localized(appError.userMessage)
+    }
+
+    private func localized(_ value: String) -> String {
+        String(localized: String.LocalizationValue(value))
     }
 }
 
