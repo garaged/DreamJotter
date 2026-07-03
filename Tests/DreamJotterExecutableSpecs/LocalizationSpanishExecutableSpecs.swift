@@ -56,6 +56,22 @@ struct LocalizationSpanishExecutableSpecs {
         #expect(document.elements.contains { $0.kind == .transition && $0.text == "FUNDIDO A NEGRO." })
     }
 
+    @Test("Project parsing context controls the default parser facade")
+    func projectParsingContext() {
+        let source = "I/E. AUTO - CONTINUO"
+        let automatic = ScreenplayParser.parse(source)
+        let english = ScreenplayParsingContext.$language.withValue(.english) {
+            ScreenplayParser.parse(source)
+        }
+        let spanish = ScreenplayParsingContext.$language.withValue(.spanishLatinAmerica) {
+            ScreenplayParser.parse(source)
+        }
+
+        #expect(automatic.elements.first?.kind == .sceneHeading)
+        #expect(spanish.elements.first?.kind == .sceneHeading)
+        #expect(english.elements.first?.kind != .sceneHeading)
+    }
+
     @Test("Spanish I/E alias preserves original heading")
     func spanishInteriorExteriorAlias() {
         let document = ScreenplayParser.parse("I/E. AUTO - CONTINUO", language: .spanishLatinAmerica)
