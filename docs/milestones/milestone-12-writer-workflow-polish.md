@@ -1,6 +1,6 @@
 # Milestone 12 — Writer Workflow Polish
 
-Status: in progress
+Status: implemented
 
 ## Goal
 
@@ -39,15 +39,17 @@ Status: implemented.
 
 ## M12.3 Scene Workflow Polish
 
-Status: planned.
+Status: implemented.
 
 - Enrich scene cards with editable summary, note, status, plotline tags, and planning order.
 - Reorder planning metadata without changing screenplay element order.
-- Filter scene cards by status, plotline, and tag.
+- Filter scene cards by text, status, and plotline tag.
 - Jump from a scene card to the corresponding editor scene.
 - Provide a separate explicit command for screenplay scene reordering.
-- Require a snapshot before screenplay scene reorder.
+- Require confirmation and a snapshot before screenplay scene reorder.
+- Preserve pre-scene content and element order within every reordered scene block.
 - Keep editor cursor and scene navigation stable after metadata-only changes.
+- Preserve scene metadata, planning order, screenplay order, Unicode values, and snapshots across save and reopen.
 
 ## Shared Guardrails
 
