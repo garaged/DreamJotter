@@ -115,7 +115,7 @@ struct ProjectWorkspaceView: View {
         case .characters:
             ScrollView {
                 CharacterListView(
-                    characters: document.characters,
+                    characters: document.project.characters,
                     unresolvedDetectedCharacters: document.unresolvedDetectedCharacters,
                     createAction: { name, note in
                         document.createCharacterProfile(name: name, note: note)
@@ -135,7 +135,7 @@ struct ProjectWorkspaceView: View {
         case .locations:
             ScrollView {
                 LocationListView(
-                    locations: document.locations,
+                    locations: document.project.locations,
                     unresolvedDetectedLocations: document.unresolvedDetectedLocations,
                     createAction: { name, note in
                         document.createLocationProfile(name: name, note: note)
