@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+TARGETS = [
+    ROOT / "Apps/DreamJotterMac/Resources/es-MX.lproj/Localizable.strings",
+    ROOT / "Apps/DreamJotterMac/Resources/es-419.lproj/Localizable.strings",
+    ROOT / "Apps/DreamJotterMac/Resources/es-MX.lproj/Errors.strings",
+    ROOT / "Apps/DreamJotterMac/Resources/es-419.lproj/Errors.strings",
+    ROOT / "Apps/DreamJotterMac/Resources/es-MX.lproj/Review.strings",
+    ROOT / "Apps/DreamJotterMac/Resources/es-419.lproj/Review.strings",
+    ROOT / "Apps/DreamJotterMac/Resources/es-MX.lproj/Settings.strings",
+    ROOT / "Apps/DreamJotterMac/Resources/es-419.lproj/Settings.strings",
+    ROOT / "docs/specs/writer-workflow/m12-full-ui-localization.spec.md",
+]
+
+REPLACEMENTS = {
+    "Guion": "Guión",
+    "guion": "guión",
+    '"All severities" = "Todas las severidades";': '"All severities" = "Todos los niveles de gravedad";',
+    '"Health" = "Estado";': '"Health" = "Estado del guión";',
+    '"Health Report" = "Reporte de estado";': '"Health Report" = "Informe de estado";',
+    '"Open script TODO" = "Pendiente abierto del guión";': '"Open script TODO" = "Abrir pendiente del guión";',
+    '"Read-only script review with searchable findings and direct navigation." = "Revisión del guión en modo de solo lectura, con hallazgos buscables y navegación directa.";': '"Read-only script review with searchable findings and direct navigation." = "Revisión del guión en modo de solo lectura, con hallazgos que se pueden buscar y navegación directa.";',
+    '"Show layout numbering" = "Mostrar numeración de diseño";': '"Show layout numbering" = "Mostrar numeración de maquetación";',
+    '"Success" = "Correcto";': '"Success" = "Éxito";',
+    '"Export Preset" = "Ajuste de exportación";': '"Export Preset" = "Configuración predefinida de exportación";',
+    '"Preset" = "Ajuste";': '"Preset" = "Configuración predefinida";',
+    '"Save As was canceled." = "Se canceló Guardar como.";': '"Save As was canceled." = "Se canceló «Guardar como».";',
+    '"A durable text archive of the script." = "Un archivo de texto duradero del guión.";': '"A durable text archive of the script." = "Una copia de texto del guión para conservación a largo plazo.";',
+}
+
+changed = []
+for path in TARGETS:
+    if not path.exists():
+        continue
+    original = path.read_text(encoding="utf-8")
+    updated = original
+    for old, new in REPLACEMENTS.items():
+        updated = updated.replace(old, new)
+    if updated != original:
+        path.write_text(updated, encoding="utf-8")
+        changed.append(path.relative_to(ROOT))
+
+if changed:
+    print("Updated Spanish copy:")
+    for path in changed:
+        print(f"  {path}")
+else:
+    print("Spanish copy already normalized.")
