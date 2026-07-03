@@ -141,7 +141,7 @@ struct AppRootView: View {
 
     private func openRecentProject(_ url: URL) {
         do {
-            let decision = try appModel.requestOpenPackage(at: url)
+            let decision = try appModel.requestOpenPackageRespectingLanguage(at: url)
             presentReplacementDecision(decision)
         } catch {
             appModel.forgetInvalidRecentProject(url)
@@ -151,7 +151,7 @@ struct AppRootView: View {
 
     private func saveProject() {
         do {
-            let result = try appModel.saveCurrentProject()
+            let result = try appModel.saveCurrentProjectRespectingLanguage()
             if result == .requiresSaveAs {
                 saveProjectAs()
             }
@@ -185,7 +185,7 @@ struct AppRootView: View {
     private func saveAndConfirmPendingReplacement() {
         let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
         do {
-            let result = try appModel.saveAndConfirmPendingReplacement()
+            let result = try appModel.saveAndConfirmPendingReplacementRespectingLanguage()
             if result == .requiresSaveAs {
                 _ = saveProjectAs {
                     finishPendingReplacementAfterSave(shouldCloseWindow: shouldCloseWindow)
@@ -225,7 +225,7 @@ struct AppRootView: View {
 
     private func saveAndConfirmPendingRestore() {
         do {
-            let result = try appModel.saveAndConfirmPendingRestore()
+            let result = try appModel.saveAndConfirmPendingRestoreRespectingLanguage()
             switch result {
             case .restored(let restoreResult):
                 finishRestore(restoreResult)
@@ -312,7 +312,7 @@ struct AppRootView: View {
             : selectedURL.appendingPathExtension("dreamjotter")
 
         do {
-            let result = try appModel.saveCurrentProject(to: packageURL)
+            let result = try appModel.saveCurrentProjectRespectingLanguage(to: packageURL)
             afterSuccessfulSave?()
             return result
         } catch {
@@ -381,7 +381,7 @@ struct AppRootView: View {
 
         do {
             let data = try Data(contentsOf: url)
-            let result = appModel.restoreBackup(from: data)
+            let result = appModel.restoreBackupRespectingLanguage(from: data)
             switch result.status {
             case .restored:
                 exportUIState.applyFeedback(ExportFeedback(
