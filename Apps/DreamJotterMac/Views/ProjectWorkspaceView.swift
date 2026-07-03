@@ -81,18 +81,9 @@ struct ProjectWorkspaceView: View {
             ScriptEditorView(document: $document)
         case .scenes:
             ScrollView {
-                SceneListView(
-                    sceneCards: document.sceneCards,
-                    selectedSceneID: document.editorNavigationState.selectedSceneID,
-                    selectAction: { index in
-                        document.requestNavigation(toSceneAt: index)
-                        selectedSection = .script
-                    },
-                    updateStatusAction: { card, status in
-                        if let heading = card.sourceSceneHeading {
-                            document.updateSceneStatus(sceneHeading: heading, status: status)
-                        }
-                    }
+                BoundSceneWorkflowView(
+                    document: $document,
+                    openScriptAction: { selectedSection = .script }
                 )
                 .padding()
             }
@@ -108,7 +99,7 @@ struct ProjectWorkspaceView: View {
                         document.updateCharacterProfile(character, name: name, note: note)
                     },
                     deleteAction: { character in
-                        deleteProfile(id: character.id, kind: .character)
+                        document.removeStoredProfile(id: character.id, kind: .character)
                     },
                     convertAction: { detection in
                         document.convertDetectedCharacterToProfile(detection)
@@ -131,7 +122,7 @@ struct ProjectWorkspaceView: View {
                         document.updateLocationProfile(location, name: name, note: note)
                     },
                     deleteAction: { location in
-                        deleteProfile(id: location.id, kind: .location)
+                        document.removeStoredProfile(id: location.id, kind: .location)
                     },
                     convertAction: { detection in
                         document.convertDetectedLocationToProfile(detection)
@@ -199,29 +190,5 @@ struct ProjectWorkspaceView: View {
             }
         }
         return sceneIndex
-    }
-
-    private func deleteProfile(id: String, kind: ProfileKind) {
-        let now = Date()
-        let result = CommandEngine.execute(
-            ProfileCommandRequest(
-                id: "delete-\(kind.rawValue)-\(UUID().uuidString)",
-                action: .delete,
-                profileKind: kind,
-                profileID: id,
-                confirmed: true,
-                requestedAt: now
-            ),
-            project: document.project,
-            now: now
-        )
-        guard result.result.status == .succeeded else { return }
-
-        document = ProjectDocumentViewModel(
-            project: result.project,
-            packageURL: document.packageURL,
-            scriptText: document.scriptText,
-            isDirty: true
-        )
     }
 }
