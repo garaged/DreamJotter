@@ -38,37 +38,46 @@ extension ProjectDocumentViewModel {
     }
 
     mutating func updateScriptTextRespectingLanguage(_ text: String) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
+        withScreenplayLanguage {
             updateScriptText(text)
         }
     }
 
     mutating func refreshParseRespectingLanguage(now: Date = Date()) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
+        withScreenplayLanguage {
             refreshParse(now: now)
         }
     }
 
     mutating func acceptEditorSuggestionRespectingLanguage(_ suggestion: EditorSuggestion) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
+        withScreenplayLanguage {
             acceptEditorSuggestion(suggestion)
         }
     }
 
     mutating func performSmartEnterRespectingLanguage(at cursorLocation: Int) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
+        withScreenplayLanguage {
             performSmartEnter(at: cursorLocation)
         }
     }
 
     mutating func performTabCycleRespectingLanguage(at cursorLocation: Int) {
+        withScreenplayLanguage {
+            performTabCycle(at: cursorLocation)
+        }
+    }
+
+    mutating func saveRespectingLanguage(to packageURL: URL, now: Date = Date()) throws {
+        let language = screenplayLanguage
+        try ScreenplayParsingContext.$language.withValue(language) {
+            try save(to: packageURL, now: now)
+        }
+    }
+
+    private mutating func withScreenplayLanguage(_ operation: () -> Void) {
         let language = screenplayLanguage
         ScreenplayParsingContext.$language.withValue(language) {
-            performTabCycle(at: cursorLocation)
+            operation()
         }
     }
 }
