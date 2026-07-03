@@ -6,7 +6,7 @@ struct SimplifiedReviewLayoutNumberingView: View {
 
     @State private var showPage = true
     @State private var showParagraph = true
-    @State private var showLine = false
+    @State private var showLine = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
