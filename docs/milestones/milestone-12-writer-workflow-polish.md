@@ -1,12 +1,12 @@
 # Milestone 12 — Writer Workflow Polish
 
-Status: implemented pending local validation
+Status: in progress
 
 ## Goal
 
-Complete the highest-value writer workflows intentionally deferred from Milestone 8 while preserving the local-first package model, command-backed mutations, snapshot protection, Unicode safety, search correctness, dashboard correctness, editor navigation stability, and multilingual screenplay fidelity.
+Complete the highest-value writer workflows intentionally deferred from Milestone 8 while preserving the local-first package model, command-backed mutations, snapshot protection, Unicode safety, search correctness, dashboard correctness, editor navigation stability, multilingual screenplay fidelity, and complete Spanish-language usability.
 
-Milestone 12 is delivered in four slices plus a shared cross-workspace search/navigation polish pass.
+Milestone 12 is delivered in five slices plus a shared cross-workspace search and navigation pass.
 
 ## Platform Baseline
 
@@ -18,51 +18,21 @@ Milestone 12 is delivered in four slices plus a shared cross-workspace search/na
 
 Status: implemented.
 
-- Archive and restore character and location profiles.
-- Remove profiles only after explicit confirmation.
-- Merge duplicate profiles into a selected surviving profile.
-- Rename a character or location across the semantic screenplay.
-- Preview affected screenplay elements before applying a bulk rename.
-- Route lifecycle and bulk mutations through `CommandEngine`.
-- Require a snapshot before removal, merge, or bulk screenplay rename.
-- Preserve Unicode names and detected-profile resolution behavior.
-- Preserve changes across `.dreamjotter` save and reopen.
-- Provide macOS create, read, update, and confirmed delete adapters for stored profiles.
-- Search profile names, profile notes, and unresolved detected entities.
-- Filter the workspace by All, Profiles, and Detected scope.
+Profile lifecycle, CRUD, detection conversion, search, filtering, merge, rename preview, command routing, snapshots, Unicode handling, and package persistence are implemented.
 
 ## M12.2 Notes and TODO Workspace
 
 Status: implemented.
 
-- Filter notes by state and target.
-- Search note title and body text using Unicode-aware normalization.
-- Show unresolved parsed-script TODOs separately from manual notes.
-- Apply text search to stored notes and localized parsed TODO projections.
-- Assign project, scene, character, or location targets during note creation.
-- Reassign note targets during editing.
-- Navigate from a linked note to its screenplay scene, screenplay element, project, character, or location workspace.
-- Create, read, update, resolve, reopen, and delete stored notes.
-- Bulk resolve selected notes through `CommandEngine` with snapshot protection.
-- Identify orphaned note links and expose safe confirmed unlink behavior.
-- Keep search indexes and dashboard counts correct after mutations.
-- Preserve Unicode note content, targets, and accepted mutations across `.dreamjotter` save and reopen.
+Stored-note CRUD, target assignment, filters, Unicode search, localized TODO projection, linked navigation, bulk resolution, orphan handling, dashboard updates, and package persistence are implemented.
 
 ## M12.3 Scene Workflow Polish
 
 Status: implemented pending local validation.
 
-- Enrich scene cards with editable summary, note, status, plotline tags, and planning order.
-- Reorder planning metadata without changing screenplay element order.
-- Filter scene cards by text, status, and plotline tag.
-- Jump from a scene card to the corresponding editor scene.
-- Provide a separate explicit command for screenplay scene reordering.
-- Require confirmation and a snapshot before screenplay scene reorder.
-- Preserve pre-scene content and element order within every reordered scene block.
-- Rebuild script text from the reordered semantic screenplay.
-- Keep editor cursor and scene navigation stable after metadata-only changes.
-- Preserve scene metadata, planning order, screenplay order, Unicode values, and snapshots across save and reopen.
-- Treat scene headings as the current scene identity; identical repeated headings remain a known limitation until stable scene IDs are introduced.
+Scene metadata, search, filters, planning order, script navigation, explicit screenplay reorder, snapshot protection, scene-block preservation, and persistence are implemented.
+
+Repeated identical scene headings remain a known limitation until stable scene identifiers are introduced.
 
 ## M12.4 Localization and Spanish Screenplay Support
 
@@ -70,69 +40,68 @@ Status: implemented pending local validation.
 
 Specification: `docs/specs/writer-workflow/m12-localization-spanish.spec.md`
 
-- Localize the macOS application in English, Spanish for Mexico, and Latin American Spanish fallback.
-- Follow the system language and provide a persisted application-language override.
-- Keep application language independent from screenplay language.
-- Add project screenplay-language profiles for Automatic, English, and Latin American Spanish.
-- Preserve the existing language-neutral semantic screenplay model.
-- Recognize Spanish and English screenplay constructs without translating source text.
-- Support Unicode character cues such as `SOFÍA`, `ÍÑIGO`, and `DOÑA ÁNGELES`.
-- Support shared scene prefixes such as `INT.`, `EXT.`, `INT./EXT.`, and Spanish `I/E.` aliasing.
-- Support Spanish time-of-day values, transitions, shots, title-page fields, TODO tokens, parentheticals, and cue extensions.
-- Replace ASCII-only title-page-field recognition with Unicode-aware aliases and custom-field preservation.
-- Keep Fountain control markers language-neutral and interoperable.
-- Localize diagnostics through stable codes and runtime message resolution.
-- Preserve accents and original wording through semantic recognition and package persistence.
-- Add English, Spanish, mixed-language, and invalid-input fixture files.
-- Apply the selected screenplay language during editor parsing, suggestions, smart-enter, tab cycling, and manual refresh.
-- Require export round-trip, accessibility, native-speaker, and Spanish UI smoke validation before release.
+M12.4 provides:
+
+- English, `es-MX`, and `es-419` localization resources;
+- application-language and screenplay-language separation;
+- Automatic, English, and Latin American Spanish screenplay profiles;
+- Unicode-safe English and Spanish screenplay parsing;
+- Spanish scene headings, transitions, shots, title-page labels, TODO tokens, parentheticals, and cue extensions;
+- localized parser diagnostics;
+- project-language persistence;
+- localized TODO projection;
+- parser fixtures and executable coverage.
+
+## M12.5 Complete Spanish UI Localization
+
+Status: specified.
+
+Specification: `docs/specs/writer-workflow/m12-full-ui-localization.spec.md`
+
+M12.5 completes the entire macOS interface for Spanish-speaking users:
+
+- audit every user-facing string in `Apps/DreamJotterMac` and displayed core messages;
+- localize menus, project library, dashboard, editor, profiles, scenes, notes, review, health, export, backup, restore, settings, alerts, panels, tooltips, and accessibility text;
+- provide comprehensive `es-MX` and `es-419` translations;
+- migrate toward stable semantic localization keys;
+- add locale-aware pluralization, lists, dates, numbers, and dynamic messages;
+- prohibit untranslated enum values, implementation identifiers, and accidental English fallback;
+- validate Spanish layouts at minimum window width and accessibility text sizes;
+- add a localization audit command and full Spanish UI smoke journey;
+- require native-speaker terminology approval before acceptance.
 
 ## Shared Search and Navigation Polish
 
-Milestone 12 also standardizes search and navigation across the writer workspace:
-
-- Character search covers names, notes, and unresolved detections.
-- Location search covers names, notes, and unresolved detections.
-- Scene search covers headings, locations, time, characters, summaries, notes, and tags.
-- Notes search covers stored-note title/body and parsed TODO text.
-- Script search provides case-insensitive and diacritic-insensitive match navigation with previous, next, wraparound, count, and clear behavior.
-- Review search covers finding title, message, suggested action, source, and linked identifier.
-- Review filters cover severity and source.
-- Filtered surfaces show result counts, clear actions, and explicit no-match states.
-- Review findings and linked notes provide direct navigation to the relevant workspace or script location.
-- Search and navigation semantics remain identical under English and Spanish application locales.
+- Character and location search covers profiles, notes, and detections.
+- Scene search covers headings, location, time, characters, summary, notes, and tags.
+- Notes search covers stored notes and parsed TODOs.
+- Script search supports diacritic-insensitive previous and next match navigation.
+- Review search and filtering covers title, message, action, source, severity, and linked identifiers.
+- Filtered views expose counts, clear actions, and explicit empty states.
+- Search and navigation semantics remain identical under English and Spanish locales.
 
 ## Shared Guardrails
 
 - `.dreamjotter` remains canonical storage.
-- All destructive operations are command-backed.
-- Bulk destructive operations require snapshot creation before mutation.
-- A failed snapshot blocks the mutation and leaves project state unchanged.
-- Preview operations are read-only and deterministic.
-- Unicode and grapheme content must not be narrowed or lossy-normalized.
-- Search normalization is used only for matching and filtering.
-- Application localization must never translate or rewrite screenplay content.
-- Screenplay-language parsing must not depend on the current application UI locale.
-- Stable semantic kinds, diagnostic codes, file formats, and internal identifiers are not localized.
-- Detected character and location resolution must remain consistent after archive, restore, merge, rename, save, and reopen.
-- Search indexes and dashboard summaries are rebuildable projections, not canonical data.
-- Planning order and screenplay order remain separate until the writer invokes the explicit screenplay-reorder command.
-- Metadata-only operations must not move the editor cursor or alter scene-navigation selection.
+- Destructive and bulk operations retain command and snapshot protection.
+- Unicode and grapheme content is never narrowed or destructively normalized.
+- Application localization never translates screenplay or project content.
+- Screenplay parsing does not depend on application UI locale.
+- Semantic kinds, diagnostic codes, file formats, and internal identifiers are not localized.
+- Metadata-only operations preserve screenplay order and editor navigation.
+- Localization keys and translated strings are presentation data, never canonical project data.
 
 ## Validation Before Merge
 
 - Run `python3 scripts/spec-check`.
 - Run `python3 scripts/spec-trace`.
 - Run the complete Swift test suite.
-- Build `DreamJotterMac` with a clean scratch path on macOS 14 or later.
-- Verify Unicode search and persistence.
-- Verify all search filters, counts, clear actions, and empty states.
-- Verify linked-note, scene-card, script-search, and Review navigation.
-- Verify planning-order changes do not alter screenplay text.
-- Verify screenplay-order application moves complete scene blocks and records a snapshot.
-- Verify application-language override behavior.
-- Verify project-language parsing during editing and save/reopen.
-- Run export round-trip, accessibility, Spanish UI smoke, and native-speaker terminology review before Milestone 12 is accepted.
+- Build `DreamJotterMac` with a clean scratch path.
+- Validate M12.3 scene workflow manually.
+- Validate M12.4 parsing, persistence, fixtures, and export round trips.
+- Implement M12.5 and run the localization audit with zero missing Spanish keys.
+- Complete the full manual project workflow in `es-MX` and `es-419`.
+- Complete accessibility, layout, and native-speaker terminology review.
 
 ## Delivery Branches
 
@@ -140,3 +109,4 @@ Milestone 12 also standardizes search and navigation across the writer workspace
 - `feature/m12-notes-workspace`
 - `feature/m12-scene-workflow`
 - `feature/m12-localization-spanish`
+- `feature/m12-full-ui-localization`
