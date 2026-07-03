@@ -75,6 +75,7 @@ struct ScriptEditorView: View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             TextField("Find in script", text: $searchText)
                 .textFieldStyle(.roundedBorder)
             Text(matchSummary)
@@ -88,6 +89,7 @@ struct ScriptEditorView: View {
             }
             .disabled(matches.isEmpty)
             .help("Previous match")
+            .accessibilityLabel("Previous match")
             Button {
                 selectNextMatch()
             } label: {
@@ -95,6 +97,7 @@ struct ScriptEditorView: View {
             }
             .disabled(matches.isEmpty)
             .help("Next match")
+            .accessibilityLabel("Next match")
             if !searchText.isEmpty {
                 Button("Clear") {
                     searchText = ""
@@ -170,8 +173,12 @@ struct ScriptEditorView: View {
 
     private var matchSummary: String {
         guard !searchText.isEmpty else { return "" }
-        guard !matches.isEmpty else { return "No matches" }
-        return "\(selectedMatchIndex + 1) of \(matches.count)"
+        guard !matches.isEmpty else { return String(localized: "No matches") }
+        return String(
+            format: String(localized: "%lld of %lld"),
+            selectedMatchIndex + 1,
+            matches.count
+        )
     }
 
     private func selectNextMatch() {
@@ -218,13 +225,14 @@ private struct SuggestionsPanel: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(suggestion.displayText)
                                         .font(.callout.monospaced())
-                                    Text(suggestion.type.rawValue)
+                                    Text(localizedType(suggestion.type.rawValue))
                                         .font(.caption2)
                                         .foregroundStyle(.secondary)
                                 }
                                 .padding(.vertical, 4)
                                 .padding(.horizontal, 8)
                             }
+                            .accessibilityLabel(String(format: String(localized: "Accept suggestion: %@"), suggestion.displayText))
                         }
                     }
                 }
@@ -234,6 +242,17 @@ private struct SuggestionsPanel: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
     }
+
+    private func localizedType(_ rawValue: String) -> String {
+        switch rawValue {
+        case "sceneHeading": String(localized: "Scene Heading")
+        case "character": String(localized: "Character")
+        case "transition": String(localized: "Transition")
+        case "shot": String(localized: "Shot")
+        case "parenthetical": String(localized: "Parenthetical")
+        default: String(localized: String.LocalizationValue(rawValue))
+        }
+    }
 }
 
 private struct EmptyScriptGuidance: View {
@@ -241,7 +260,7 @@ private struct EmptyScriptGuidance: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(language == .spanishLatinAmerica ? "Comienza con un encabezado de escena" : "Start with a scene heading")
+            Text("Start with a scene heading")
                 .font(.callout.weight(.semibold))
             Text(language == .spanishLatinAmerica ? "INT. DEPARTAMENTO - MAÑANA" : "INT. APARTMENT - MORNING")
                 .font(.callout.monospaced())
@@ -268,7 +287,7 @@ private struct ScreenplayLanguagePicker: View {
             Text("English").tag(ScreenplayLanguageProfile.english)
             Text("Spanish (Latin America)").tag(ScreenplayLanguageProfile.spanishLatinAmerica)
         }
-        .frame(width: 210)
+        .frame(width: 240)
     }
 }
 
