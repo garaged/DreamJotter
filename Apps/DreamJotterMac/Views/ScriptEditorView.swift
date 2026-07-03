@@ -22,7 +22,7 @@ struct ScriptEditorView: View {
             editorView
                 .overlay(alignment: .topLeading) {
                     if document.isEmptyEditorGuidanceVisible {
-                        EmptyScriptGuidance()
+                        EmptyScriptGuidance(language: document.screenplayLanguage)
                             .padding(20)
                             .allowsHitTesting(false)
                     }
@@ -54,6 +54,8 @@ struct ScriptEditorView: View {
                 .font(.title2.weight(.semibold))
 
             Spacer()
+
+            ScreenplayLanguagePicker(document: $document)
 
             Picker("Editor", selection: $editorAdapter) {
                 ForEach(ScreenplayEditorAdapter.allCases) { adapter in
@@ -235,17 +237,19 @@ private struct SuggestionsPanel: View {
 }
 
 private struct EmptyScriptGuidance: View {
+    let language: ScreenplayLanguageProfile
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Start with a scene heading")
+            Text(language == .spanishLatinAmerica ? "Comienza con un encabezado de escena" : "Start with a scene heading")
                 .font(.callout.weight(.semibold))
-            Text("INT. APARTMENT - MORNING")
+            Text(language == .spanishLatinAmerica ? "INT. DEPARTAMENTO - MAÑANA" : "INT. APARTMENT - MORNING")
                 .font(.callout.monospaced())
-            Text("A quiet room before sunrise.")
+            Text(language == .spanishLatinAmerica ? "Una habitación tranquila antes del amanecer." : "A quiet room before sunrise.")
                 .font(.callout.monospaced())
-            Text("ELENA")
+            Text(language == .spanishLatinAmerica ? "SOFÍA" : "ELENA")
                 .font(.callout.monospaced())
-            Text("We begin here.")
+            Text(language == .spanishLatinAmerica ? "Aquí comenzamos." : "We begin here.")
                 .font(.callout.monospaced())
         }
         .foregroundStyle(.secondary)
