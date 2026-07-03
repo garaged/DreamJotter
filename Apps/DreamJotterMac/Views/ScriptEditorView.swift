@@ -31,7 +31,7 @@ struct ScriptEditorView: View {
             SuggestionsPanel(
                 suggestions: document.editorSuggestions,
                 acceptAction: { suggestion in
-                    document.acceptEditorSuggestion(suggestion)
+                    document.acceptEditorSuggestionRespectingLanguage(suggestion)
                 },
                 ignoreAction: {
                     document.ignoreEditorSuggestions()
@@ -66,7 +66,7 @@ struct ScriptEditorView: View {
             .frame(width: 180)
 
             Button("Refresh Parse") {
-                document.refreshParse()
+                document.refreshParseRespectingLanguage()
             }
         }
     }
@@ -110,15 +110,15 @@ struct ScriptEditorView: View {
         case .textKit:
             TextKitScreenplayEditorView(text: Binding(
                 get: { document.scriptText },
-                set: { document.updateScriptText($0) }
+                set: { document.updateScriptTextRespectingLanguage($0) }
             ), navigationState: document.editorNavigationState,
             styleRuns: document.editorStyleRuns,
             onSmartEnter: { location in
-                document.performSmartEnter(at: location)
+                document.performSmartEnterRespectingLanguage(at: location)
                 document.refreshEditorSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)
             },
             onTabCycle: { location in
-                document.performTabCycle(at: location)
+                document.performTabCycleRespectingLanguage(at: location)
                 document.refreshEditorSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)
             },
             onTextChanged: { location in
@@ -136,7 +136,7 @@ struct ScriptEditorView: View {
             TextEditor(text: Binding(
                 get: { document.scriptText },
                 set: {
-                    document.updateScriptText($0)
+                    document.updateScriptTextRespectingLanguage($0)
                     document.refreshEditorSuggestions(cursorLocation: (document.scriptText as NSString).length)
                 }
             ))
