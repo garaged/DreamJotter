@@ -43,8 +43,11 @@ struct LocalizationSettingsView: View {
                 Text("Spanish (Latin America)").tag(ApplicationLanguagePreference.spanishLatinAmerica)
             }
 
-            Text("Quit and reopen DreamJotter after changing the language to update the entire interface.")
-                .foregroundStyle(.secondary)
+            Text(String(
+                localized: "Quit and reopen DreamJotter after changing the language to update the entire interface.",
+                table: "Settings"
+            ))
+            .foregroundStyle(.secondary)
         }
         .padding()
         .frame(width: 460)
