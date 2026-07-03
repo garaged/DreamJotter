@@ -59,40 +59,55 @@ def read_strings(path: Path) -> dict[str, str]:
     return values
 
 
+def locale_tables(resources: Path, locale: str) -> dict[str, dict[str, str]]:
+    directory = resources / f"{locale}.lproj"
+    return {path.stem: read_strings(path) for path in sorted(directory.glob("*.strings"))}
+
+
+def compare_tables(locales: list[str], tables: dict[str, dict[str, dict[str, str]]], errors: list[str]) -> None:
+    if not locales:
+        return
+    reference_locale = locales[0]
+    reference_tables = tables.get(reference_locale, {})
+    for locale in locales[1:]:
+        current_tables = tables.get(locale, {})
+        if set(reference_tables) != set(current_tables):
+            errors.append(f"table set differs between {reference_locale} and {locale}")
+        for table_name, reference in reference_tables.items():
+            current = current_tables.get(table_name, {})
+            for key in sorted(set(reference) - set(current)):
+                errors.append(f"{table_name}.{key}: absent from {locale}")
+            for key in sorted(set(current) - set(reference)):
+                errors.append(f"{table_name}.{key}: only present in {locale}")
+            for key, value in current.items():
+                if not value.strip():
+                    errors.append(f"{table_name}.{key}: empty {locale} translation")
+
+
 def main() -> int:
     args = parse_args()
     locales = [item.strip() for item in args.locales.split(",") if item.strip()]
     resources = Path(args.resources)
     required = swift_literals(Path(args.target))
     errors: list[str] = []
-    tables: dict[str, dict[str, str]] = {}
+    tables: dict[str, dict[str, dict[str, str]]] = {}
 
     for locale in locales:
-        path = resources / f"{locale}.lproj" / "Localizable.strings"
-        if not path.exists():
-            errors.append(f"missing locale table: {path}")
-            continue
         try:
-            tables[locale] = read_strings(path)
+            tables[locale] = locale_tables(resources, locale)
         except ValueError as error:
             errors.append(str(error))
+            continue
+        if "Localizable" not in tables[locale]:
+            errors.append(f"missing Localizable.strings for {locale}")
 
     for key in sorted(required):
         for locale in locales:
-            value = tables.get(locale, {}).get(key, "")
+            value = tables.get(locale, {}).get("Localizable", {}).get(key, "")
             if not value.strip():
                 errors.append(f"{key}: missing {locale} translation")
 
-    if tables:
-        reference_locale = locales[0]
-        reference_keys = set(tables.get(reference_locale, {}))
-        for locale in locales[1:]:
-            missing = reference_keys - set(tables.get(locale, {}))
-            extra = set(tables.get(locale, {})) - reference_keys
-            for key in sorted(missing):
-                errors.append(f"{key}: absent from {locale}")
-            for key in sorted(extra):
-                errors.append(f"{key}: only present in {locale}")
+    compare_tables(locales, tables, errors)
 
     if errors:
         print("Localization audit failed:")
@@ -100,7 +115,8 @@ def main() -> int:
             print(f"- {error}")
         return 1
 
-    print(f"Localization audit passed: {len(required)} UI keys across {', '.join(locales)}")
+    table_count = sum(len(locale_tables) for locale_tables in tables.values())
+    print(f"Localization audit passed: {len(required)} UI keys, {table_count} locale tables")
     return 0
 
 
