@@ -2,11 +2,19 @@ import DreamJotterCore
 import SwiftUI
 
 private enum CharacterListScope: String, CaseIterable, Identifiable {
-    case all = "All"
-    case profiles = "Profiles"
-    case detected = "Detected"
+    case all
+    case profiles
+    case detected
 
     var id: String { rawValue }
+
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .all: "All"
+        case .profiles: "Profiles"
+        case .detected: "Detected"
+        }
+    }
 }
 
 struct CharacterListView: View {
@@ -39,16 +47,21 @@ struct CharacterListView: View {
                 TextField("Search character names and notes", text: $searchText)
                     .textFieldStyle(.roundedBorder)
                 Picker("Scope", selection: $scope) {
-                    ForEach(CharacterListScope.allCases) { Text($0.rawValue).tag($0) }
+                    ForEach(CharacterListScope.allCases) { Text($0.localizedTitle).tag($0) }
                 }
                 .frame(width: 130)
                 if !searchText.isEmpty {
                     Button("Clear") { searchText = "" }
                 }
             }
-            Text("\(filteredProfiles.count) profile\(filteredProfiles.count == 1 ? "" : "s"), \(filteredDetections.count) detected")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                Text("Profiles")
+                Text(filteredProfiles.count.formatted())
+                Text("Detected")
+                Text(filteredDetections.count.formatted())
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -93,9 +106,12 @@ struct CharacterListView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(detection.name).lineLimit(1)
-                            Text("\(detection.occurrenceCount) appearance\(detection.occurrenceCount == 1 ? "" : "s")")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            HStack(spacing: 4) {
+                                Text(detection.occurrenceCount.formatted())
+                                Text(detection.occurrenceCount == 1 ? "appearance" : "appearances")
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
                         Spacer()
                         Button("Convert") { convertAction(detection) }
