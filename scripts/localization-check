@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Validate DreamJotter macOS localization coverage.
-
-Checks that common SwiftUI user-facing literals exist in the String Catalog and
-that every catalog entry has completed es-MX and es-419 translations.
-"""
+"""Validate DreamJotter macOS localization coverage."""
 
 from __future__ import annotations
 
@@ -17,17 +13,11 @@ UI_PATTERNS = [
     re.compile(r'\b(?:Text|Button|Label|TextField|SecureField|Picker|Section|GroupBox|Menu|Toggle)\(\s*"((?:[^"\\]|\\.)*)"'),
     re.compile(r'\.(?:help|navigationTitle|accessibilityLabel|accessibilityHint)\(\s*"((?:[^"\\]|\\.)*)"'),
     re.compile(r'\b(?:confirmationDialog|alert)\(\s*"((?:[^"\\]|\\.)*)"'),
+    re.compile(r'\bString\(localized:\s*"((?:[^"\\]|\\.)*)"'),
 ]
 
 ALLOWLIST = {
-    "DreamJotter",
-    "TextKit",
-    "TextEditor",
-    "Fountain",
-    "FDX",
-    "PDF",
-    "JSON",
-    "Markdown",
+    "DreamJotter", "TextKit", "TextEditor", "Fountain", "FDX", "PDF", "JSON", "Markdown",
 }
 
 
@@ -39,15 +29,19 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def decode_swift_literal(value: str) -> str:
+    return value.replace(r'\"', '"').replace(r'\\', '\\').replace(r'\n', '\n')
+
+
 def swift_literals(root: Path) -> set[str]:
     values: set[str] = set()
     for path in root.rglob("*.swift"):
         text = path.read_text(encoding="utf-8")
         for pattern in UI_PATTERNS:
             for match in pattern.finditer(text):
-                value = bytes(match.group(1), "utf-8").decode("unicode_escape")
-                if "\\(" in match.group(1):
+                if r"\(" in match.group(1):
                     continue
+                value = decode_swift_literal(match.group(1))
                 if value and value not in ALLOWLIST:
                     values.add(value)
     return values
@@ -55,15 +49,11 @@ def swift_literals(root: Path) -> set[str]:
 
 def main() -> int:
     args = parse_args()
-    target = Path(args.target)
-    catalog_path = Path(args.catalog)
     locales = [item.strip() for item in args.locales.split(",") if item.strip()]
-
-    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
-    strings = catalog.get("strings", {})
+    strings = json.loads(Path(args.catalog).read_text(encoding="utf-8")).get("strings", {})
     errors: list[str] = []
 
-    for literal in sorted(swift_literals(target)):
+    for literal in sorted(swift_literals(Path(args.target))):
         if literal not in strings:
             errors.append(f"missing catalog key: {literal}")
 
