@@ -102,7 +102,11 @@ enum ScreenplayLocalizationPreprocessor {
     }
 
     private static func looksLikeTitlePageField(_ line: String, lexicon: ScreenplayLexicon) -> Bool {
-        guard let colon = line.firstIndex(of: ":"), colon != line.startIndex else { return false }
+        guard !isFountainControlLine(line),
+              let colon = line.firstIndex(of: ":"),
+              colon != line.startIndex else {
+            return false
+        }
         let key = TextNormalization.key(for: line)
         guard !lexicon.transitions.contains(where: { TextNormalization.key(for: $0) == key }),
               !lexicon.shots.contains(where: { TextNormalization.key(for: $0) == key }) else {
@@ -110,6 +114,16 @@ enum ScreenplayLocalizationPreprocessor {
         }
         let label = String(line[..<colon]).trimmingCharacters(in: .whitespaces)
         return label.unicodeScalars.contains { CharacterSet.letters.contains($0) }
+    }
+
+    private static func isFountainControlLine(_ line: String) -> Bool {
+        line.hasPrefix("[[")
+            || line.hasPrefix("#")
+            || line.hasPrefix("=")
+            || line.hasPrefix("!")
+            || line.hasPrefix("@")
+            || line.hasPrefix(">")
+            || line == "==="
     }
 
     private static func transformedTitlePageLine(
