@@ -4,6 +4,8 @@ import Testing
 
 @Suite("M12.5 Complete Spanish UI Localization")
 struct LocalizationResourceTests {
+    private let requiredTables = ["Localizable", "Errors", "Review"]
+
     private var repositoryRoot: URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -13,18 +15,21 @@ struct LocalizationResourceTests {
 
     @Test("Mexican and Latin American Spanish tables have identical complete key coverage")
     func localeTablesMatch() throws {
-        let mexico = try stringsTable(locale: "es-MX")
-        let latinAmerica = try stringsTable(locale: "es-419")
+        for tableName in requiredTables {
+            let mexico = try stringsTable(locale: "es-MX", table: tableName)
+            let latinAmerica = try stringsTable(locale: "es-419", table: tableName)
 
-        #expect(mexico.count >= 290)
-        #expect(Set(mexico.keys) == Set(latinAmerica.keys))
-        #expect(mexico.values.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
-        #expect(latinAmerica.values.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+            #expect(Set(mexico.keys) == Set(latinAmerica.keys))
+            #expect(mexico.values.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+            #expect(latinAmerica.values.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+        }
+
+        #expect(try stringsTable(locale: "es-MX", table: "Localizable").count >= 290)
     }
 
     @Test("All critical writer journeys have Spanish translations")
     func criticalWorkflowKeysExist() throws {
-        let table = try stringsTable(locale: "es-MX")
+        let table = try stringsTable(locale: "es-MX", table: "Localizable")
         let required: Set<String> = [
             "New Project", "Open DreamJotter Package", "Save DreamJotter Package",
             "Dashboard", "Script", "Characters", "Locations", "Scenes", "Notes",
@@ -38,10 +43,21 @@ struct LocalizationResourceTests {
         #expect(required.isSubset(of: Set(table.keys)))
     }
 
+    @Test("Error and review tables cover their presentation paths")
+    func supportingTablesContainCriticalKeys() throws {
+        let errors = try stringsTable(locale: "es-MX", table: "Errors")
+        let review = try stringsTable(locale: "es-MX", table: "Review")
+
+        #expect(errors["DreamJotter could not open this project package."] != nil)
+        #expect(errors["Choose another location or check file permissions."] != nil)
+        #expect(review["Numbering levels"] == "Niveles de numeración")
+        #expect(review["Page"] == "Página")
+    }
+
     @Test("Spanish locale names are region appropriate")
     func localeNames() throws {
-        let mexico = try stringsTable(locale: "es-MX")
-        let latinAmerica = try stringsTable(locale: "es-419")
+        let mexico = try stringsTable(locale: "es-MX", table: "Localizable")
+        let latinAmerica = try stringsTable(locale: "es-419", table: "Localizable")
 
         #expect(mexico["Spanish (Latin America)"] == "Español (México y Latinoamérica)")
         #expect(latinAmerica["Spanish (Latin America)"] == "Español (Latinoamérica)")
@@ -63,10 +79,10 @@ struct LocalizationResourceTests {
         #expect(restored.locale.identifier == "es-MX")
     }
 
-    private func stringsTable(locale: String) throws -> [String: String] {
+    private func stringsTable(locale: String, table: String) throws -> [String: String] {
         let url = repositoryRoot
             .appendingPathComponent("Apps/DreamJotterMac/Resources")
-            .appendingPathComponent("\(locale).lproj/Localizable.strings")
+            .appendingPathComponent("\(locale).lproj/\(table).strings")
         let data = try Data(contentsOf: url)
         let propertyList = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
         return try #require(propertyList as? [String: String])
