@@ -1,12 +1,60 @@
 import DreamJotterCore
 import SwiftUI
 
+private struct NoteTargetOption: Identifiable, Hashable {
+    let id: String
+    let label: String
+    let link: NoteLink
+
+    static func options(for project: DreamJotterProject) -> [NoteTargetOption] {
+        var values = [
+            NoteTargetOption(
+                id: token(kind: .project, targetID: project.metadata.id),
+                label: "Project: \(project.metadata.title)",
+                link: NoteLink(targetKind: .project, targetID: project.metadata.id)
+            )
+        ]
+
+        values += project.screenplay.scenes.map { scene in
+            NoteTargetOption(
+                id: token(kind: .scene, targetID: scene.heading),
+                label: "Scene: \(scene.heading)",
+                link: NoteLink(targetKind: .scene, targetID: scene.heading)
+            )
+        }
+        values += project.characters.map { character in
+            NoteTargetOption(
+                id: token(kind: .character, targetID: character.id),
+                label: "Character: \(character.displayName)",
+                link: NoteLink(targetKind: .character, targetID: character.id)
+            )
+        }
+        values += project.locations.map { location in
+            NoteTargetOption(
+                id: token(kind: .location, targetID: location.id),
+                label: "Location: \(location.displayName)",
+                link: NoteLink(targetKind: .location, targetID: location.id)
+            )
+        }
+        return values
+    }
+
+    static func token(for link: NoteLink) -> String {
+        token(kind: link.targetKind, targetID: link.targetID)
+    }
+
+    private static func token(kind: NoteTargetKind, targetID: String) -> String {
+        "\(kind.rawValue)|\(targetID)"
+    }
+}
+
 struct NotesView: View {
     @Binding var document: ProjectDocumentViewModel
     let navigateAction: (NoteLink) -> Void
 
     @State private var noteTitle = ""
     @State private var noteBody = ""
+    @State private var newNoteTargetID = ""
     @State private var searchText = ""
     @State private var stateFilter: NotesWorkspaceStateFilter = .all
     @State private var targetFilter: NotesWorkspaceTargetFilter = .all
@@ -34,8 +82,20 @@ struct NotesView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     TextField("Title", text: $noteTitle)
                     TextField("Body", text: $noteBody, axis: .vertical)
+                    Picker("Target", selection: newNoteTargetBinding) {
+                        ForEach(targetOptions) { option in
+                            Text(option.label).tag(option.id)
+                        }
+                    }
                     Button("Add Note") {
-                        document.addNote(title: noteTitle, body: noteBody, target: .project)
+                        guard let target = targetOptions.first(where: { $0.id == newNoteTargetBinding.wrappedValue }) else {
+                            return
+                        }
+                        document.addNote(
+                            title: noteTitle,
+                            body: noteBody,
+                            target: noteLinkTarget(for: target.link)
+                        )
                         noteTitle = ""
                         noteBody = ""
                     }
@@ -55,6 +115,7 @@ struct NotesView: View {
                 NoteWorkspaceRow(
                     note: note,
                     project: document.project,
+                    targetOptions: targetOptions,
                     isSelected: selectedNoteIDs.contains(note.id),
                     selectionChanged: { selected in
                         if selected {
@@ -63,8 +124,8 @@ struct NotesView: View {
                             selectedNoteIDs.remove(note.id)
                         }
                     },
-                    updateAction: { title, text in
-                        execute(.update, noteIDs: [note.id], title: title, body: text)
+                    updateAction: { title, text, link in
+                        execute(.update, noteIDs: [note.id], title: title, body: text, links: [link])
                     },
                     resolveAction: {
                         execute(note.status == .open ? .resolve : .reopen, noteIDs: [note.id])
@@ -97,16 +158,30 @@ struct NotesView: View {
                                 .font(.caption)
                                 .foregroundStyle(.tertiary)
                             if let target = NotesWorkspace.navigationTarget(for: todo, in: document.project) {
-                                Button("Open in Script") {
-                                    navigateAction(target)
-                                }
-                                .font(.caption)
+                                Button("Open in Script") { navigateAction(target) }
+                                    .font(.caption)
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    private var targetOptions: [NoteTargetOption] {
+        NoteTargetOption.options(for: document.project)
+    }
+
+    private var newNoteTargetBinding: Binding<String> {
+        Binding(
+            get: {
+                if !newNoteTargetID.isEmpty, targetOptions.contains(where: { $0.id == newNoteTargetID }) {
+                    return newNoteTargetID
+                }
+                return targetOptions.first?.id ?? ""
+            },
+            set: { newNoteTargetID = $0 }
+        )
     }
 
     private var filteredNotes: [ProjectNote] {
@@ -126,6 +201,7 @@ struct NotesView: View {
         noteIDs: [String],
         title: String? = nil,
         body: String? = nil,
+        links: [NoteLink]? = nil,
         confirmed: Bool = false
     ) {
         let now = Date()
@@ -136,6 +212,7 @@ struct NotesView: View {
                 noteIDs: noteIDs,
                 title: title,
                 body: body,
+                links: links,
                 confirmed: confirmed,
                 requestedAt: now
             ),
@@ -150,14 +227,33 @@ struct NotesView: View {
             isDirty: true
         )
     }
+
+    private func noteLinkTarget(for link: NoteLink) -> NoteLinkTarget {
+        switch link.targetKind {
+        case .project:
+            return .project
+        case .scene:
+            let scene = document.scenes.first { $0.heading == link.targetID } ?? document.scenes[0]
+            return .scene(scene)
+        case .character:
+            let character = document.project.characters.first { $0.id == link.targetID } ?? document.project.characters[0]
+            return .character(character)
+        case .location:
+            let location = document.project.locations.first { $0.id == link.targetID } ?? document.project.locations[0]
+            return .location(location)
+        case .screenplayElement:
+            return .project
+        }
+    }
 }
 
 private struct NoteWorkspaceRow: View {
     let note: ProjectNote
     let project: DreamJotterProject
+    let targetOptions: [NoteTargetOption]
     let isSelected: Bool
     let selectionChanged: (Bool) -> Void
-    let updateAction: (String, String) -> Void
+    let updateAction: (String, String, NoteLink) -> Void
     let resolveAction: () -> Void
     let deleteAction: () -> Void
     let unlinkAction: () -> Void
@@ -165,14 +261,16 @@ private struct NoteWorkspaceRow: View {
 
     @State private var title: String
     @State private var noteText: String
+    @State private var selectedTargetID: String
     @State private var confirmDelete = false
 
     init(
         note: ProjectNote,
         project: DreamJotterProject,
+        targetOptions: [NoteTargetOption],
         isSelected: Bool,
         selectionChanged: @escaping (Bool) -> Void,
-        updateAction: @escaping (String, String) -> Void,
+        updateAction: @escaping (String, String, NoteLink) -> Void,
         resolveAction: @escaping () -> Void,
         deleteAction: @escaping () -> Void,
         unlinkAction: @escaping () -> Void,
@@ -180,6 +278,7 @@ private struct NoteWorkspaceRow: View {
     ) {
         self.note = note
         self.project = project
+        self.targetOptions = targetOptions
         self.isSelected = isSelected
         self.selectionChanged = selectionChanged
         self.updateAction = updateAction
@@ -189,6 +288,7 @@ private struct NoteWorkspaceRow: View {
         self.navigateAction = navigateAction
         _title = State(initialValue: note.title ?? "")
         _noteText = State(initialValue: note.body)
+        _selectedTargetID = State(initialValue: note.links.first.map(NoteTargetOption.token(for:)) ?? targetOptions.first?.id ?? "")
     }
 
     var body: some View {
@@ -204,27 +304,29 @@ private struct NoteWorkspaceRow: View {
 
             TextField("Title", text: $title)
             TextField("Body", text: $noteText, axis: .vertical)
-
-            if !note.links.isEmpty {
-                HStack(spacing: 6) {
-                    ForEach(Array(note.links.enumerated()), id: \.offset) { _, link in
-                        if NotesWorkspace.orphanedLinks(for: note, in: project).contains(link) {
-                            Text("Missing \(link.targetKind.rawValue)")
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                        } else {
-                            Button("Open \(link.targetKind.rawValue.capitalized)") {
-                                navigateAction(link)
-                            }
-                            .font(.caption)
-                        }
-                    }
+            Picker("Target", selection: $selectedTargetID) {
+                ForEach(targetOptions) { option in
+                    Text(option.label).tag(option.id)
                 }
             }
 
+            if let link = selectedLink {
+                Button("Open \(link.targetKind.rawValue.capitalized)") {
+                    navigateAction(link)
+                }
+                .font(.caption)
+            } else if NotesWorkspace.hasOrphanedLinks(note, in: project) {
+                Text("Current target is missing")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
             HStack {
-                Button("Save") { updateAction(title, noteText) }
-                    .disabled(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                Button("Save") {
+                    guard let link = selectedLink else { return }
+                    updateAction(title, noteText, link)
+                }
+                .disabled(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedLink == nil)
                 Button(note.status == .open ? "Resolve" : "Reopen") { resolveAction() }
                 if NotesWorkspace.hasOrphanedLinks(note, in: project) {
                     Button("Unlink Missing Target") { unlinkAction() }
@@ -241,6 +343,10 @@ private struct NoteWorkspaceRow: View {
             Button("Delete Note", role: .destructive) { deleteAction() }
             Button("Cancel", role: .cancel) {}
         }
+    }
+
+    private var selectedLink: NoteLink? {
+        targetOptions.first { $0.id == selectedTargetID }?.link
     }
 }
 
