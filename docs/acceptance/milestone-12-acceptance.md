@@ -17,7 +17,7 @@ Milestone 12 is accepted only when:
 
 ## M12.1 Character and Location Management
 
-Status: implemented in portable core.
+Status: implemented.
 
 Executable coverage includes:
 
@@ -32,13 +32,24 @@ Executable coverage includes:
 - linked-note and scene-card metadata remapping;
 - `.dreamjotter` save and reopen persistence for archive markers, snapshots, merges, and rename results.
 
-Focused macOS presentation for archive lists, confirmation, preview, and merge selection remains deferred to an adapter slice.
+The macOS workspace exposes persisted profile create, read, update, and confirmed delete flows. Archive, restore, merge, and rename-preview presentation may continue as later UI refinements without changing the accepted command contract.
 
 ## M12.2 Notes and TODO Workspace
 
-Status: planned.
+Status: implemented.
 
-Executable coverage must include filtering, Unicode-aware search, unresolved parsed-script TODO projection, navigation-target resolution, resolve and reopen, snapshot-protected bulk resolve, orphan handling, and search/dashboard updates.
+Executable and adapter coverage includes:
+
+- filtering stored notes by state and target kind;
+- Unicode-aware search across title and body;
+- unresolved parsed-script TODO projection kept separate from canonical stored notes;
+- valid linked-target resolution and macOS navigation to project, script scene, screenplay element, character, or location workspace;
+- stored-note create, read, update, resolve, reopen, and confirmed delete;
+- explicit confirmation and snapshot protection for bulk resolve;
+- no mutation when snapshot creation fails;
+- orphan-link detection and snapshot-protected unlinking that preserves note content;
+- search and dashboard projections rebuilt from canonical state;
+- Unicode note mutation and `.dreamjotter` save/reopen persistence.
 
 ## M12.3 Scene Workflow Polish
 
