@@ -42,8 +42,11 @@ struct LocalizationSettingsView: View {
                 Text("English").tag(ApplicationLanguagePreference.english)
                 Text("Spanish (Latin America)").tag(ApplicationLanguagePreference.spanishLatinAmerica)
             }
+
+            Text("Quit and reopen DreamJotter after changing the language to update the entire interface.")
+                .foregroundStyle(.secondary)
         }
         .padding()
-        .frame(width: 420)
+        .frame(width: 460)
     }
 }
