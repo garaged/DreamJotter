@@ -84,7 +84,7 @@ struct LocationListView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Profiles").font(.subheadline).foregroundStyle(.secondary)
             if filteredProfiles.isEmpty {
-                Text(searchText.isEmpty ? "No location profiles yet." : "No location profiles match the search.")
+                Text(emptyProfilesMessage)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(filteredProfiles, id: \.id) { location in
@@ -99,7 +99,7 @@ struct LocationListView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Detected in Scene Headings").font(.subheadline).foregroundStyle(.secondary)
             if filteredDetections.isEmpty {
-                Text(searchText.isEmpty ? "No unresolved detected locations." : "No detected locations match the search.")
+                Text(emptyDetectionsMessage)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(filteredDetections, id: \.id) { detection in
@@ -108,7 +108,7 @@ struct LocationListView: View {
                             Text(detection.name).lineLimit(1)
                             HStack(spacing: 4) {
                                 Text(detection.sceneCount.formatted())
-                                Text(detection.sceneCount == 1 ? "scene" : "scenes")
+                                Text(sceneLabel(for: detection.sceneCount))
                             }
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -120,6 +120,18 @@ struct LocationListView: View {
                 }
             }
         }
+    }
+
+    private var emptyProfilesMessage: LocalizedStringKey {
+        searchText.isEmpty ? "No location profiles yet." : "No location profiles match the search."
+    }
+
+    private var emptyDetectionsMessage: LocalizedStringKey {
+        searchText.isEmpty ? "No unresolved detected locations." : "No detected locations match the search."
+    }
+
+    private func sceneLabel(for count: Int) -> LocalizedStringKey {
+        count == 1 ? "scene" : "scenes"
     }
 
     private var filteredProfiles: [LocationRecord] {
