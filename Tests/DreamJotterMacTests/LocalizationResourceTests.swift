@@ -4,7 +4,7 @@ import Testing
 
 @Suite("M12.5 Complete Spanish UI Localization")
 struct LocalizationResourceTests {
-    private let requiredTables = ["Localizable", "Errors", "Review"]
+    private let requiredTables = ["Localizable", "Errors", "Review", "Settings"]
 
     private var repositoryRoot: URL {
         URL(fileURLWithPath: #filePath)
@@ -43,15 +43,17 @@ struct LocalizationResourceTests {
         #expect(required.isSubset(of: Set(table.keys)))
     }
 
-    @Test("Error and review tables cover their presentation paths")
+    @Test("Supporting tables cover their presentation paths")
     func supportingTablesContainCriticalKeys() throws {
         let errors = try stringsTable(locale: "es-MX", table: "Errors")
         let review = try stringsTable(locale: "es-MX", table: "Review")
+        let settings = try stringsTable(locale: "es-MX", table: "Settings")
 
         #expect(errors["DreamJotter could not open this project package."] != nil)
         #expect(errors["Choose another location or check file permissions."] != nil)
         #expect(review["Numbering levels"] == "Niveles de numeración")
         #expect(review["Page"] == "Página")
+        #expect(settings["Quit and reopen DreamJotter after changing the language to update the entire interface."] != nil)
     }
 
     @Test("Spanish locale names are region appropriate")
@@ -64,7 +66,7 @@ struct LocalizationResourceTests {
     }
 
     @MainActor
-    @Test("Application language override persists")
+    @Test("Application language override persists for the whole app")
     func applicationLanguagePreferencePersists() {
         let suiteName = "DreamJotter.LocalizationResourceTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -75,8 +77,12 @@ struct LocalizationResourceTests {
 
         settings.preference = .spanishLatinAmerica
         let restored = LocalizationSettings(defaults: defaults)
+        let processLanguageKey = ["Apple", "Languages"].joined()
+        let processLanguages = defaults.stringArray(forKey: processLanguageKey)
+
         #expect(restored.preference == .spanishLatinAmerica)
         #expect(restored.locale.identifier == "es-MX")
+        #expect(processLanguages == ["es-MX", "es-419", "es"])
     }
 
     private func stringsTable(locale: String, table: String) throws -> [String: String] {
