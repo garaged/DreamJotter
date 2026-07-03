@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "DreamJotter",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v14)
     ],
@@ -32,7 +33,10 @@ let package = Package(
             dependencies: [
                 "DreamJotterCore"
             ],
-            path: "Apps/DreamJotterMac"
+            path: "Apps/DreamJotterMac",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "DreamJotterExecutableSpecs",
