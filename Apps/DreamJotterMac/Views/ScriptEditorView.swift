@@ -11,27 +11,13 @@ enum ScreenplayEditorAdapter: String, CaseIterable, Identifiable {
 struct ScriptEditorView: View {
     @Binding var document: ProjectDocumentViewModel
     @State private var editorAdapter: ScreenplayEditorAdapter = .textKit
+    @State private var searchText = ""
+    @State private var selectedMatchIndex = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(document.project.metadata.title)
-                    .font(.title2.weight(.semibold))
-
-                Spacer()
-
-                Picker("Editor", selection: $editorAdapter) {
-                    ForEach(ScreenplayEditorAdapter.allCases) { adapter in
-                        Text(adapter.rawValue).tag(adapter)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 180)
-
-            Button("Refresh Parse") {
-                document.refreshParse()
-            }
-            }
+            header
+            searchBar
 
             editorView
                 .overlay(alignment: .topLeading) {
@@ -53,6 +39,67 @@ struct ScriptEditorView: View {
             )
         }
         .padding()
+        .onChange(of: searchText) { _, _ in
+            selectedMatchIndex = 0
+            navigateToSelectedMatch()
+        }
+        .onChange(of: document.scriptText) { _, _ in
+            selectedMatchIndex = min(selectedMatchIndex, max(matches.count - 1, 0))
+        }
+    }
+
+    private var header: some View {
+        HStack {
+            Text(document.project.metadata.title)
+                .font(.title2.weight(.semibold))
+
+            Spacer()
+
+            Picker("Editor", selection: $editorAdapter) {
+                ForEach(ScreenplayEditorAdapter.allCases) { adapter in
+                    Text(adapter.rawValue).tag(adapter)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 180)
+
+            Button("Refresh Parse") {
+                document.refreshParse()
+            }
+        }
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Find in script", text: $searchText)
+                .textFieldStyle(.roundedBorder)
+            Text(matchSummary)
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 72, alignment: .trailing)
+            Button {
+                selectPreviousMatch()
+            } label: {
+                Image(systemName: "chevron.up")
+            }
+            .disabled(matches.isEmpty)
+            .help("Previous match")
+            Button {
+                selectNextMatch()
+            } label: {
+                Image(systemName: "chevron.down")
+            }
+            .disabled(matches.isEmpty)
+            .help("Next match")
+            if !searchText.isEmpty {
+                Button("Clear") {
+                    searchText = ""
+                    selectedMatchIndex = 0
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -98,6 +145,51 @@ struct ScriptEditorView: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
     }
+
+    private var matches: [EditorTextRange] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return [] }
+
+        let source = document.scriptText as NSString
+        var results: [EditorTextRange] = []
+        var searchRange = NSRange(location: 0, length: source.length)
+        let options: NSString.CompareOptions = [.caseInsensitive, .diacriticInsensitive]
+
+        while searchRange.length > 0 {
+            let range = source.range(of: query, options: options, range: searchRange)
+            guard range.location != NSNotFound else { break }
+            results.append(EditorTextRange(location: range.location, length: range.length))
+            let nextLocation = range.location + max(range.length, 1)
+            guard nextLocation <= source.length else { break }
+            searchRange = NSRange(location: nextLocation, length: source.length - nextLocation)
+        }
+        return results
+    }
+
+    private var matchSummary: String {
+        guard !searchText.isEmpty else { return "" }
+        guard !matches.isEmpty else { return "No matches" }
+        return "\(selectedMatchIndex + 1) of \(matches.count)"
+    }
+
+    private func selectNextMatch() {
+        guard !matches.isEmpty else { return }
+        selectedMatchIndex = (selectedMatchIndex + 1) % matches.count
+        navigateToSelectedMatch()
+    }
+
+    private func selectPreviousMatch() {
+        guard !matches.isEmpty else { return }
+        selectedMatchIndex = (selectedMatchIndex - 1 + matches.count) % matches.count
+        navigateToSelectedMatch()
+    }
+
+    private func navigateToSelectedMatch() {
+        guard !matches.isEmpty else { return }
+        selectedMatchIndex = min(max(selectedMatchIndex, 0), matches.count - 1)
+        editorAdapter = .textKit
+        document.requestNavigation(toTextRange: matches[selectedMatchIndex])
+    }
 }
 
 private struct SuggestionsPanel: View {
@@ -112,21 +204,15 @@ private struct SuggestionsPanel: View {
                     Text("Suggestions")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
-
                     Spacer()
-
-                    Button("Ignore") {
-                        ignoreAction()
-                    }
-                    .buttonStyle(.borderless)
+                    Button("Ignore") { ignoreAction() }
+                        .buttonStyle(.borderless)
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(suggestions, id: \.id) { suggestion in
-                            Button {
-                                acceptAction(suggestion)
-                            } label: {
+                            Button { acceptAction(suggestion) } label: {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(suggestion.displayText)
                                         .font(.callout.monospaced())
