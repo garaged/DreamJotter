@@ -15,9 +15,12 @@ struct SimplifiedReviewLayoutNumberingView: View {
             ForEach(plan.contentPages, id: \.pageIndex) { page in
                 VStack(alignment: .leading, spacing: 12) {
                     if showPage {
-                        Text("Page \(page.screenplayPageNumber ?? 0)")
-                            .font(.caption.bold())
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: 4) {
+                            Text(String(localized: "Page", table: "Review"))
+                            Text((page.screenplayPageNumber ?? 0).formatted())
+                        }
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
                     }
 
                     ForEach(page.blocks, id: \.blockNumber) { block in
@@ -36,12 +39,12 @@ struct SimplifiedReviewLayoutNumberingView: View {
 
     private var numberingControls: some View {
         HStack(spacing: 14) {
-            Text("Numbering levels")
+            Text(String(localized: "Numbering levels", table: "Review"))
                 .font(.caption.bold())
                 .foregroundStyle(.secondary)
-            Toggle("Page", isOn: $showPage)
-            Toggle("Paragraph", isOn: $showParagraph)
-            Toggle("Line", isOn: $showLine)
+            Toggle(String(localized: "Page", table: "Review"), isOn: $showPage)
+            Toggle(String(localized: "Paragraph", table: "Review"), isOn: $showParagraph)
+            Toggle(String(localized: "Line", table: "Review"), isOn: $showLine)
             Spacer()
         }
         .toggleStyle(.checkbox)
