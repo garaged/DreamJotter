@@ -2,6 +2,27 @@
 
 DreamJotter is a local-first macOS screenplay-writing app built with Swift, SwiftUI, AppKit, and a portable semantic core.
 
+## Build and run locally
+
+DreamJotter is available as source code and can be compiled locally on Apple Silicon or Intel Macs. A prebuilt macOS binary is not required.
+
+```sh
+git clone https://github.com/garaged/DreamJotter.git
+cd DreamJotter
+open Package.swift
+```
+
+In Xcode, select the `DreamJotterMac` scheme, choose `My Mac`, and press `Command-R`.
+
+To build and run from Terminal:
+
+```sh
+swift build --product DreamJotterMac
+swift run DreamJotterMac
+```
+
+For complete setup, architecture-specific builds, testing, localization validation, `.app` packaging, and troubleshooting, see [`BUILDING.md`](BUILDING.md).
+
 ## Requirements
 
 - macOS 14 Sonoma or later
@@ -104,6 +125,7 @@ arm64 x86_64
 ## Localization Validation
 
 ```sh
+python3 scripts/normalize-spanish-copy
 python3 scripts/localization-check
 
 CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache \
@@ -123,11 +145,3 @@ The localization audit checks SwiftUI literals, missing translations, locale par
 - `docs/data-contracts/`
 - `Tests/DreamJotterExecutableSpecs/`
 - `Tests/DreamJotterMacTests/`
-
-## Run
-
-```sh
-open Package.swift
-```
-
-Select the `DreamJotterMac` scheme and a macOS 14 or later destination.
