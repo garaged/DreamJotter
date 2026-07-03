@@ -14,6 +14,7 @@ final class LocalizationSettings: ObservableObject {
         didSet {
             defaults.set(preference.rawValue, forKey: Self.defaultsKey)
             applyProcessLanguagePreference()
+            applyRuntimeLocalization()
         }
     }
 
@@ -22,6 +23,7 @@ final class LocalizationSettings: ObservableObject {
         let rawValue = defaults.string(forKey: Self.defaultsKey)
         preference = rawValue.flatMap(ApplicationLanguagePreference.init(rawValue:)) ?? .system
         applyProcessLanguagePreference()
+        applyRuntimeLocalization()
     }
 
     var locale: Locale {
@@ -47,6 +49,17 @@ final class LocalizationSettings: ObservableObject {
             defaults.set(["en"], forKey: Self.processLanguagesKey)
         case .spanishLatinAmerica:
             defaults.set(["es-MX", "es-419", "es"], forKey: Self.processLanguagesKey)
+        }
+    }
+
+    private func applyRuntimeLocalization() {
+        switch preference {
+        case .system:
+            RuntimeLocalizationBundle.apply(localeIdentifiers: Locale.preferredLanguages)
+        case .english:
+            RuntimeLocalizationBundle.apply(localeIdentifiers: nil)
+        case .spanishLatinAmerica:
+            RuntimeLocalizationBundle.apply(localeIdentifiers: ["es-MX", "es-419", "es"])
         }
     }
 }
@@ -75,6 +88,7 @@ struct LocalizationSettingsView: View {
                 settings.relaunchApplication()
             }
         }
+        .id(settings.preference)
         .padding()
         .frame(width: 460)
     }
