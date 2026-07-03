@@ -3,21 +3,27 @@ import SwiftUI
 
 @MainActor
 final class LocalizationSettings: ObservableObject {
-    @AppStorage("dreamjotter.applicationLanguage") var rawPreference = ApplicationLanguagePreference.system.rawValue
+    private static let defaultsKey = "dreamjotter.applicationLanguage"
 
-    var preference: ApplicationLanguagePreference {
-        get { ApplicationLanguagePreference(rawValue: rawPreference) ?? .system }
-        set { rawPreference = newValue.rawValue }
+    @Published var preference: ApplicationLanguagePreference {
+        didSet {
+            UserDefaults.standard.set(preference.rawValue, forKey: Self.defaultsKey)
+        }
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        let rawValue = defaults.string(forKey: Self.defaultsKey)
+        preference = rawValue.flatMap(ApplicationLanguagePreference.init(rawValue:)) ?? .system
     }
 
     var locale: Locale {
         switch preference {
         case .system:
-            return .current
+            return .autoupdatingCurrent
         case .english:
             return Locale(identifier: "en")
         case .spanishLatinAmerica:
-            return Locale(identifier: "es-419")
+            return Locale(identifier: "es-MX")
         }
     }
 }
@@ -27,10 +33,7 @@ struct LocalizationSettingsView: View {
 
     var body: some View {
         Form {
-            Picker("Language", selection: Binding(
-                get: { settings.preference },
-                set: { settings.preference = $0 }
-            )) {
+            Picker("Language", selection: $settings.preference) {
                 Text("System").tag(ApplicationLanguagePreference.system)
                 Text("English").tag(ApplicationLanguagePreference.english)
                 Text("Spanish (Latin America)").tag(ApplicationLanguagePreference.spanishLatinAmerica)
