@@ -6,14 +6,14 @@
       "id": "M12-WRITER-WORKFLOW-POLISH",
       "title": "Writer Workflow Polish",
       "milestone": "M12",
-      "status": "implemented",
+      "status": "in-progress",
       "spec": "docs/milestones/milestone-12-writer-workflow-polish.md",
       "acceptance": "docs/acceptance/milestone-12-acceptance.md",
       "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md", "docs/adr/0002-local-first-dreamjotter-package.md"],
       "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
-      "planned_modules": ["CommandEngine", "ProjectDocumentViewModel", "WriterOrganization", "SceneWorkflow"],
-      "guardrails": ["Destructive operations are command-backed; bulk mutations are snapshot-protected; metadata-only workflows preserve screenplay order and editor navigation."],
-      "notes": "M12.1, M12.2, and M12.3 are implemented. Local validation remains before merge."
+      "planned_modules": ["CommandEngine", "ProjectDocumentViewModel", "WriterOrganization", "SceneWorkflow", "Localization", "ScreenplayLanguageProfile"],
+      "guardrails": ["Destructive operations are command-backed; bulk mutations are snapshot-protected; metadata-only workflows preserve screenplay order and editor navigation; localization never rewrites screenplay content."],
+      "notes": "M12.1 and M12.2 are implemented. M12.3 is implemented pending local validation. M12.4 localization and Spanish screenplay support is specified."
     },
     {
       "id": "M12-PROFILE-MANAGEMENT",
@@ -45,7 +45,7 @@
       "id": "M12-SCENE-WORKFLOW",
       "title": "Scene Workflow Polish",
       "milestone": "M12.3",
-      "status": "implemented",
+      "status": "implemented-pending-validation",
       "spec": "docs/specs/writer-workflow/m12-scene-workflow.spec.md",
       "acceptance": "docs/acceptance/milestone-12-acceptance.md",
       "related_adrs": [],
@@ -53,6 +53,19 @@
       "planned_modules": ["SceneWorkflow", "CommandEngine", "EditorNavigationState", "SceneWorkflowView"],
       "guardrails": ["Planning order is separate from screenplay order; explicit screenplay reorder requires a snapshot and preserves navigation consistency."],
       "notes": "Scene metadata, search and filters, planning order, navigation, screenplay reorder, persistence coverage, and macOS integration are implemented."
+    },
+    {
+      "id": "M12-LOCALIZATION-SPANISH",
+      "title": "Localization and Spanish Screenplay Support",
+      "milestone": "M12.4",
+      "status": "specified",
+      "spec": "docs/specs/writer-workflow/m12-localization-spanish.spec.md",
+      "acceptance": "docs/acceptance/milestone-12-acceptance.md",
+      "related_adrs": ["docs/adr/0001-apple-native-first-portable-core.md"],
+      "related_data_contracts": ["docs/data-contracts/core-domain-model.md", "docs/data-contracts/screenplay-element-kinds.md"],
+      "planned_modules": ["ScreenplayLanguageProfile", "LocalizedParserLexicons", "StringCatalogs", "LocalizedDiagnostics", "EditorSuggestions"],
+      "guardrails": ["Application language and screenplay language are independent; original screenplay text is never translated or normalized destructively; English behavior remains regression-stable."],
+      "notes": "Defines English, es-MX, and es-419 UI localization plus Spanish screenplay constructs, Unicode parsing, diagnostics, fixtures, persistence, export, and accessibility requirements."
     }
   ]
 }
