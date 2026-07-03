@@ -7,7 +7,7 @@ struct DreamJotterMacApp: App {
     @NSApplicationDelegateAdaptor(DreamJotterMacApplicationDelegate.self) private var appDelegate
     @StateObject private var localizationSettings = LocalizationSettings()
 
-    var body: some Scene {
+    var body: some SwiftUI.Scene {
         WindowGroup {
             AppRootView()
                 .environmentObject(localizationSettings)
