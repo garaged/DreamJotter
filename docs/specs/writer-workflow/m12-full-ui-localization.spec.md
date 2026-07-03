@@ -69,8 +69,8 @@ The normative vocabulary is:
 
 | English | Spanish |
 | --- | --- |
-| Screenplay | Guion cinematográfico |
-| Script | Guion |
+| Screenplay | Guión cinematográfico |
+| Script | Guión |
 | Scene | Escena |
 | Scene heading | Encabezado de escena |
 | Character | Personaje |

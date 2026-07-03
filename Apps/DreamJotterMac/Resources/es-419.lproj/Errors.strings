@@ -3,7 +3,7 @@
 "DreamJotter could not complete this action." = "DreamJotter no pudo completar esta acción.";
 "DreamJotter could not open this project package." = "DreamJotter no pudo abrir este paquete de proyecto.";
 "DreamJotter could not save this project." = "DreamJotter no pudo guardar este proyecto.";
-"Save As was canceled." = "Se canceló Guardar como.";
+"Save As was canceled." = "Se canceló «Guardar como».";
 "DreamJotter could not save this project to the chosen location." = "DreamJotter no pudo guardar este proyecto en la ubicación seleccionada.";
 "DreamJotter could not export the Fountain file." = "DreamJotter no pudo exportar el archivo Fountain.";
 "DreamJotter could not open this project because the package is not valid." = "DreamJotter no pudo abrir este proyecto porque el paquete no es válido.";
