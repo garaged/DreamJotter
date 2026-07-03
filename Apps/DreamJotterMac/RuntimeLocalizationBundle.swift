@@ -13,11 +13,23 @@ private final class DreamJotterLanguageBundle: Bundle, @unchecked Sendable {
             return super.localizedString(forKey: key, value: value, table: tableName)
         }
 
-        return activeLocalizationBundle.localizedString(
+        let correction = activeLocalizationBundle.localizedString(
             forKey: key,
-            value: value,
-            table: tableName
+            value: key,
+            table: "SpanishCorrections"
         )
+
+        let localized = correction == key
+            ? activeLocalizationBundle.localizedString(
+                forKey: key,
+                value: value,
+                table: tableName
+            )
+            : correction
+
+        return localized
+            .replacingOccurrences(of: "Guion", with: "Guión")
+            .replacingOccurrences(of: "guion", with: "guión")
     }
 }
 
