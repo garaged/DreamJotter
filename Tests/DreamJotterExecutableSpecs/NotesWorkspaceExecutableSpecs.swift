@@ -25,6 +25,16 @@ struct NotesWorkspaceExecutableSpecs {
         #expect(project.notes.allSatisfy { $0.source != .parsedScriptTodo })
     }
 
+    @Test("Valid linked notes resolve navigation targets")
+    func navigationTargets() throws {
+        let project = fixture()
+        let note = try #require(project.notes.first { $0.id == "note-open" })
+        #expect(
+            NotesWorkspace.navigationTarget(for: note, in: project)
+                == NoteLink(targetKind: .character, targetID: "character-sofia")
+        )
+    }
+
     @Test("Resolve, reopen, and update preserve Unicode")
     func resolveReopenAndUpdate() {
         let project = fixture()
@@ -80,6 +90,46 @@ struct NotesWorkspaceExecutableSpecs {
         #expect(result.project.notes.first { $0.id == orphan.id }?.body == orphan.body)
         #expect(result.project.notes.first { $0.id == orphan.id }?.links.isEmpty == true)
         #expect(result.project.snapshots.last?.id == "snapshot-unlink")
+    }
+
+    @Test("Note mutations persist through package save and reopen")
+    func persistence() throws {
+        let root = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("DreamJotterM12Notes-\(UUID().uuidString)", isDirectory: true)
+        let packageURL = root.appendingPathComponent("Notes Workspace.dreamjotter", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let updated = CommandEngine.execute(
+            NoteWorkspaceCommandRequest(
+                id: "persist-update",
+                action: .update,
+                noteIDs: ["note-open"],
+                title: "Índice persistente",
+                body: "Niña en el café",
+                requestedAt: now
+            ),
+            project: fixture(),
+            now: now
+        ).project
+        let resolved = CommandEngine.execute(
+            NoteWorkspaceCommandRequest(
+                id: "persist-resolve",
+                action: .bulkResolve,
+                noteIDs: ["note-open", "note-orphan"],
+                confirmed: true,
+                requestedAt: now
+            ),
+            project: updated,
+            now: now
+        ).project
+
+        try DreamJotterPackageStore.save(resolved, to: packageURL, updatedAt: now)
+        let reopened = try #require(DreamJotterPackageStore.load(from: packageURL).project)
+
+        #expect(reopened.notes.first { $0.id == "note-open" }?.title == "Índice persistente")
+        #expect(reopened.notes.first { $0.id == "note-open" }?.body == "Niña en el café")
+        #expect(reopened.notes.filter { ["note-open", "note-orphan"].contains($0.id) }.allSatisfy { $0.status == .resolved })
+        #expect(reopened.snapshots.last?.id == "snapshot-persist-resolve")
     }
 
     private func fixture() -> DreamJotterProject {
