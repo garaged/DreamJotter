@@ -35,6 +35,10 @@ final class LocalizationSettings: ObservableObject {
         }
     }
 
+    func relaunchApplication() {
+        ApplicationLanguageRelaunch.relaunch(using: preference)
+    }
+
     private func applyProcessLanguagePreference() {
         switch preference {
         case .system:
@@ -59,10 +63,17 @@ struct LocalizationSettingsView: View {
             }
 
             Text(String(
-                localized: "Quit and reopen DreamJotter after changing the language to update the entire interface.",
+                localized: "Relaunch DreamJotter to apply the selected language to all menus and windows.",
                 table: "Settings"
             ))
             .foregroundStyle(.secondary)
+
+            Button(String(
+                localized: "Relaunch DreamJotter",
+                table: "Settings"
+            )) {
+                settings.relaunchApplication()
+            }
         }
         .padding()
         .frame(width: 460)
