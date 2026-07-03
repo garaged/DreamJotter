@@ -47,7 +47,7 @@ struct ProjectDashboardView: View {
                     metric("Notes", document.dashboard.noteCount)
                 }
                 GridRow {
-                    metric("TODOs", document.dashboard.todoCount)
+                    metric("TODOs", document.localizedScriptTodoNotes.count)
                     metric("Dirty", document.workspaceSummary.isDirty ? 1 : 0)
                     metric("Saved", document.workspaceSummary.lastSavedAt == nil ? 0 : 1)
                 }
@@ -55,7 +55,7 @@ struct ProjectDashboardView: View {
         }
     }
 
-    private func metric(_ label: String, _ value: Int) -> some View {
+    private func metric(_ label: LocalizedStringKey, _ value: Int) -> some View {
         VStack(alignment: .leading) {
             Text(value.formatted())
                 .font(.title3.weight(.semibold))
