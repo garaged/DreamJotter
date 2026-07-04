@@ -22,7 +22,7 @@ struct ReviewLayoutLine: Equatable, Identifiable {
 extension ProjectDocumentViewModel {
     static let reviewNumberedPDFPresetID = "print-script"
 
-    var reviewPDFLayoutPlan: PDFLayoutPlan? {
+    static func makeReviewPDFLayoutPlan(for project: DreamJotterProject) -> PDFLayoutPlan? {
         guard let preset = ExportPresetCatalog.builtInPresets().first(where: {
             $0.id == Self.reviewNumberedPDFPresetID
         }) else {
@@ -43,6 +43,10 @@ extension ProjectDocumentViewModel {
             suppressIdentifyingMetadata: defaults.suppressIdentifyingMetadata
         )
         return PDFLayoutPlanner.plan(for: project, preset: preset, settings: settings)
+    }
+
+    var reviewPDFLayoutPlan: PDFLayoutPlan? {
+        Self.makeReviewPDFLayoutPlan(for: project)
     }
 
     var reviewLayoutLines: [ReviewLayoutLine] {
