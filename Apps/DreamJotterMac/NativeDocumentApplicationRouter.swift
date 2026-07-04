@@ -51,9 +51,10 @@ final class NativeDocumentApplicationRouter {
     }
 }
 
+@MainActor
 struct NativeRecentDocumentRegistrar {
-    var note: @MainActor (URL) -> Void
-    var clear: @MainActor () -> Void
+    var note: (URL) -> Void
+    var clear: () -> Void
 
     static let application = NativeRecentDocumentRegistrar(
         note: { url in
@@ -68,8 +69,9 @@ struct NativeRecentDocumentRegistrar {
 
     static func memory() -> (
         registrar: NativeRecentDocumentRegistrar,
-        recorded: @MainActor () -> [URL]
+        recorded: () -> [URL]
     ) {
+        @MainActor
         final class Storage {
             var urls: [URL] = []
         }
