@@ -99,15 +99,18 @@ struct PDFLayoutPlannerExecutableSpecs {
         #expect(!plan.settings.includeLineNumbers)
     }
 
-    @Test("Dialogue formatting only applies in a cue or parenthetical context")
-    func dialogueFormattingRequiresValidContext() throws {
+    @Test("Canonical paragraph semantics control PDF roles")
+    func canonicalParagraphSemanticsControlPDFRoles() throws {
         let preset = try #require(ExportPresetCatalog.builtInPresets().first { $0.id == "print-script" })
-        let prose = "This prose was classified as dialogue by the editor but is not attached to a character cue."
         let project = project(elements: [
-            ScriptElement(kind: .dialogue, text: prose),
+            ScriptElement(
+                kind: .dialogue,
+                text: "Explicit action-width prose.",
+                paragraphType: .action
+            ),
             ScriptElement(kind: .characterCue, text: "TOM"),
-            ScriptElement(kind: .dialogue, text: "We go now."),
-            ScriptElement(kind: .dialogue, text: "This new paragraph is action again.")
+            ScriptElement(kind: .action, text: "Explicit dialogue.", paragraphType: .dialogue),
+            ScriptElement(kind: .section, text: "SEARCHING THE CITY", paragraphType: .montage)
         ])
         let settings = PDFLayoutSettings(
             charactersPerBodyLine: 40,
@@ -122,6 +125,7 @@ struct PDFLayoutPlannerExecutableSpecs {
 
         #expect(blocks.map(\.role) == [.action, .characterCue, .dialogue, .action])
         #expect(blocks[0].lines.contains { $0.text.count > 16 })
+        #expect(blocks[2].lines.allSatisfy { $0.text.count <= 24 })
         #expect(blocks[3].lines.contains { $0.text.count > 16 })
     }
 
