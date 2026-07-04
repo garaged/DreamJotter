@@ -22,11 +22,12 @@ public enum FountainIO {
             return element.text.hasPrefix("#") ? element.text : "# \(element.text)"
         case .synopsis:
             return element.text.hasPrefix("=") ? element.text : "= \(element.text)"
+        case .dialogue:
+            return element.text.hasPrefix(":") ? element.text : ": \(element.text)"
         case .titlePage,
              .sceneHeading,
              .action,
              .parenthetical,
-             .dialogue,
              .transition,
              .shot,
              .unknown:
