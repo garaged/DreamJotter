@@ -69,8 +69,8 @@ struct DocumentOwnershipTests {
 
         let result = RecentDocumentRepair.repair([missing, existing, existing.standardizedFileURL])
 
-        #expect(result.available == [existing.standardizedFileURL])
-        #expect(result.removed == [missing.standardizedFileURL])
+        #expect(result.available == [DocumentPackageIdentity(url: existing).canonicalURL])
+        #expect(result.removed == [DocumentPackageIdentity(url: missing).canonicalURL])
     }
 
     @Test("Window restoration takes precedence over reopening the last project")
