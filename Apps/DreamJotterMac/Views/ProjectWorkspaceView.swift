@@ -85,7 +85,7 @@ struct ProjectWorkspaceView: View {
     private var contentView: some View {
         switch selectedSection {
         case .dashboard:
-            ScrollView { ProjectDashboardView(document: $document).padding() }
+            ScrollView { OptimizedDashboardPane(document: $document).padding() }
         case .script:
             HSplitView {
                 ScriptEditorView(document: $document)
@@ -129,7 +129,7 @@ struct ProjectWorkspaceView: View {
         case .review:
             OptimizedReviewModeView(document: $document, exportAction: reviewExportAction, openScriptAction: { selectedSection = .script })
         case .healthReport:
-            ScrollView { HealthReportView(findings: document.healthFindings).padding() }
+            ScrollView { OptimizedHealthReportPane(document: $document).padding() }
         }
     }
 
