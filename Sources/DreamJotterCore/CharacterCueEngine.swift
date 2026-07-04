@@ -94,6 +94,7 @@ public enum CharacterCueEngine {
             let displayName = baseCharacterName(rawName)
             let key = normalizedKey(displayName)
             guard !displayName.isEmpty,
+                  key != queryKey,
                   !excluded.contains(key),
                   seen.insert(key).inserted else { return nil }
             let priority = matchPriority(key: key, query: queryKey)
@@ -125,7 +126,6 @@ public enum CharacterCueEngine {
 
     private static func matchPriority(key: String, query: String) -> Double {
         guard !query.isEmpty else { return 0.5 }
-        if key == query { return 1.0 }
         if key.hasPrefix(query) { return 0.9 }
         if key.split(separator: " ").contains(where: { $0.hasPrefix(query) }) { return 0.8 }
         if key.contains(query) { return 0.65 }
