@@ -95,7 +95,7 @@ struct ProjectWorkspaceView: View {
             }
         case .scenes:
             ScrollView {
-                BoundSceneWorkflowView(document: $document, openScriptAction: { selectedSection = .script })
+                OptimizedSceneWorkflowView(document: $document, openScriptAction: { selectedSection = .script })
                     .padding()
             }
         case .characters:
