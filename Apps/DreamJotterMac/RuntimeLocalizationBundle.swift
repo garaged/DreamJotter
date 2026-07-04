@@ -100,13 +100,6 @@ enum RuntimeLocalizationBundle {
             }
         }
 
-        for bundle in Bundle.allBundles + Bundle.allFrameworks {
-            let url = bundle.bundleURL.standardizedFileURL
-            if seenURLs.insert(url).inserted {
-                bundles.append(bundle)
-            }
-        }
-
         return bundles
     }
 
