@@ -10,11 +10,15 @@ struct NativeDocumentApplicationRouterTests {
         let router = NativeDocumentApplicationRouter.shared
         _ = router.drainPendingPackageURLs()
         let packageURL = URL(fileURLWithPath: "/tmp/Native.dreamjotter", isDirectory: true)
+        let uppercasePackageURL = URL(fileURLWithPath: "/tmp/Upper.DREAMJOTTER", isDirectory: true)
         let textURL = URL(fileURLWithPath: "/tmp/Notes.txt")
 
-        let batch = router.enqueue([packageURL, textURL])
+        let batch = router.enqueue([packageURL, uppercasePackageURL, textURL])
 
-        #expect(batch.packageURLs == [DocumentPackageIdentity(url: packageURL).canonicalURL])
+        #expect(batch.packageURLs == [
+            DocumentPackageIdentity(url: packageURL).canonicalURL,
+            DocumentPackageIdentity(url: uppercasePackageURL).canonicalURL
+        ])
         #expect(batch.rejectedURLs == [DocumentPackageIdentity(url: textURL).canonicalURL])
         #expect(router.hasPendingPackageURLs)
         #expect(router.drainPendingPackageURLs() == batch.packageURLs)
@@ -37,6 +41,22 @@ struct NativeDocumentApplicationRouterTests {
         let afterDrain = router.enqueue([packageURL])
         #expect(afterDrain.packageURLs.count == 1)
         _ = router.drainPendingPackageURLs()
+    }
+
+    @Test("Queued native opens are consumed in arrival order")
+    func queuedRequestsDequeueInOrder() {
+        let router = NativeDocumentApplicationRouter.shared
+        _ = router.drainPendingPackageURLs()
+        let first = URL(fileURLWithPath: "/tmp/First.dreamjotter", isDirectory: true)
+        let second = URL(fileURLWithPath: "/tmp/Second.dreamjotter", isDirectory: true)
+
+        router.enqueue([first, second])
+
+        #expect(router.dequeuePendingPackageURL() == DocumentPackageIdentity(url: first).canonicalURL)
+        #expect(router.hasPendingPackageURLs)
+        #expect(router.dequeuePendingPackageURL() == DocumentPackageIdentity(url: second).canonicalURL)
+        #expect(router.dequeuePendingPackageURL() == nil)
+        #expect(!router.hasPendingPackageURLs)
     }
 
     @Test("Recent document registration records canonical package URLs")
