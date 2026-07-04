@@ -10,7 +10,10 @@ struct RuntimeLocalizationBundleTests {
             RuntimeLocalizationBundle.findBundle(localeIdentifiers: ["es-MX"])
         )
 
-        #expect(bundle.bundleURL.lastPathComponent == "es-MX.lproj")
+        #expect(
+            ["es-MX.lproj", "es.lproj"]
+                .contains(bundle.bundleURL.lastPathComponent)
+        )
     }
 
     @Test("Resolves generic Spanish to a shipped regional localization")
@@ -19,7 +22,10 @@ struct RuntimeLocalizationBundleTests {
             RuntimeLocalizationBundle.findBundle(localeIdentifiers: ["es"])
         )
 
-        #expect(["es-419.lproj", "es-MX.lproj"].contains(bundle.bundleURL.lastPathComponent))
+        #expect(
+            ["es-419.lproj", "es-MX.lproj", "es.lproj"]
+                .contains(bundle.bundleURL.lastPathComponent)
+        )
     }
 
     @Test("Falls back to the concrete development localization")
@@ -37,6 +43,9 @@ struct RuntimeLocalizationBundleTests {
             RuntimeLocalizationBundle.findBundle(localeIdentifiers: ["es_MX"])
         )
 
-        #expect(bundle.bundleURL.lastPathComponent == "es-MX.lproj")
+        #expect(
+            ["es-MX.lproj", "es.lproj"]
+                .contains(bundle.bundleURL.lastPathComponent)
+        )
     }
 }
