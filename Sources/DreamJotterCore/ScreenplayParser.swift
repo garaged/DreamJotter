@@ -6,19 +6,20 @@ public enum ScreenplayParsingContext {
 
 public enum ScreenplayParser {
     public static func parse(_ source: String) -> ScreenplayDocument {
-        LocalizedScreenplayParserFacade.parse(
-            ScreenplayParagraphTypeEngine.parserSafeSource(source),
+        let prepared = CharacterCueParsingNormalizer.sourceForParsing(source)
+        let parsed = LocalizedScreenplayParserFacade.parse(
+            prepared,
             language: ScreenplayParsingContext.language
         )
+        return CharacterCueParsingNormalizer.normalize(parsed)
     }
 
     public static func parse(
         _ source: String,
         language: ScreenplayLanguageProfile
     ) -> ScreenplayDocument {
-        LocalizedScreenplayParserFacade.parse(
-            ScreenplayParagraphTypeEngine.parserSafeSource(source),
-            language: language
-        )
+        let prepared = CharacterCueParsingNormalizer.sourceForParsing(source)
+        let parsed = LocalizedScreenplayParserFacade.parse(prepared, language: language)
+        return CharacterCueParsingNormalizer.normalize(parsed)
     }
 }
