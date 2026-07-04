@@ -4,11 +4,18 @@ public struct CharacterCueSuggestionContext: Equatable, Sendable {
     public let query: String
     public let replacementRange: EditorTextRange
     public let existingNames: [String]
+    public let isExplicitCue: Bool
 
-    public init(query: String, replacementRange: EditorTextRange, existingNames: [String]) {
+    public init(
+        query: String,
+        replacementRange: EditorTextRange,
+        existingNames: [String],
+        isExplicitCue: Bool = false
+    ) {
         self.query = query
         self.replacementRange = replacementRange
         self.existingNames = existingNames
+        self.isExplicitCue = isExplicitCue
     }
 }
 
@@ -53,7 +60,8 @@ public enum CharacterCueEngine {
         let source = line as NSString
         let localCursor = min(max(0, cursorLocation - lineStart), source.length)
         let prefix = source.substring(with: NSRange(location: 0, length: localCursor))
-        let markerOffset = prefix.hasPrefix("@") ? 1 : 0
+        let isExplicitCue = prefix.hasPrefix("@")
+        let markerOffset = isExplicitCue ? 1 : 0
         let separatorLocation = lastSeparatorEnd(in: prefix) ?? markerOffset
         let safeStart = min(max(markerOffset, separatorLocation), localCursor)
         let rawQuery = source.substring(with: NSRange(location: safeStart, length: localCursor - safeStart))
@@ -67,7 +75,8 @@ public enum CharacterCueEngine {
                 location: lineStart + replacementStart,
                 length: localCursor - replacementStart
             ),
-            existingNames: names(in: completed)
+            existingNames: names(in: completed),
+            isExplicitCue: isExplicitCue
         )
     }
 
@@ -75,6 +84,8 @@ public enum CharacterCueEngine {
         context: CharacterCueSuggestionContext,
         characters: [String]
     ) -> [EditorSuggestion] {
+        guard context.isExplicitCue || !context.query.isEmpty else { return [] }
+
         let queryKey = normalizedKey(context.query)
         let excluded = Set(context.existingNames.map(normalizedKey))
         var seen: Set<String> = []
