@@ -10,6 +10,7 @@ struct AppRootView: View {
     @State private var isExportPickerPresented = false
     @State private var exportUIState = ExportUIState.initial()
     @State private var allowWindowClose = false
+    @State private var pendingRecentRegistrationURL: URL?
 
     var body: some View {
         Group {
@@ -38,6 +39,10 @@ struct AppRootView: View {
         .navigationTitle(windowTitle)
         .frame(minWidth: 1100, minHeight: 720)
         .background(WindowCloseGuardView(allowClose: $allowWindowClose, shouldClose: requestWindowClose))
+        .onAppear { consumeNextNativeOpenRequest() }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterNativeOpenRequestsAvailable)) { _ in
+            consumeNextNativeOpenRequest()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterNewProject)) { _ in
             createProject(String(localized: "Untitled"))
         }
@@ -77,7 +82,9 @@ struct AppRootView: View {
             Button("Discard Changes", role: .destructive) { discardPendingReplacement() }
             Button("Cancel", role: .cancel) {
                 appModel.cancelPendingReplacement()
+                pendingRecentRegistrationURL = nil
                 replacementConfirmationMessage = nil
+                consumeNextNativeOpenRequest()
             }
         } message: {
             Text(replacementConfirmationMessage ?? "")
@@ -110,6 +117,7 @@ struct AppRootView: View {
     }
 
     private func createProject(_ title: String) {
+        pendingRecentRegistrationURL = nil
         presentReplacementDecision(appModel.requestNewProject(title: title))
     }
 
@@ -124,18 +132,44 @@ struct AppRootView: View {
     }
 
     private func openRecentProject(_ url: URL) {
+        requestOpenPackage(at: url, operation: .recentProjectOpen)
+    }
+
+    private func consumeNextNativeOpenRequest() {
+        guard replacementConfirmationMessage == nil,
+              let url = NativeDocumentApplicationRouter.shared.dequeuePendingPackageURL() else {
+            return
+        }
+        requestOpenPackage(at: url, operation: .open)
+    }
+
+    private func requestOpenPackage(at url: URL, operation: AppErrorSourceOperation) {
         do {
-            presentReplacementDecision(try appModel.requestOpenPackageRespectingLanguage(at: url))
+            let decision = try appModel.requestOpenPackageRespectingLanguage(at: url)
+            switch decision {
+            case .replaced:
+                NativeRecentDocumentRegistrar.application.note(url)
+                pendingRecentRegistrationURL = nil
+                consumeNextNativeOpenRequest()
+            case .requiresConfirmation:
+                pendingRecentRegistrationURL = url
+                presentReplacementDecision(decision)
+            }
         } catch {
             appModel.forgetInvalidRecentProject(url)
-            present(error, operation: .recentProjectOpen)
+            pendingRecentRegistrationURL = nil
+            present(error, operation: operation)
+            consumeNextNativeOpenRequest()
         }
     }
 
     private func saveProject() {
         do {
-            if try appModel.saveCurrentProjectRespectingLanguage() == .requiresSaveAs {
+            let result = try appModel.saveCurrentProjectRespectingLanguage()
+            if result == .requiresSaveAs {
                 saveProjectAs()
+            } else {
+                registerCurrentDocumentAsRecent()
             }
         } catch {
             present(error, operation: .save)
@@ -143,10 +177,12 @@ struct AppRootView: View {
     }
 
     private func closeProject() {
+        pendingRecentRegistrationURL = nil
         presentReplacementDecision(appModel.requestCloseProject())
     }
 
     private func requestWindowClose() -> Bool {
+        pendingRecentRegistrationURL = nil
         switch appModel.requestCloseWindow() {
         case .replaced:
             return true
@@ -170,9 +206,12 @@ struct AppRootView: View {
                 return
             }
             replacementConfirmationMessage = nil
+            registerPendingOpenedDocumentIfNeeded()
             closeWindowIfNeeded(shouldCloseWindow)
+            consumeNextNativeOpenRequest()
         } catch {
             replacementConfirmationMessage = nil
+            pendingRecentRegistrationURL = nil
             present(error, operation: .save)
         }
     }
@@ -182,9 +221,12 @@ struct AppRootView: View {
             let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
             try appModel.discardPendingReplacement()
             replacementConfirmationMessage = nil
+            registerPendingOpenedDocumentIfNeeded()
             closeWindowIfNeeded(shouldCloseWindow)
+            consumeNextNativeOpenRequest()
         } catch {
             replacementConfirmationMessage = nil
+            pendingRecentRegistrationURL = nil
             present(error, operation: .unknown)
         }
     }
@@ -193,11 +235,29 @@ struct AppRootView: View {
         do {
             try appModel.confirmPendingReplacementAfterExternalSaveRespectingLanguage()
             replacementConfirmationMessage = nil
+            registerPendingOpenedDocumentIfNeeded()
             closeWindowIfNeeded(shouldCloseWindow)
+            consumeNextNativeOpenRequest()
         } catch {
             replacementConfirmationMessage = nil
+            pendingRecentRegistrationURL = nil
             present(error, operation: .save)
         }
+    }
+
+    private func registerPendingOpenedDocumentIfNeeded() {
+        guard let url = pendingRecentRegistrationURL,
+              appModel.currentDocument?.packageURL.map(DocumentPackageIdentity.init(url:)) == DocumentPackageIdentity(url: url) else {
+            pendingRecentRegistrationURL = nil
+            return
+        }
+        NativeRecentDocumentRegistrar.application.note(url)
+        pendingRecentRegistrationURL = nil
+    }
+
+    private func registerCurrentDocumentAsRecent() {
+        guard let url = appModel.currentDocument?.packageURL else { return }
+        NativeRecentDocumentRegistrar.application.note(url)
     }
 
     private func saveAndConfirmPendingRestore() {
@@ -283,6 +343,7 @@ struct AppRootView: View {
             : selectedURL.appendingPathExtension("dreamjotter")
         do {
             let result = try appModel.saveCurrentProjectRespectingLanguage(to: packageURL)
+            NativeRecentDocumentRegistrar.application.note(packageURL)
             afterSuccessfulSave?()
             return result
         } catch {
