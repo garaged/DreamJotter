@@ -34,7 +34,7 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
 
 struct ProjectWorkspaceView: View {
     @Binding var document: ProjectDocumentViewModel
-    @State private var selectedSection: WorkspaceSection? = .dashboard
+    @State private var selectedSection: WorkspaceSection = .dashboard
     let saveAction: () -> Void
     let saveAsAction: () -> Void
     let openAction: () -> Void
@@ -50,7 +50,7 @@ struct ProjectWorkspaceView: View {
                         Label(section.localizedTitle, systemImage: section.systemImage)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
-                            .tag(Optional(section))
+                            .tag(section)
                     }
                 }
             }
@@ -83,7 +83,7 @@ struct ProjectWorkspaceView: View {
 
     @ViewBuilder
     private var contentView: some View {
-        switch selectedSection ?? .dashboard {
+        switch selectedSection {
         case .dashboard:
             ScrollView { ProjectDashboardView(document: $document).padding() }
         case .script:
