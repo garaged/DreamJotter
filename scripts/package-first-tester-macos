@@ -128,7 +128,7 @@ if [[ "${LOCALIZATION_COUNT}" -eq 0 ]]; then
     exit 1
 fi
 
-for locale in es-MX es-419; do
+for locale in en es-MX es-419; do
     if [[ ! -d "${APP_DIR}/Contents/Resources/${locale}.lproj" ]]; then
         echo "Error: missing ${locale}.lproj in app main bundle." >&2
         exit 1
