@@ -4,46 +4,46 @@ import Testing
 
 @Suite("Editor Suggestion Keyboard UX")
 struct EditorSuggestionKeyboardTests {
-    @Test("Script editor supports keyboard suggestion navigation and acceptance")
+    @Test("Focused TextKit editor routes keyboard suggestion commands")
     func keyboardCommandsAreWired() throws {
-        let source = try scriptEditorSource()
+        let source = try source(named: "TextKitScreenplayEditorView.swift")
 
-        #expect(source.contains(".onKeyPress(.downArrow)"))
-        #expect(source.contains(".onKeyPress(.upArrow)"))
-        #expect(source.contains(".onKeyPress(.return)"))
-        #expect(source.contains(".onKeyPress(.tab)"))
-        #expect(source.contains(".onKeyPress(.escape)"))
-        #expect(source.contains("acceptSelectedSuggestion()"))
+        #expect(source.contains("case 125"))
+        #expect(source.contains("case 126"))
+        #expect(source.contains("case 53"))
+        #expect(source.contains("case 36, 76"))
+        #expect(source.contains("case 48"))
+        #expect(source.contains("moveSuggestion(by:"))
+        #expect(source.contains("acceptSuggestion()"))
+        #expect(source.contains("dismissSuggestions()"))
     }
 
-    @Test("Smart Enter and Tab accept a visible suggestion before editor commands")
+    @Test("Return and Tab prefer suggestions before editor commands")
     func nativeEditorCommandsPreferSuggestionAcceptance() throws {
-        let source = try scriptEditorSource()
+        let source = try source(named: "TextKitScreenplayEditorView.swift")
 
-        #expect(source.contains("if !acceptSelectedSuggestion()"))
-        #expect(source.contains("document.performSmartEnterRespectingLanguage"))
-        #expect(source.contains("document.performTabCycleRespectingLanguage"))
+        let accept = try #require(source.range(of: "commandHandler?.acceptSuggestion()"))
+        let smartEnter = try #require(source.range(of: "commandHandler?.performSmartEnter"))
+        let tabCycle = try #require(source.range(of: "commandHandler?.performTabCycle"))
+        #expect(accept.lowerBound < smartEnter.lowerBound)
+        #expect(accept.lowerBound < tabCycle.lowerBound)
     }
 
     @Test("Suggestion panel documents keyboard controls and selected state")
     func suggestionPanelCommunicatesKeyboardUX() throws {
-        let source = try scriptEditorSource()
+        let source = try source(named: "ScriptEditorView.swift")
 
         #expect(source.contains("Return or Tab accept"))
         #expect(source.contains("selectedSuggestionIndex"))
         #expect(source.contains("accessibilityValue"))
     }
 
-    private func scriptEditorSource() throws -> String {
-        let repositoryRoot = URL(fileURLWithPath: #filePath)
+    private func source(named filename: String) throws -> String {
+        let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-        let sourceURL = repositoryRoot
-            .appendingPathComponent("Apps")
-            .appendingPathComponent("DreamJotterMac")
-            .appendingPathComponent("Views")
-            .appendingPathComponent("ScriptEditorView.swift")
-        return try String(contentsOf: sourceURL, encoding: .utf8)
+        let url = root.appendingPathComponent("Apps/DreamJotterMac/Views/\(filename)")
+        return try String(contentsOf: url, encoding: .utf8)
     }
 }
