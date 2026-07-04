@@ -39,6 +39,13 @@ final class NativeDocumentApplicationRouter {
         return NativeDocumentOpenBatch(packageURLs: accepted, rejectedURLs: rejected)
     }
 
+    func dequeuePendingPackageURL() -> URL? {
+        guard !pendingPackageURLs.isEmpty else { return nil }
+        let url = pendingPackageURLs.removeFirst()
+        pendingIdentities.remove(DocumentPackageIdentity(url: url))
+        return url
+    }
+
     func drainPendingPackageURLs() -> [URL] {
         let result = pendingPackageURLs
         pendingPackageURLs.removeAll(keepingCapacity: true)
