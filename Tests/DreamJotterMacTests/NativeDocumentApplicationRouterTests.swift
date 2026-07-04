@@ -38,4 +38,20 @@ struct NativeDocumentApplicationRouterTests {
         #expect(afterDrain.packageURLs.count == 1)
         _ = router.drainPendingPackageURLs()
     }
+
+    @Test("Recent document registration records canonical package URLs")
+    func recentRegistrationUsesCanonicalURLs() {
+        let memory = NativeRecentDocumentRegistrar.memory()
+        let packageURL = URL(
+            fileURLWithPath: "/tmp/Folder/../Recent.dreamjotter",
+            isDirectory: true
+        )
+
+        memory.registrar.note(packageURL)
+
+        #expect(memory.recorded() == [DocumentPackageIdentity(url: packageURL).canonicalURL])
+
+        memory.registrar.clear()
+        #expect(memory.recorded().isEmpty)
+    }
 }
