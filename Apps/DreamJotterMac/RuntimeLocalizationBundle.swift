@@ -100,6 +100,15 @@ enum RuntimeLocalizationBundle {
             }
         }
 
+        for bundle in Bundle.allBundles {
+            let url = bundle.bundleURL.standardizedFileURL
+            let name = url.deletingPathExtension().lastPathComponent.lowercased()
+            guard url.pathExtension == "bundle", name.contains("dreamjotter") else {
+                continue
+            }
+            appendBundle(at: url)
+        }
+
         return bundles
     }
 
@@ -162,6 +171,7 @@ enum RuntimeLocalizationBundle {
         if let developmentRegion = Bundle.main.developmentLocalization {
             append(developmentRegion)
         }
+        append("en")
         append("Base")
 
         return result
