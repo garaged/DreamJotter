@@ -125,7 +125,7 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
                 includePageNumbers: false,
                 includeParagraphNumbers: false,
                 includeLineNumbers: false,
-                suppressIdentifyingMetadata: !preset.includesInternalIDsJ
+                suppressIdentifyingMetadata: !preset.includesInternalIDs
             )
         }
     }
