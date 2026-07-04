@@ -2,7 +2,7 @@ import Foundation
 
 struct DocumentPackageIdentity: Hashable, Sendable {
     let canonicalURL: URL
-    private let fileResourceIdentifier: String?
+    let observedFileResourceIdentifier: String?
 
     init(url: URL, fileManager: FileManager = .default) {
         let fileURL = url.isFileURL ? url : URL(fileURLWithPath: url.path, isDirectory: true)
@@ -15,28 +15,18 @@ struct DocumentPackageIdentity: Hashable, Sendable {
         if fileManager.fileExists(atPath: canonicalURL.path),
            let values = try? canonicalURL.resourceValues(forKeys: [.fileResourceIdentifierKey]),
            let identifier = values.fileResourceIdentifier {
-            fileResourceIdentifier = String(describing: identifier)
+            observedFileResourceIdentifier = String(describing: identifier)
         } else {
-            fileResourceIdentifier = nil
+            observedFileResourceIdentifier = nil
         }
     }
 
     static func == (lhs: DocumentPackageIdentity, rhs: DocumentPackageIdentity) -> Bool {
-        if let lhsIdentifier = lhs.fileResourceIdentifier,
-           let rhsIdentifier = rhs.fileResourceIdentifier {
-            return lhsIdentifier == rhsIdentifier
-        }
-        return lhs.canonicalURL == rhs.canonicalURL
+        lhs.canonicalURL == rhs.canonicalURL
     }
 
     func hash(into hasher: inout Hasher) {
-        if let fileResourceIdentifier {
-            hasher.combine("file-resource")
-            hasher.combine(fileResourceIdentifier)
-        } else {
-            hasher.combine("canonical-url")
-            hasher.combine(canonicalURL)
-        }
+        hasher.combine(canonicalURL)
     }
 }
 
