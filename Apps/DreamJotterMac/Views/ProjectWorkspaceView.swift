@@ -25,6 +25,19 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
         case .healthReport: "Health Report"
         }
     }
+
+    var systemImage: String {
+        switch self {
+        case .dashboard: "rectangle.grid.2x2"
+        case .script: "doc.text"
+        case .scenes: "list.bullet.rectangle"
+        case .characters: "person.2"
+        case .locations: "mappin.and.ellipse"
+        case .notes: "note.text"
+        case .review: "checkmark.bubble"
+        case .healthReport: "heart.text.square"
+        }
+    }
 }
 
 struct ProjectWorkspaceView: View {
@@ -43,18 +56,18 @@ struct ProjectWorkspaceView: View {
             List(selection: $selectedSection) {
                 Section("Project") {
                     ForEach(WorkspaceSection.allCases) { section in
-                        Text(section.localizedTitle).tag(section)
+                        Label(section.localizedTitle, systemImage: section.systemImage)
+                            .tag(Optional(section))
                     }
                 }
             }
-            .navigationSplitViewColumnWidth(min: 220, ideal: 260)
-        } content: {
-            contentView
-                .navigationSplitViewColumnWidth(min: 520, ideal: 680)
+            .navigationTitle(document.project.metadata.title)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 300)
         } detail: {
-            detailView
-                .navigationSplitViewColumnWidth(min: 280, ideal: 340)
+            contentView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .navigationSplitViewStyle(.balanced)
         .toolbar {
             ToolbarItemGroup {
                 Text(documentStatus)
@@ -65,22 +78,6 @@ struct ProjectWorkspaceView: View {
                     .keyboardShortcut("s", modifiers: [.command])
                 Button("Save As") { saveAsAction() }
                 Button("Export") { exportAction() }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var detailView: some View {
-        if selectedSection == .script {
-            ScreenplayParagraphInspectorView(document: $document)
-        } else {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ProjectDashboardView(document: $document)
-                    HealthReportView(findings: document.healthFindings)
-                    NotesListView(notes: document.notes)
-                }
-                .padding()
             }
         }
     }
@@ -104,7 +101,13 @@ struct ProjectWorkspaceView: View {
                 ProjectDashboardView(document: $document).padding()
             }
         case .script:
-            ScriptEditorView(document: $document)
+            HSplitView {
+                ScriptEditorView(document: $document)
+                    .frame(minWidth: 520, maxWidth: .infinity, maxHeight: .infinity)
+
+                ScreenplayParagraphInspectorView(document: $document)
+                    .frame(minWidth: 260, idealWidth: 300, maxWidth: 360, maxHeight: .infinity)
+            }
         case .scenes:
             ScrollView {
                 BoundSceneWorkflowView(
