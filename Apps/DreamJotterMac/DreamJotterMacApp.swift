@@ -88,6 +88,13 @@ final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    func application(_ application: NSApplication, open urls: [URL]) {
+        Task { @MainActor in
+            NativeDocumentApplicationRouter.shared.enqueue(urls)
+            application.activate(ignoringOtherApps: true)
+        }
+    }
+
     private func launchArguments(for preference: ApplicationLanguagePreference) -> [String] {
         switch preference {
         case .system:

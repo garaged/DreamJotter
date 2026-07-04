@@ -7,9 +7,17 @@ struct AppRootView: View {
     @State private var errorMessage: String?
     @State private var replacementConfirmationMessage: String?
     @State private var restoreConfirmationMessage: String?
+    @State private var externalConflictMessage: String?
+    @State private var conflictPackageURL: URL?
+    @State private var expectedGeneration: PackageGenerationFingerprint?
+    @State private var isSaveOperationActive = false
+    @State private var restorationAttempted = false
     @State private var isExportPickerPresented = false
     @State private var exportUIState = ExportUIState.initial()
     @State private var allowWindowClose = false
+    @State private var pendingRecentRegistrationURL: URL?
+
+    private let restorationStore = DocumentRestorationStore.userDefaults()
 
     var body: some View {
         Group {
@@ -38,6 +46,19 @@ struct AppRootView: View {
         .navigationTitle(windowTitle)
         .frame(minWidth: 1100, minHeight: 720)
         .background(WindowCloseGuardView(allowClose: $allowWindowClose, shouldClose: requestWindowClose))
+        .onAppear {
+            restoreWorkspaceIfNeeded()
+            consumeNextNativeOpenRequest()
+        }
+        .task(id: appModel.currentDocument?.scriptText) {
+            guard appModel.currentDocument?.isDirty == true else { return }
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            performAutosave()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dreamJotterNativeOpenRequestsAvailable)) { _ in
+            consumeNextNativeOpenRequest()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .dreamJotterNewProject)) { _ in
             createProject(String(localized: "Untitled"))
         }
@@ -69,6 +90,24 @@ struct AppRootView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+        .alert("External Project Change", isPresented: Binding(
+            get: { externalConflictMessage != nil },
+            set: { if !$0 { externalConflictMessage = nil } }
+        )) {
+            Button("Reload External Version") { reloadExternalVersion() }
+            Button("Save As…") {
+                externalConflictMessage = nil
+                _ = saveProjectAs()
+            }
+            Button("Replace External Version", role: .destructive) {
+                saveProjectIgnoringGenerationConflict()
+            }
+            Button("Cancel", role: .cancel) {
+                externalConflictMessage = nil
+            }
+        } message: {
+            Text(externalConflictMessage ?? "")
+        }
         .alert("Unsaved Changes", isPresented: Binding(
             get: { replacementConfirmationMessage != nil },
             set: { if !$0 { replacementConfirmationMessage = nil } }
@@ -77,7 +116,9 @@ struct AppRootView: View {
             Button("Discard Changes", role: .destructive) { discardPendingReplacement() }
             Button("Cancel", role: .cancel) {
                 appModel.cancelPendingReplacement()
+                pendingRecentRegistrationURL = nil
                 replacementConfirmationMessage = nil
+                consumeNextNativeOpenRequest()
             }
         } message: {
             Text(replacementConfirmationMessage ?? "")
@@ -110,43 +151,204 @@ struct AppRootView: View {
     }
 
     private func createProject(_ title: String) {
+        pendingRecentRegistrationURL = nil
+        expectedGeneration = nil
+        conflictPackageURL = nil
         presentReplacementDecision(appModel.requestNewProject(title: title))
     }
 
     private func openProject() {
         let panel = NSOpenPanel()
         panel.title = String(localized: "Open DreamJotter Package")
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.treatsFilePackagesAsDirectories = false
+        panel.allowedFileTypes = ["dreamjotter"]
         panel.allowsMultipleSelection = false
         guard panel.runModal() == .OK, let url = panel.url else { return }
         openRecentProject(url)
     }
 
     private func openRecentProject(_ url: URL) {
+        requestOpenPackage(at: url, operation: .recentProjectOpen)
+    }
+
+    private func consumeNextNativeOpenRequest() {
+        guard replacementConfirmationMessage == nil,
+              let url = NativeDocumentApplicationRouter.shared.dequeuePendingPackageURL() else {
+            return
+        }
+        requestOpenPackage(at: url, operation: .open)
+    }
+
+    private func requestOpenPackage(at url: URL, operation: AppErrorSourceOperation) {
         do {
-            presentReplacementDecision(try appModel.requestOpenPackageRespectingLanguage(at: url))
+            let decision = try appModel.requestOpenPackageRespectingLanguage(at: url)
+            switch decision {
+            case .replaced:
+                didOpenPackage(url)
+                consumeNextNativeOpenRequest()
+            case .requiresConfirmation:
+                pendingRecentRegistrationURL = url
+                presentReplacementDecision(decision)
+            }
         } catch {
             appModel.forgetInvalidRecentProject(url)
-            present(error, operation: .recentProjectOpen)
+            pendingRecentRegistrationURL = nil
+            present(error, operation: operation)
+            consumeNextNativeOpenRequest()
         }
     }
 
+    private func didOpenPackage(_ url: URL) {
+        NativeRecentDocumentRegistrar.application.note(url)
+        pendingRecentRegistrationURL = nil
+        expectedGeneration = try? PackageGenerationFingerprint.read(from: url)
+        conflictPackageURL = nil
+        externalConflictMessage = nil
+        persistCurrentRestorationRecord()
+    }
+
     private func saveProject() {
+        saveCurrentProject(checkGeneration: true)
+    }
+
+    private func saveCurrentProject(checkGeneration: Bool) {
+        guard let packageURL = appModel.currentDocument?.packageURL else {
+            _ = saveProjectAs()
+            return
+        }
+
+        if checkGeneration, !generationAllowsSave(at: packageURL) {
+            return
+        }
+
         do {
-            if try appModel.saveCurrentProjectRespectingLanguage() == .requiresSaveAs {
-                saveProjectAs()
+            isSaveOperationActive = true
+            defer { isSaveOperationActive = false }
+            var result: SaveRequestResult = .saved
+            try GuardedPackageSave.perform(at: packageURL) {
+                result = try appModel.saveCurrentProjectRespectingLanguage()
+            }
+            if result == .requiresSaveAs {
+                _ = saveProjectAs()
+            } else {
+                didSavePackage(packageURL)
             }
         } catch {
             present(error, operation: .save)
         }
     }
 
+    private func generationAllowsSave(at packageURL: URL) -> Bool {
+        let observed = try? PackageGenerationFingerprint.read(from: packageURL)
+        switch PackageGenerationPolicy.decision(expected: expectedGeneration, observed: observed) {
+        case .unchanged:
+            return true
+        case .externallyChanged:
+            conflictPackageURL = packageURL
+            externalConflictMessage = "This DreamJotter package changed outside the app. Reload the external version, save your current work elsewhere, or deliberately replace the external version."
+            return false
+        case .unavailable:
+            errorMessage = "The project package is no longer available. Use Save As to preserve your current work."
+            return false
+        }
+    }
+
+    private func saveProjectIgnoringGenerationConflict() {
+        externalConflictMessage = nil
+        saveCurrentProject(checkGeneration: false)
+    }
+
+    private func reloadExternalVersion() {
+        guard let packageURL = conflictPackageURL else {
+            externalConflictMessage = nil
+            return
+        }
+        do {
+            try appModel.openPackage(at: packageURL)
+            didOpenPackage(packageURL)
+        } catch {
+            present(error, operation: .open)
+        }
+    }
+
+    private func performAutosave() {
+        guard let document = appModel.currentDocument else { return }
+        let packageURL = document.packageURL
+        let reachable = packageURL.map { FileManager.default.fileExists(atPath: $0.path) } ?? false
+        let writable = packageURL.map { FileManager.default.isWritableFile(atPath: $0.path) } ?? false
+        let observed = packageURL.flatMap { try? PackageGenerationFingerprint.read(from: $0) }
+        let generationDecision = PackageGenerationPolicy.decision(
+            expected: expectedGeneration,
+            observed: observed
+        )
+        let context = AutosaveContext(
+            hasPackageIdentity: packageURL != nil,
+            ownsPackageIdentity: true,
+            isDirty: document.isDirty,
+            isOperationActive: isSaveOperationActive || replacementConfirmationMessage != nil || restoreConfirmationMessage != nil,
+            hasExternalConflict: generationDecision == .externallyChanged,
+            destinationReachable: reachable,
+            destinationWritable: writable
+        )
+
+        switch AutosavePolicy.decision(for: context) {
+        case .save:
+            saveCurrentProject(checkGeneration: true)
+        case .blockExternalConflict:
+            if let packageURL {
+                conflictPackageURL = packageURL
+                externalConflictMessage = "Autosave paused because this package changed outside DreamJotter. Choose how to resolve the conflict before saving."
+            }
+        case .skipUnsavedDocument, .skipNotOwner, .skipClean,
+             .deferOperationActive, .deferUnavailableDestination:
+            break
+        }
+    }
+
+    private func didSavePackage(_ packageURL: URL) {
+        expectedGeneration = try? PackageGenerationFingerprint.read(from: packageURL)
+        conflictPackageURL = nil
+        externalConflictMessage = nil
+        registerCurrentDocumentAsRecent()
+        persistCurrentRestorationRecord()
+    }
+
+    private func restoreWorkspaceIfNeeded() {
+        guard !restorationAttempted else { return }
+        restorationAttempted = true
+        guard !NativeDocumentApplicationRouter.shared.hasPendingPackageURLs,
+              !appModel.hasOpenProject,
+              let packageURL = DocumentRestorationPolicy.restorableURLs(
+                from: restorationStore.load()
+              ).first else {
+            return
+        }
+        NativeDocumentApplicationRouter.shared.enqueue([packageURL])
+    }
+
+    private func persistCurrentRestorationRecord() {
+        guard let packageURL = appModel.currentDocument?.packageURL else {
+            restorationStore.save([])
+            return
+        }
+        restorationStore.save([DocumentRestorationRecord(packageURL: packageURL)])
+    }
+
     private func closeProject() {
+        pendingRecentRegistrationURL = nil
+        expectedGeneration = nil
+        conflictPackageURL = nil
+        restorationStore.save([])
         presentReplacementDecision(appModel.requestCloseProject())
     }
 
     private func requestWindowClose() -> Bool {
+        pendingRecentRegistrationURL = nil
+        if appModel.currentDocument?.isDirty != true {
+            persistCurrentRestorationRecord()
+        }
         switch appModel.requestCloseWindow() {
         case .replaced:
             return true
@@ -164,15 +366,29 @@ struct AppRootView: View {
 
     private func saveAndConfirmPendingReplacement() {
         let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
+        guard let packageURL = appModel.currentDocument?.packageURL else {
+            _ = saveProjectAs { finishPendingReplacementAfterSave(shouldCloseWindow: shouldCloseWindow) }
+            return
+        }
+        guard generationAllowsSave(at: packageURL) else { return }
         do {
-            if try appModel.saveAndConfirmPendingReplacementRespectingLanguage() == .requiresSaveAs {
+            isSaveOperationActive = true
+            defer { isSaveOperationActive = false }
+            var result: SaveBeforeReplacementResult = .replaced
+            try GuardedPackageSave.perform(at: packageURL) {
+                result = try appModel.saveAndConfirmPendingReplacementRespectingLanguage()
+            }
+            if result == .requiresSaveAs {
                 _ = saveProjectAs { finishPendingReplacementAfterSave(shouldCloseWindow: shouldCloseWindow) }
                 return
             }
             replacementConfirmationMessage = nil
+            registerPendingOpenedDocumentIfNeeded()
             closeWindowIfNeeded(shouldCloseWindow)
+            consumeNextNativeOpenRequest()
         } catch {
             replacementConfirmationMessage = nil
+            pendingRecentRegistrationURL = nil
             present(error, operation: .save)
         }
     }
@@ -182,9 +398,12 @@ struct AppRootView: View {
             let shouldCloseWindow = appModel.pendingReplacement == .closeWindow
             try appModel.discardPendingReplacement()
             replacementConfirmationMessage = nil
+            registerPendingOpenedDocumentIfNeeded()
             closeWindowIfNeeded(shouldCloseWindow)
+            consumeNextNativeOpenRequest()
         } catch {
             replacementConfirmationMessage = nil
+            pendingRecentRegistrationURL = nil
             present(error, operation: .unknown)
         }
     }
@@ -193,11 +412,29 @@ struct AppRootView: View {
         do {
             try appModel.confirmPendingReplacementAfterExternalSaveRespectingLanguage()
             replacementConfirmationMessage = nil
+            registerPendingOpenedDocumentIfNeeded()
             closeWindowIfNeeded(shouldCloseWindow)
+            consumeNextNativeOpenRequest()
         } catch {
             replacementConfirmationMessage = nil
+            pendingRecentRegistrationURL = nil
             present(error, operation: .save)
         }
+    }
+
+    private func registerPendingOpenedDocumentIfNeeded() {
+        guard let url = pendingRecentRegistrationURL,
+              appModel.currentDocument?.packageURL.map(DocumentPackageIdentity.init(url:)) == DocumentPackageIdentity(url: url) else {
+            pendingRecentRegistrationURL = nil
+            persistCurrentRestorationRecord()
+            return
+        }
+        didOpenPackage(url)
+    }
+
+    private func registerCurrentDocumentAsRecent() {
+        guard let url = appModel.currentDocument?.packageURL else { return }
+        NativeRecentDocumentRegistrar.application.note(url)
     }
 
     private func saveAndConfirmPendingRestore() {
@@ -236,6 +473,8 @@ struct AppRootView: View {
         restoreConfirmationMessage = nil
         switch result.status {
         case .restored:
+            expectedGeneration = nil
+            restorationStore.save([])
             exportUIState.applyFeedback(ExportFeedback(
                 kind: .success,
                 userMessage: localized(result.userMessage),
@@ -282,7 +521,14 @@ struct AppRootView: View {
             ? selectedURL
             : selectedURL.appendingPathExtension("dreamjotter")
         do {
-            let result = try appModel.saveCurrentProjectRespectingLanguage(to: packageURL)
+            isSaveOperationActive = true
+            defer { isSaveOperationActive = false }
+            var result: SaveAsRequestResult = .saved
+            try GuardedPackageSave.perform(at: packageURL) {
+                result = try appModel.saveCurrentProjectRespectingLanguage(to: packageURL)
+            }
+            NativeRecentDocumentRegistrar.application.note(packageURL)
+            didSavePackage(packageURL)
             afterSuccessfulSave?()
             return result
         } catch {
@@ -351,6 +597,8 @@ struct AppRootView: View {
             let result = appModel.restoreBackupRespectingLanguage(from: data)
             switch result.status {
             case .restored:
+                expectedGeneration = nil
+                restorationStore.save([])
                 exportUIState.applyFeedback(ExportFeedback(
                     kind: .success,
                     userMessage: localized(result.userMessage),
