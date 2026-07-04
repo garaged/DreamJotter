@@ -11,22 +11,28 @@ enum ScreenplayLocalizationTransform {
 
         for element in parsed.elements {
             let text = restore(element.text, queues: &queues)
-            switch element.kind {
-            case .characterCue:
+            let characterName: String?
+            if element.paragraphType == .characterCue {
                 let base = ScreenplayConstructs.baseCharacterName(from: text, profile: language)
                 activeCharacter = base
                 if !characters.contains(base) { characters.append(base) }
-                elements.append(ScriptElement(kind: .characterCue, text: text))
-            case .dialogue, .parenthetical:
-                elements.append(ScriptElement(kind: element.kind, text: text, characterName: activeCharacter))
-            default:
+                characterName = nil
+            } else if element.paragraphType == .dialogue || element.paragraphType == .parenthetical {
+                characterName = activeCharacter
+            } else {
                 activeCharacter = nil
-                elements.append(ScriptElement(kind: element.kind, text: text, characterName: element.characterName))
+                characterName = element.characterName
             }
+            elements.append(ScriptElement(
+                kind: element.kind,
+                text: text,
+                characterName: characterName,
+                paragraphType: element.paragraphType
+            ))
         }
 
         let scenes = elements.compactMap { element -> Scene? in
-            guard element.kind == .sceneHeading else { return nil }
+            guard element.paragraphType == .sceneHeading else { return nil }
             return ScreenplayLocalizationPreprocessor.scene(from: element.text, language: language)
         }
         let diagnostics = parsed.diagnostics.map {
