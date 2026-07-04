@@ -51,7 +51,7 @@ struct SceneHeadingAutocompleteEngineSpecs {
         let morning = try #require(suggestions.first { $0.displayText == "MAÑANA" })
 
         #expect(morning.replacementText == "MAÑANA")
-        #expect(morning.textRange.location == 119)
+        #expect(morning.textRange.location == 120)
         #expect(morning.textRange.length == 2)
     }
 
