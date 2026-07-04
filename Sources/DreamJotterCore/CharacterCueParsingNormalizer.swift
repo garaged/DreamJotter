@@ -8,6 +8,8 @@ public enum CharacterCueParsingNormalizer {
 
         for index in paragraphs.indices {
             let paragraph = paragraphs[index]
+            guard paragraph.type == .action else { continue }
+
             let lines = paragraph.sourceText
                 .components(separatedBy: "\n")
                 .map { $0.trimmingCharacters(in: .whitespaces) }
@@ -50,7 +52,9 @@ public enum CharacterCueParsingNormalizer {
             characters.append(trimmed)
         }
 
-        document.characters.forEach(append)
+        document.characters.forEach { name in
+            CharacterCueEngine.names(in: name).forEach(append)
+        }
         for element in document.elements where element.paragraphType == .characterCue {
             CharacterCueEngine.names(in: element.text).forEach(append)
         }
