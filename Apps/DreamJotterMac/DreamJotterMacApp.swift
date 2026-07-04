@@ -115,6 +115,7 @@ struct DreamJotterHelpCommands: Commands {
 
 final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
     private static let preferenceKey = "dreamjotter.applicationLanguage"
+    private var diagnosticsObserver: NSObjectProtocol?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         guard !ProcessInfo.processInfo.arguments.contains("-AppleLanguages") else {
@@ -143,12 +144,52 @@ final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+        diagnosticsObserver = NotificationCenter.default.addObserver(
+            forName: .dreamJotterExportDiagnostics,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.exportSupportDiagnostics()
+        }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        if let diagnosticsObserver {
+            NotificationCenter.default.removeObserver(diagnosticsObserver)
+        }
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         Task { @MainActor in
             NativeDocumentApplicationRouter.shared.enqueue(urls)
             application.activate(ignoringOtherApps: true)
+        }
+    }
+
+    private func exportSupportDiagnostics() {
+        let panel = NSSavePanel()
+        panel.title = "Export Support Diagnostics"
+        panel.nameFieldStringValue = "DreamJotter-Diagnostics.json"
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let destination = panel.url else { return }
+        let outputURL = destination.pathExtension.lowercased() == "json"
+            ? destination
+            : destination.appendingPathExtension("json")
+
+        do {
+            let diagnostics = SupportDiagnosticsBuilder.make(
+                packageURL: nil,
+                recentErrorSummary: nil
+            )
+            try SupportDiagnosticsBuilder.encode(diagnostics).write(to: outputURL, options: .atomic)
+            NSWorkspace.shared.activateFileViewerSelecting([outputURL])
+        } catch {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = "Diagnostics Export Failed"
+            alert.informativeText = CrashSafePresentationPolicy.message(for: error, operation: .export)
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
         }
     }
 
