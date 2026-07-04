@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+
+import math
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+SIZE = 1024
+
+
+def write_ppm(path: Path) -> None:
+    with path.open("wb") as output:
+        output.write(f"P6\n{SIZE} {SIZE}\n255\n".encode())
+        for y in range(SIZE):
+            for x in range(SIZE):
+                nx = (x - SIZE / 2) / (SIZE / 2)
+                ny = (y - SIZE / 2) / (SIZE / 2)
+                radius = math.sqrt(nx * nx + ny * ny)
+                base = max(0.0, 1.0 - radius * 0.55)
+                r = int(20 + 28 * base)
+                g = int(29 + 45 * base)
+                b = int(55 + 90 * base)
+
+                # Warm screenplay page.
+                if 250 <= x <= 720 and 170 <= y <= 850:
+                    corner = 48
+                    inside = (
+                        corner <= x - 250 <= 470 - corner
+                        or corner <= y - 170 <= 680 - corner
+                        or (x - (250 + corner)) ** 2 + (y - (170 + corner)) ** 2 <= corner ** 2
+                        or (x - (720 - corner)) ** 2 + (y - (170 + corner)) ** 2 <= corner ** 2
+                        or (x - (250 + corner)) ** 2 + (y - (850 - corner)) ** 2 <= corner ** 2
+                        or (x - (720 - corner)) ** 2 + (y - (850 - corner)) ** 2 <= corner ** 2
+                    )
+                    if inside:
+                        r, g, b = 244, 235, 215
+
+                # Screenplay text lines.
+                if 330 <= x <= 640 and any(start <= y <= start + 18 for start in (300, 370, 440, 580, 650, 720)):
+                    r, g, b = 51, 56, 67
+                if 410 <= x <= 610 and 510 <= y <= 530:
+                    r, g, b = 51, 56, 67
+
+                # Coral pencil crossing the page.
+                dx = x - 700
+                dy = y - 660
+                along = (dx - dy) / math.sqrt(2)
+                across = (dx + dy) / math.sqrt(2)
+                if -300 <= along <= 250 and -38 <= across <= 38:
+                    r, g, b = 231, 102, 91
+                if 250 < along <= 310 and abs(across) <= 38 * (1 - (along - 250) / 60):
+                    r, g, b = 238, 204, 147
+
+                output.write(bytes((r, g, b)))
+
+
+def run(command: list[str]) -> None:
+    subprocess.run(command, check=True)
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print("Usage: generate-app-icon OUTPUT.icns", file=sys.stderr)
+        return 64
+
+    output = Path(sys.argv[1]).resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(prefix="DreamJotterIcon-") as temporary:
+        root = Path(temporary)
+        ppm = root / "AppIcon.ppm"
+        png = root / "AppIcon.png"
+        iconset = root / "AppIcon.iconset"
+        iconset.mkdir()
+        write_ppm(ppm)
+        run(["sips", "-s", "format", "png", str(ppm), "--out", str(png)])
+
+        for points in (16, 32, 128, 256, 512):
+            run(["sips", "-z", str(points), str(points), str(png), "--out", str(iconset / f"icon_{points}x{points}.png")])
+            doubled = points * 2
+            run(["sips", "-z", str(doubled), str(doubled), str(png), "--out", str(iconset / f"icon_{points}x{points}@2x.png")])
+
+        run(["iconutil", "-c", "icns", str(iconset), "-o", str(output)])
+
+    print(output)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
