@@ -309,9 +309,9 @@ enum LegacyScreenplayParser {
     private static func isCharacterCue(_ line: String, in lines: [String], at index: Int) -> Bool {
         guard isUppercaseLike(line), !isTransition(line), !isInvalidSceneHeading(line) else { return false }
         guard line.split(whereSeparator: \.isWhitespace).count <= 3 else { return false }
-        guard let next = nextLine(after: index, in: lines), !next.crossedBlankBoundary else { return false }
-        let nextLine = next.text
+        guard let nextLine = nextNonEmptyLine(after: index, in: lines) else { return false }
         if nextLine.hasPrefix("(") || nextLine.hasPrefix(":") { return true }
+        if nextLine.hasPrefix("!") || nextLine.hasPrefix("+") { return true }
         return !isUppercaseLike(nextLine)
             && !isSceneHeading(nextLine)
             && !isTransition(nextLine)
@@ -319,23 +319,18 @@ enum LegacyScreenplayParser {
             && !hasExplicitStructuralMarker(nextLine)
     }
 
-    private static func nextLine(after index: Int, in lines: [String]) -> (text: String, crossedBlankBoundary: Bool)? {
+    private static func nextNonEmptyLine(after index: Int, in lines: [String]) -> String? {
         var nextIndex = index + 1
-        var crossedBlankBoundary = false
         while nextIndex < lines.count {
             let line = lines[nextIndex].trimmingCharacters(in: .whitespaces)
-            if line.isEmpty {
-                crossedBlankBoundary = true
-                nextIndex += 1
-                continue
-            }
-            return (line, crossedBlankBoundary)
+            if !line.isEmpty { return line }
+            nextIndex += 1
         }
         return nil
     }
 
     private static func hasExplicitStructuralMarker(_ line: String) -> Bool {
-        ["!", "@", ">", ".", "#", "=", "+", "%%", "!!", "[[", "==="].contains {
+        ["@", ">", ".", "#", "=", "%%", "!!", "[[", "==="].contains {
             line.hasPrefix($0)
         }
     }
