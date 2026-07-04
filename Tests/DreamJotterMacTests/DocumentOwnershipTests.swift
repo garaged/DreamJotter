@@ -73,6 +73,36 @@ struct DocumentOwnershipTests {
         #expect(result.removed == [missing.standardizedFileURL])
     }
 
+    @Test("Window restoration takes precedence over reopening the last project")
+    func restorationPrecedesLastProject() {
+        let lastProject = URL(fileURLWithPath: "/tmp/Last.dreamjotter", isDirectory: true)
+
+        let decision = DocumentReopenPolicy.decision(
+            restoredWindowCount: 2,
+            lastProjectURL: lastProject,
+            lastProjectIsAvailable: true
+        )
+
+        #expect(decision == .useRestoredWindows)
+    }
+
+    @Test("Last project reopens only when no window restored and the package remains available")
+    func lastProjectRequiresNoRestoredWindowsAndAvailablePackage() {
+        let lastProject = URL(fileURLWithPath: "/tmp/Last.dreamjotter", isDirectory: true)
+
+        #expect(DocumentReopenPolicy.decision(
+            restoredWindowCount: 0,
+            lastProjectURL: lastProject,
+            lastProjectIsAvailable: true
+        ) == .openLastProject(lastProject.standardizedFileURL))
+
+        #expect(DocumentReopenPolicy.decision(
+            restoredWindowCount: 0,
+            lastProjectURL: lastProject,
+            lastProjectIsAvailable: false
+        ) == .showProjectLibrary)
+    }
+
     private func temporaryDirectory(named name: String) -> URL {
         FileManager.default.temporaryDirectory
             .appendingPathComponent("\(name)-\(UUID().uuidString)", isDirectory: true)
