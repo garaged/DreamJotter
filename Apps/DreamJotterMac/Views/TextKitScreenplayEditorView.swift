@@ -186,10 +186,12 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
         case .noteReference: description = String(localized: "Note")
         default: description = String(localized: "Action")
         }
-        textView.setAccessibilityHelp(String(format: String(localized: "Current screenplay element: %@"), description))
-        textView.setAccessibilityCustomContent([
-            NSAccessibilityCustomContent(label: String(localized: "Screenplay element type"), value: description)
-        ])
+        textView.setAccessibilityHelp(
+            String(
+                format: String(localized: "Current screenplay element: %@"),
+                description
+            )
+        )
     }
 
     final class Coordinator: NSObject, NSTextViewDelegate, ScreenplayTextViewCommandHandler {
@@ -236,11 +238,18 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
         }
 
         func performSmartEnter(in textView: NSTextView) -> Bool {
-            performCommand(named: String(localized: "Smart Enter"), in: textView) { onSmartEnter($0) }
+            performCommand(named: String(localized: "Smart Enter"), in: textView) { [weak self] location in
+                self?.onSmartEnter(location)
+            }
         }
 
         func performTabCycle(in textView: NSTextView) -> Bool {
-            performCommand(named: String(localized: "Change Element Type"), in: textView) { onTabCycle($0) }
+            performCommand(
+                    named: String(localized: "Change Element Type"),
+                    in: textView
+                    ) { [weak self] location in
+                self?.onTabCycle(location)
+            }
         }
 
         private func performCommand(named name: String, in textView: NSTextView, action: @escaping (Int) -> Void) -> Bool {
