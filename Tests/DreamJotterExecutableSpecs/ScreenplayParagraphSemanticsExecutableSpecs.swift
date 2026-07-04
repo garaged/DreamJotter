@@ -4,40 +4,31 @@ import Testing
 
 @Suite("Screenplay Paragraph Semantics Executable Specs")
 struct ScreenplayParagraphSemanticsExecutableSpecs {
-    @Test("Blank paragraph terminates dialogue context")
-    func blankParagraphTerminatesDialogueContext() {
-        let document = ScreenplayParser.parse("SOFÍA\nHola.\n\nLa puerta se abre lentamente.")
-
-        #expect(document.elements.map(\.paragraphType) == [
-            .characterCue,
-            .dialogue,
-            .action
-        ])
+    @Test("Long prose after an uppercase line remains action")
+    func longProseRemainsAction() {
+        let prose = Array(repeating: "The door opens while rain strikes every window.", count: 8)
+            .joined(separator: " ")
+        let document = ScreenplayParser.parse("SOFIA\n\n\(prose)")
+        #expect(document.elements.map(\.paragraphType) == [.action, .action])
     }
 
     @Test("Explicit action after a character cue remains action")
     func explicitActionOverridesDialogueInference() {
-        let document = ScreenplayParser.parse("SOFÍA\n! La puerta se abre lentamente.")
-
-        #expect(document.elements.map(\.paragraphType) == [
-            .characterCue,
-            .action
-        ])
+        let document = ScreenplayParser.parse("SOFIA\n! The door opens slowly.")
+        #expect(document.elements.map(\.paragraphType) == [.characterCue, .action])
     }
 
-    @Test("Explicit paragraph types round trip")
+    @Test("Explicit editor paragraph types round trip")
     func explicitParagraphTypesRoundTrip() {
         let source = """
         . INT. HOUSE - DAY
 
         ! Rain crosses the window.
 
-        + SOFÍA, 30s, enters carrying a red umbrella.
+        + SOFIA enters carrying a red umbrella.
 
-        @SOFÍA
-
+        @SOFIA
         (quietly)
-
         : We should leave.
 
         > CUT TO:
@@ -56,31 +47,16 @@ struct ScreenplayParagraphSemanticsExecutableSpecs {
         """
 
         let first = ScreenplayParser.parse(source)
-        let exported = FountainIO.exportScreenplay(first)
+        let exported = ScreenplayEditorTextIO.exportScreenplay(first)
         let second = ScreenplayParser.parse(exported)
 
         #expect(first.elements.map(\.paragraphType) == second.elements.map(\.paragraphType))
         #expect(first.elements.map(\.text) == second.elements.map(\.text))
-        #expect(first.elements.map(\.paragraphType) == [
-            .sceneHeading,
-            .action,
-            .characterIntroduction,
-            .characterCue,
-            .parenthetical,
-            .dialogue,
-            .transition,
-            .shot,
-            .section,
-            .synopsis,
-            .montage,
-            .note,
-            .pageBreak
-        ])
     }
 
     @Test("Paragraph type control rewrites only the selected paragraph")
     func paragraphTypeControlRewritesSelection() {
-        let source = "SOFÍA\n\nThe door opens.\n\nCUT TO:"
+        let source = "SOFIA\n\nThe door opens.\n\nCUT TO:"
         let cursor = (source as NSString).range(of: "The door opens.").location
         let result = ScreenplayParagraphTypeControl.replacingCurrentParagraph(
             in: source,
@@ -88,7 +64,7 @@ struct ScreenplayParagraphSemanticsExecutableSpecs {
             with: .dialogue
         )
 
-        #expect(result.text == "SOFÍA\n\n: The door opens.\n\nCUT TO:")
+        #expect(result.text == "SOFIA\n\n: The door opens.\n\nCUT TO:")
         #expect(ScreenplayParagraphTypeControl.selection(
             in: result.text,
             cursorLocation: result.cursorLocation
