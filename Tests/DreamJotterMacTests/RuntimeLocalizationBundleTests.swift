@@ -11,7 +11,7 @@ struct RuntimeLocalizationBundleTests {
         )
 
         #expect(
-            ["es-MX.lproj", "es.lproj"]
+            ["es-MX.lproj", "es-419.lproj", "es.lproj"]
                 .contains(bundle.bundleURL.lastPathComponent)
         )
     }
@@ -44,7 +44,7 @@ struct RuntimeLocalizationBundleTests {
         )
 
         #expect(
-            ["es-MX.lproj", "es.lproj"]
+            ["es-MX.lproj", "es-419.lproj", "es.lproj"]
                 .contains(bundle.bundleURL.lastPathComponent)
         )
     }
