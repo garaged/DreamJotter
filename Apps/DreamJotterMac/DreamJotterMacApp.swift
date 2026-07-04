@@ -143,6 +143,7 @@ final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Self.installApplicationIcon()
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         diagnosticsObserver = NotificationCenter.default.addObserver(
@@ -165,6 +166,30 @@ final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
     func application(_ application: NSApplication, open urls: [URL]) {
         NativeDocumentApplicationRouter.shared.enqueue(urls)
         application.activate(ignoringOtherApps: true)
+    }
+
+    private static func installApplicationIcon() {
+        let packagedIcon = Bundle.main.url(
+            forResource: "DreamJotter",
+            withExtension: "icns",
+            subdirectory: "Contents/Resources"
+        ) ?? Bundle.main.url(forResource: "DreamJotter", withExtension: "icns")
+
+        let sourceTreeIcon = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("docs/icon-v1.png")
+
+        for candidate in [packagedIcon, sourceTreeIcon] {
+            guard let candidate,
+                  FileManager.default.fileExists(atPath: candidate.path),
+                  let image = NSImage(contentsOf: candidate) else {
+                continue
+            }
+            NSApplication.shared.applicationIconImage = image
+            return
+        }
     }
 
     private static func exportSupportDiagnostics() {
