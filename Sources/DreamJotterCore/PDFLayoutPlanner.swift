@@ -6,7 +6,7 @@ public enum PDFLayoutPlanner {
         preset: ExportPreset,
         settings explicitSettings: PDFLayoutSettings? = nil
     ) -> PDFLayoutPlan {
-        let settings = explicitSettings ?? .defaults(for: preset)
+        let settings = normalizedSettings(explicitSettings ?? .defaults(for: preset), preset: preset)
         let title = normalizedTitle(project.metadata.title)
         var warnings = initialWarnings(for: project, preset: preset, title: title)
         var pages: [PDFPagePlan] = []
@@ -121,6 +121,28 @@ public enum PDFLayoutPlanner {
         return PDFLayoutPlan(documentTitle: title, settings: settings, pages: pages, warnings: warnings)
     }
 
+    private static func normalizedSettings(
+        _ settings: PDFLayoutSettings,
+        preset: ExportPreset
+    ) -> PDFLayoutSettings {
+        guard preset.id == "print-script", settings.includeLineNumbers else {
+            return settings
+        }
+
+        return PDFLayoutSettings(
+            pageSize: settings.pageSize,
+            margins: settings.margins,
+            lineHeight: settings.lineHeight,
+            charactersPerBodyLine: settings.charactersPerBodyLine,
+            contentLinesPerPage: settings.contentLinesPerPage,
+            includeTitlePage: settings.includeTitlePage,
+            includePageNumbers: settings.includePageNumbers,
+            includeParagraphNumbers: settings.includeParagraphNumbers,
+            includeLineNumbers: false,
+            suppressIdentifyingMetadata: settings.suppressIdentifyingMetadata
+        )
+    }
+
     private static func initialWarnings(
         for project: DreamJotterProject,
         preset: ExportPreset,
@@ -195,12 +217,20 @@ public enum PDFLayoutPlanner {
 
     private static func normalizedRole(at index: Int, in elements: [ScriptElement]) -> PDFBlockRole {
         let element = elements[index]
-        if element.kind == .dialogue,
-           index > 0,
-           elements[index - 1].kind == .dialogue {
+        guard element.kind == .dialogue else {
+            return role(for: element.kind)
+        }
+
+        guard index > 0 else {
             return .action
         }
-        return role(for: element.kind)
+
+        switch elements[index - 1].kind {
+        case .characterCue, .parenthetical:
+            return .dialogue
+        default:
+            return .action
+        }
     }
 
     private static func role(for kind: ScriptElementKind) -> PDFBlockRole {
