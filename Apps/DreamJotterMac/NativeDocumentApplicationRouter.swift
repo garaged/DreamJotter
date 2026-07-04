@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 struct NativeDocumentOpenBatch: Equatable, Sendable {
@@ -47,6 +48,42 @@ final class NativeDocumentApplicationRouter {
 
     var hasPendingPackageURLs: Bool {
         !pendingPackageURLs.isEmpty
+    }
+}
+
+struct NativeRecentDocumentRegistrar {
+    var note: @MainActor (URL) -> Void
+    var clear: @MainActor () -> Void
+
+    static let application = NativeRecentDocumentRegistrar(
+        note: { url in
+            NSDocumentController.shared.noteNewRecentDocumentURL(
+                DocumentPackageIdentity(url: url).canonicalURL
+            )
+        },
+        clear: {
+            NSDocumentController.shared.clearRecentDocuments(nil)
+        }
+    )
+
+    static func memory() -> (
+        registrar: NativeRecentDocumentRegistrar,
+        recorded: @MainActor () -> [URL]
+    ) {
+        final class Storage {
+            var urls: [URL] = []
+        }
+
+        let storage = Storage()
+        return (
+            NativeRecentDocumentRegistrar(
+                note: { url in
+                    storage.urls.append(DocumentPackageIdentity(url: url).canonicalURL)
+                },
+                clear: { storage.urls.removeAll() }
+            ),
+            { storage.urls }
+        )
     }
 }
 
