@@ -127,7 +127,7 @@ struct ProjectWorkspaceView: View {
                 NotesView(document: $document, navigateAction: navigateToNoteTarget).padding()
             }
         case .review:
-            ReviewModeView(document: $document, exportAction: reviewExportAction, openScriptAction: { selectedSection = .script })
+            OptimizedReviewModeView(document: $document, exportAction: reviewExportAction, openScriptAction: { selectedSection = .script })
         case .healthReport:
             ScrollView { HealthReportView(findings: document.healthFindings).padding() }
         }
