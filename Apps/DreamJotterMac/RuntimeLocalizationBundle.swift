@@ -59,7 +59,7 @@ enum RuntimeLocalizationBundle {
     }
 
     private static func candidateResourceBundles() -> [Bundle] {
-        var bundles = [DreamJotterResourceBundle.bundle, Bundle.main]
+        var bundles = [Bundle.module, Bundle.main]
         var seenURLs = Set(
             bundles.map { $0.bundleURL.standardizedFileURL }
         )
@@ -149,7 +149,7 @@ enum RuntimeLocalizationBundle {
         )
         preferred.forEach(append)
 
-        if let developmentRegion = DreamJotterResourceBundle.bundle.developmentLocalization {
+        if let developmentRegion = Bundle.module.developmentLocalization {
             append(developmentRegion)
         }
         append("en")
@@ -162,15 +162,17 @@ enum RuntimeLocalizationBundle {
         guard identifier != "Base" else {
             return identifier
         }
-        return Locale.canonicalIdentifier(from: identifier)
+        return Locale(identifier: identifier)
+            .identifier
             .replacingOccurrences(of: "_", with: "-")
     }
 
     private static func bundle(in parent: Bundle, identifier: String) -> Bundle? {
+        let canonical = canonicalIdentifier(identifier)
         let variants = [
-            identifier,
-            identifier.replacingOccurrences(of: "-", with: "_"),
-            Locale.canonicalIdentifier(from: identifier)
+            canonical,
+            canonical.replacingOccurrences(of: "-", with: "_"),
+            identifier
         ]
 
         for variant in variants {
