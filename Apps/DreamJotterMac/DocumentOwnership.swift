@@ -108,3 +108,27 @@ enum RecentDocumentRepair {
         return RecentDocumentRepairResult(available: available, removed: removed)
     }
 }
+
+enum DocumentReopenDecision: Equatable, Sendable {
+    case useRestoredWindows
+    case openLastProject(URL)
+    case showProjectLibrary
+}
+
+enum DocumentReopenPolicy {
+    static func decision(
+        restoredWindowCount: Int,
+        lastProjectURL: URL?,
+        lastProjectIsAvailable: Bool
+    ) -> DocumentReopenDecision {
+        if restoredWindowCount > 0 {
+            return .useRestoredWindows
+        }
+
+        if let lastProjectURL, lastProjectIsAvailable {
+            return .openLastProject(lastProjectURL.standardizedFileURL)
+        }
+
+        return .showProjectLibrary
+    }
+}
