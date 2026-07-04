@@ -38,6 +38,8 @@ extension ProjectDocumentViewModel {
             contentLinesPerPage: 54,
             includeTitlePage: defaults.includeTitlePage,
             includePageNumbers: defaults.includePageNumbers,
+            includeParagraphNumbers: defaults.includeParagraphNumbers,
+            includeLineNumbers: defaults.includeLineNumbers,
             suppressIdentifyingMetadata: defaults.suppressIdentifyingMetadata
         )
         return PDFLayoutPlanner.plan(for: project, preset: preset, settings: settings)
