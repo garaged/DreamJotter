@@ -27,7 +27,6 @@ enum LegacyScreenplayParser {
         while index < lines.count {
             let line = lines[index].trimmingCharacters(in: .whitespaces)
             if line.isEmpty {
-                currentCharacter = nil
                 index += 1
                 continue
             }
@@ -47,33 +46,21 @@ enum LegacyScreenplayParser {
             }
 
             if line.hasPrefix("%%") {
-                elements.append(ScriptElement(
-                    kind: .section,
-                    text: forcedText(from: line, markerCount: 2),
-                    paragraphType: .montage
-                ))
+                elements.append(ScriptElement(kind: .section, text: forcedText(from: line, markerCount: 2), paragraphType: .montage))
                 currentCharacter = nil
                 index += 1
                 continue
             }
 
             if line.hasPrefix("!!") {
-                elements.append(ScriptElement(
-                    kind: .shot,
-                    text: forcedText(from: line, markerCount: 2),
-                    paragraphType: .shot
-                ))
+                elements.append(ScriptElement(kind: .shot, text: forcedText(from: line, markerCount: 2), paragraphType: .shot))
                 currentCharacter = nil
                 index += 1
                 continue
             }
 
             if line.hasPrefix("+") {
-                elements.append(ScriptElement(
-                    kind: .action,
-                    text: forcedText(from: line, markerCount: 1),
-                    paragraphType: .characterIntroduction
-                ))
+                elements.append(ScriptElement(kind: .action, text: forcedText(from: line, markerCount: 1), paragraphType: .characterIntroduction))
                 currentCharacter = nil
                 index += 1
                 continue
@@ -102,22 +89,14 @@ enum LegacyScreenplayParser {
             }
 
             if line.hasPrefix("="), line != "===" {
-                elements.append(ScriptElement(
-                    kind: .synopsis,
-                    text: forcedText(from: line, markerCount: 1),
-                    paragraphType: .synopsis
-                ))
+                elements.append(ScriptElement(kind: .synopsis, text: forcedText(from: line, markerCount: 1), paragraphType: .synopsis))
                 currentCharacter = nil
                 index += 1
                 continue
             }
 
             if line.hasPrefix("!") {
-                elements.append(ScriptElement(
-                    kind: .action,
-                    text: forcedText(from: line, markerCount: 1),
-                    paragraphType: .action
-                ))
+                elements.append(ScriptElement(kind: .action, text: forcedText(from: line, markerCount: 1), paragraphType: .action))
                 currentCharacter = nil
                 index += 1
                 continue
@@ -125,11 +104,7 @@ enum LegacyScreenplayParser {
 
             if line.hasPrefix("@") {
                 let characterName = forcedText(from: line, markerCount: 1)
-                elements.append(ScriptElement(
-                    kind: .characterCue,
-                    text: characterName,
-                    paragraphType: .characterCue
-                ))
+                elements.append(ScriptElement(kind: .characterCue, text: characterName, paragraphType: .characterCue))
                 appendUnique(characterName, to: &characters)
                 currentCharacter = characterName
                 index += 1
@@ -137,11 +112,7 @@ enum LegacyScreenplayParser {
             }
 
             if line.hasPrefix(">") {
-                elements.append(ScriptElement(
-                    kind: .transition,
-                    text: forcedText(from: line, markerCount: 1),
-                    paragraphType: .transition
-                ))
+                elements.append(ScriptElement(kind: .transition, text: forcedText(from: line, markerCount: 1), paragraphType: .transition))
                 currentCharacter = nil
                 index += 1
                 continue
@@ -217,12 +188,7 @@ enum LegacyScreenplayParser {
             }
 
             if let currentCharacter {
-                elements.append(ScriptElement(
-                    kind: .dialogue,
-                    text: line,
-                    characterName: currentCharacter,
-                    paragraphType: .dialogue
-                ))
+                elements.append(ScriptElement(kind: .dialogue, text: line, characterName: currentCharacter, paragraphType: .dialogue))
                 index += 1
                 continue
             }
@@ -270,6 +236,22 @@ enum LegacyScreenplayParser {
         return paragraph.joined(separator: "\n")
     }
 
+    private static func nextParagraph(from lines: [String], after index: Int) -> String? {
+        var nextIndex = index + 1
+        while nextIndex < lines.count, lines[nextIndex].trimmingCharacters(in: .whitespaces).isEmpty {
+            nextIndex += 1
+        }
+        guard nextIndex < lines.count else { return nil }
+        var paragraph: [String] = []
+        while nextIndex < lines.count {
+            let line = lines[nextIndex].trimmingCharacters(in: .whitespaces)
+            if line.isEmpty { break }
+            paragraph.append(line)
+            nextIndex += 1
+        }
+        return paragraph.joined(separator: "\n")
+    }
+
     private static func isSceneHeading(_ line: String) -> Bool {
         line.range(of: #"^(INT\.|EXT\.|INT\./EXT\.|EXT\./INT\.)\s+.+"#, options: [.regularExpression, .caseInsensitive]) != nil
     }
@@ -309,30 +291,22 @@ enum LegacyScreenplayParser {
     private static func isCharacterCue(_ line: String, in lines: [String], at index: Int) -> Bool {
         guard isUppercaseLike(line), !isTransition(line), !isInvalidSceneHeading(line) else { return false }
         guard line.split(whereSeparator: \.isWhitespace).count <= 3 else { return false }
-        guard let nextLine = nextNonEmptyLine(after: index, in: lines) else { return false }
-        if nextLine.hasPrefix("(") || nextLine.hasPrefix(":") { return true }
-        if nextLine.hasPrefix("!") || nextLine.hasPrefix("+") { return true }
-        return !isUppercaseLike(nextLine)
-            && !isSceneHeading(nextLine)
-            && !isTransition(nextLine)
-            && !isInvalidSceneHeading(nextLine)
-            && !hasExplicitStructuralMarker(nextLine)
-    }
-
-    private static func nextNonEmptyLine(after index: Int, in lines: [String]) -> String? {
-        var nextIndex = index + 1
-        while nextIndex < lines.count {
-            let line = lines[nextIndex].trimmingCharacters(in: .whitespaces)
-            if !line.isEmpty { return line }
-            nextIndex += 1
+        guard let paragraph = nextParagraph(from: lines, after: index) else { return false }
+        let firstLine = paragraph.components(separatedBy: "\n").first ?? paragraph
+        if firstLine.hasPrefix("(") || firstLine.hasPrefix(":") { return true }
+        if firstLine.hasPrefix("!") || firstLine.hasPrefix("+") { return true }
+        guard !hasExplicitStructuralMarker(firstLine),
+              !isUppercaseLike(firstLine),
+              !isSceneHeading(firstLine),
+              !isTransition(firstLine),
+              !isInvalidSceneHeading(firstLine) else {
+            return false
         }
-        return nil
+        return paragraph.count <= 240 && paragraph.components(separatedBy: "\n").count <= 3
     }
 
     private static func hasExplicitStructuralMarker(_ line: String) -> Bool {
-        ["@", ">", ".", "#", "=", "%%", "!!", "[[", "==="].contains {
-            line.hasPrefix($0)
-        }
+        ["@", ">", ".", "#", "=", "%%", "!!", "[[", "==="].contains { line.hasPrefix($0) }
     }
 
     private static func isUppercaseLike(_ line: String) -> Bool {
