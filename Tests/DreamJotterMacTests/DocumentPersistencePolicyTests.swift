@@ -56,6 +56,47 @@ struct DocumentPersistencePolicyTests {
         #expect(AutosavePolicy.decision(for: context) == .deferUnavailableDestination)
     }
 
+    @Test("Guarded save restores the previous package after a failed write")
+    func guardedSaveRestoresPriorPackage() throws {
+        enum Failure: Error { case injected }
+        let parent = FileManager.default.temporaryDirectory
+            .appendingPathComponent("DreamJotterGuardedSave-\(UUID().uuidString)", isDirectory: true)
+        let package = parent.appendingPathComponent("Project.dreamjotter", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: parent) }
+        try FileManager.default.createDirectory(at: package, withIntermediateDirectories: true)
+        let content = package.appendingPathComponent("project.json")
+        try Data("original".utf8).write(to: content)
+
+        #expect(throws: Failure.injected) {
+            try GuardedPackageSave.perform(at: package) {
+                try Data("partial".utf8).write(to: content)
+                throw Failure.injected
+            }
+        }
+
+        #expect(try String(contentsOf: content, encoding: .utf8) == "original")
+    }
+
+    @Test("Guarded save removes a newly created incomplete package after failure")
+    func guardedSaveRemovesIncompleteNewPackage() throws {
+        enum Failure: Error { case injected }
+        let parent = FileManager.default.temporaryDirectory
+            .appendingPathComponent("DreamJotterGuardedNewSave-\(UUID().uuidString)", isDirectory: true)
+        let package = parent.appendingPathComponent("Project.dreamjotter", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: parent) }
+        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+
+        #expect(throws: Failure.injected) {
+            try GuardedPackageSave.perform(at: package) {
+                try FileManager.default.createDirectory(at: package, withIntermediateDirectories: true)
+                try Data("partial".utf8).write(to: package.appendingPathComponent("project.json"))
+                throw Failure.injected
+            }
+        }
+
+        #expect(!FileManager.default.fileExists(atPath: package.path))
+    }
+
     @Test("Restoration skips missing packages and deduplicates equivalent records")
     func restorationRepairsRecords() throws {
         let root = FileManager.default.temporaryDirectory
