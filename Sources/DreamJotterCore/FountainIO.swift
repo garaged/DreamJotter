@@ -13,35 +13,26 @@ public enum FountainIO {
     }
 
     private static func exportText(for element: ScriptElement) -> String {
-        switch element.paragraphType {
-        case .sceneHeading:
-            return ". \(element.text)"
-        case .action:
-            return "! \(element.text)"
-        case .characterCue:
-            return "@\(element.text.uppercased())"
-        case .dialogue:
-            return ": \(element.text)"
-        case .parenthetical:
-            return element.text.hasPrefix("(") ? element.text : "(\(element.text))"
-        case .transition:
-            return "> \(element.text)"
-        case .shot:
-            return "!! \(element.text)"
-        case .section:
-            return "# \(element.text)"
-        case .synopsis:
-            return "= \(element.text)"
-        case .montage:
-            return "%% \(element.text)"
-        case .characterIntroduction:
-            return "+ \(element.text)"
-        case .note:
+        switch element.kind {
+        case .noteReference:
             return "[[\(element.text)]]"
         case .pageBreak:
             return "==="
-        case .titlePage, .unknown:
+        case .section:
+            return element.text.hasPrefix("#") ? element.text : "# \(element.text)"
+        case .synopsis:
+            return element.text.hasPrefix("=") ? element.text : "= \(element.text)"
+        case .titlePage,
+             .sceneHeading,
+             .action,
+             .parenthetical,
+             .dialogue,
+             .transition,
+             .shot,
+             .unknown:
             return element.text
+        case .characterCue:
+            return element.text == element.text.uppercased() ? element.text : "@\(element.text)"
         }
     }
 }
