@@ -64,6 +64,35 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
         self.suppressIdentifyingMetadata = suppressIdentifyingMetadata
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case pageSize
+        case margins
+        case lineHeight
+        case charactersPerBodyLine
+        case contentLinesPerPage
+        case includeTitlePage
+        case includePageNumbers
+        case includeParagraphNumbers
+        case includeLineNumbers
+        case suppressIdentifyingMetadata
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            pageSize: try container.decodeIfPresent(PDFPageSize.self, forKey: .pageSize) ?? .usLetter,
+            margins: try container.decodeIfPresent(PDFPageMargins.self, forKey: .margins) ?? .screenplay,
+            lineHeight: try container.decodeIfPresent(Double.self, forKey: .lineHeight) ?? 12,
+            charactersPerBodyLine: try container.decodeIfPresent(Int.self, forKey: .charactersPerBodyLine) ?? 60,
+            contentLinesPerPage: try container.decodeIfPresent(Int.self, forKey: .contentLinesPerPage) ?? 54,
+            includeTitlePage: try container.decodeIfPresent(Bool.self, forKey: .includeTitlePage) ?? true,
+            includePageNumbers: try container.decodeIfPresent(Bool.self, forKey: .includePageNumbers) ?? true,
+            includeParagraphNumbers: try container.decodeIfPresent(Bool.self, forKey: .includeParagraphNumbers) ?? false,
+            includeLineNumbers: try container.decodeIfPresent(Bool.self, forKey: .includeLineNumbers) ?? false,
+            suppressIdentifyingMetadata: try container.decodeIfPresent(Bool.self, forKey: .suppressIdentifyingMetadata) ?? false
+        )
+    }
+
     public static func defaults(for preset: ExportPreset) -> PDFLayoutSettings {
         switch preset.id {
         case "reader-copy":
@@ -89,14 +118,14 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
                 includeParagraphNumbers: false,
                 includeLineNumbers: false,
                 suppressIdentifyingMetadata: true
-            )
+           )
         default:
             return PDFLayoutSettings(
                 includeTitlePage: true,
                 includePageNumbers: false,
                 includeParagraphNumbers: false,
                 includeLineNumbers: false,
-                suppressIdentifyingMetadata: !preset.includesInternalIDs
+                suppressIdentifyingMetadata: !preset.includesInternalIDsJ
             )
         }
     }
