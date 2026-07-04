@@ -36,6 +36,8 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
     public let contentLinesPerPage: Int
     public let includeTitlePage: Bool
     public let includePageNumbers: Bool
+    public let includeParagraphNumbers: Bool
+    public let includeLineNumbers: Bool
     public let suppressIdentifyingMetadata: Bool
 
     public init(
@@ -46,6 +48,8 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
         contentLinesPerPage: Int = 54,
         includeTitlePage: Bool = true,
         includePageNumbers: Bool = true,
+        includeParagraphNumbers: Bool = false,
+        includeLineNumbers: Bool = false,
         suppressIdentifyingMetadata: Bool = false
     ) {
         self.pageSize = pageSize
@@ -55,6 +59,8 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
         self.contentLinesPerPage = contentLinesPerPage
         self.includeTitlePage = includeTitlePage
         self.includePageNumbers = includePageNumbers
+        self.includeParagraphNumbers = includeParagraphNumbers
+        self.includeLineNumbers = includeLineNumbers
         self.suppressIdentifyingMetadata = suppressIdentifyingMetadata
     }
 
@@ -64,24 +70,32 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
             return PDFLayoutSettings(
                 includeTitlePage: true,
                 includePageNumbers: false,
+                includeParagraphNumbers: false,
+                includeLineNumbers: false,
                 suppressIdentifyingMetadata: false
             )
         case "print-script":
             return PDFLayoutSettings(
                 includeTitlePage: true,
                 includePageNumbers: true,
+                includeParagraphNumbers: true,
+                includeLineNumbers: true,
                 suppressIdentifyingMetadata: false
             )
         case "contest-submission":
             return PDFLayoutSettings(
                 includeTitlePage: false,
                 includePageNumbers: true,
+                includeParagraphNumbers: false,
+                includeLineNumbers: false,
                 suppressIdentifyingMetadata: true
             )
         default:
             return PDFLayoutSettings(
                 includeTitlePage: true,
                 includePageNumbers: false,
+                includeParagraphNumbers: false,
+                includeLineNumbers: false,
                 suppressIdentifyingMetadata: !preset.includesInternalIDs
             )
         }
@@ -172,9 +186,7 @@ public struct PDFBlockPlan: Codable, Equatable, Sendable {
         self.keepWithNext = keepWithNext
     }
 
-    public var lineCount: Int {
-        lines.count
-    }
+    public var lineCount: Int { lines.count }
 }
 
 public struct PDFPagePlan: Codable, Equatable, Sendable {
@@ -228,9 +240,7 @@ public struct PDFLayoutPlan: Codable, Equatable, Sendable {
         self.warnings = warnings
     }
 
-    public var contentPages: [PDFPagePlan] {
-        pages.filter { !$0.isTitlePage }
-    }
+    public var contentPages: [PDFPagePlan] { pages.filter { !$0.isTitlePage } }
 
     public func address(pageIndex: Int, blockIndex: Int, lineIndex: Int) -> PDFContentAddress? {
         guard pages.indices.contains(pageIndex) else { return nil }
