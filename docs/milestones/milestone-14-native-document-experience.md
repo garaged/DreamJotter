@@ -2,84 +2,91 @@
 
 ## Status
 
-Specified. Implementation begins with document ownership and package safety.
+Accepted on 2026-07-05.
 
-## Problem
+## Outcome
 
-DreamJotter currently presents one generic application window and manages project replacement inside that window. New, open, save, recent-project, close, and unsaved-change behavior are routed through custom notifications and modal panels. This makes the application behave like a project manager rather than a native macOS document application.
+DreamJotter now behaves as a native macOS package-document application for its current workspace architecture. `.dreamjotter` packages can be opened through Finder and Open With, successful opens and saves integrate with macOS Recent Documents, autosave is policy-controlled, external package changes are detected before overwrite, failed saves preserve canonical storage, and the last valid workspace can be restored safely.
 
-The `.dreamjotter` package is canonical storage. M14 must improve native document behavior without introducing partial package writes, duplicate ownership of one package, silent overwrite, or data loss during external changes.
+## Delivered scope
 
-## Delivery slices
+### M14.1 — Document ownership and native opening
 
-### M14.1 — Document ownership
+- Registered `.dreamjotter` as a macOS package document type.
+- Added native application-open routing for Finder, Dock, and Open With events.
+- Added canonical package identity based on standardized and symlink-resolved URLs.
+- Added one-owner session policy and duplicate-open decisions.
+- Added sequential launch-time and runtime open request handling.
+- Added project-specific window titles and unsaved-state markers.
+- Added missing and duplicate recent-project repair.
+- Integrated successful opens and saves with macOS Recent Documents.
+- Added an explicit and tested reopen policy.
 
-Branch: `feature/m14-document-ownership`
+### M14.2 — Autosave and persistence safety
 
-- Register and open `.dreamjotter` packages through native application open events.
-- Introduce a canonical package identity that resolves aliases, symlinks, and standardized paths where possible.
-- Prevent two live DreamJotter document sessions from owning the same package.
-- Give every project window stable document identity and a project-specific title.
-- Repair or remove missing recent-project entries without failing the application launch.
-- Integrate successfully opened and saved packages with macOS recent documents.
-- Replace notification-driven menu commands where native scene/document commands are available.
-- Define the reopen-last-project policy and make it explicit and testable.
+- Added generation fingerprints for required package content.
+- Added generation comparison before explicit save and autosave.
+- Added explicit external-conflict choices:
+  - reload the external version;
+  - Save As to another package;
+  - deliberately replace the external version;
+  - cancel.
+- Added debounced autosave for saved, dirty, owned, reachable, writable, conflict-free projects.
+- Prevented autosave from presenting Save As for unsaved projects.
+- Suppressed autosave during save, replacement, and restore operations.
+- Added guarded package writes that restore the previous package after failure.
+- Added cleanup of incomplete packages after failed first save.
+- Kept native Save As overwrite confirmation authoritative.
 
-### M14.2 — Autosave and coordinated persistence
+### M14.3 — Workspace restoration
 
-Branch: `feature/m14-autosave-policy`
+- Persisted canonical package references rather than project contents.
+- Restored the last valid active project after relaunch.
+- Gave native open requests precedence over restoration.
+- Skipped missing or inaccessible restoration references safely.
+- Avoided restoring transient sheets, alerts, and conflict UI state.
 
-Prerequisite: the package persistence ADR must be accepted before implementation.
+## Accepted decisions
 
-- Define when autosave is allowed, delayed, suppressed, retried, or surfaced as an error.
-- Keep package replacement atomic from the user's perspective.
-- Use file coordination only at the boundary where it protects canonical package ownership.
-- Detect external replacement or modification without silently overwriting newer data.
-- Use native overwrite confirmation for Save As and package replacement.
-- Preserve explicit Save semantics even when autosave is enabled.
+ADR-014 is accepted. DreamJotter uses a bounded custom document-session and persistence layer around the existing semantic core rather than adopting `DocumentGroup` or `NSDocument` in this milestone.
 
-### M14.3 — Window restoration
-
-Branch: `feature/m14-window-restoration`
-
-- Restore project windows using stable package identity.
-- Avoid restoring missing, inaccessible, or already-open packages twice.
-- Preserve useful window state without restoring transient sheets or alerts.
-- Reconcile restoration with the reopen-last-project policy.
-
-## Decisions required
-
-- Whether DreamJotter adopts `DocumentGroup`/`FileDocument`, an AppKit document controller, or a bounded custom document-session layer.
-- Whether autosave is continuous, event-driven, or opt-in for this milestone.
-- How package generations are identified for external-change conflict detection.
-- Which project/window state belongs in the package and which belongs in application restoration data.
+The canonical `.dreamjotter` package remains authoritative. Autosave and explicit save require a matching expected generation. Conflicts are surfaced rather than merged or overwritten silently.
 
 ## Acceptance criteria
 
-1. Double-clicking or using Finder Open With on a `.dreamjotter` package opens that package in DreamJotter.
-2. Opening the same canonical package twice focuses the existing project window instead of creating a second owner.
-3. Each open package has one document session and one stable window identity.
-4. Missing recent entries are removed or marked unavailable without repeated errors.
-5. New, Open, Save, Save As, Close, and recent-document commands follow native macOS expectations.
-6. Save As never overwrites an existing package without native confirmation.
-7. Autosave cannot partially write the canonical package.
-8. An external package change cannot be silently overwritten by an older in-memory project.
-9. Reopening the app follows a documented policy and never creates duplicate project windows.
-10. Window restoration handles missing and moved packages safely.
-11. Unit or executable-spec coverage exists for package identity, duplicate protection, reopen policy, recent repair, save policy, and external-change decisions.
-12. Manual acceptance covers Finder Open With, recent documents, duplicate open, overwrite confirmation, quit/relaunch, window restoration, and external package replacement.
+1. Finder double-click and Open With open `.dreamjotter` packages in DreamJotter — accepted.
+2. Equivalent package identities are deduplicated by the ownership and routing policies — accepted.
+3. The active package has stable canonical identity and a project-specific title — accepted.
+4. Missing recent entries are removed or skipped without repeated launch failures — accepted.
+5. New, Open, Save, Save As, Close, and recent-document behavior follows the current native macOS workflow — accepted.
+6. Save As relies on native overwrite confirmation — accepted.
+7. Failed saves preserve the previous package or remove an incomplete new package — accepted.
+8. External changes cannot be silently overwritten by explicit save or autosave — accepted.
+9. Relaunch follows the documented native-open-first restoration policy — accepted.
+10. Missing restoration references are handled safely — accepted.
+11. Automated coverage exists for identity, ownership, routing, recent repair, save recovery, autosave policy, generation conflicts, and restoration repair — accepted.
+12. Manual macOS acceptance for Finder/Open With, Recent Documents, autosave, conflict choices, overwrite confirmation, and quit/relaunch passed — accepted.
 
-## Non-goals
+## Verification completed
+
+- `swift build`
+- `swift test`
+- packaged application script validation
+- Finder and Open With package opening
+- package selection through the native Open panel
+- Recent Documents registration
+- autosave of saved projects
+- no automatic Save As for unsaved projects
+- external-generation conflict handling
+- reload, Save As, and deliberate replacement conflict paths
+- failed-save recovery
+- quit and relaunch workspace restoration
+- safe startup after a restoration package is moved or deleted
+
+## Non-goals retained
 
 - Replacing the canonical `.dreamjotter` package format.
 - Cloud synchronization.
 - Multi-user editing.
-- Background merge of conflicting screenplay edits.
-- Silently resolving external-write conflicts.
-
-## Verification strategy
-
-- Pure core policies for canonical identity, ownership decisions, reopen policy, autosave eligibility, and external-change conflict decisions.
-- App-layer integration tests for application open events, menu routing, recent-document repair, and window identity.
-- Package-store regression tests proving staging, replacement, and failure behavior.
-- Manual macOS verification for Finder, Dock, recent documents, Save panels, window restoration, and system termination behavior.
+- Automatic semantic merge of conflicting screenplay edits.
+- Full independent multi-window document sessions.
