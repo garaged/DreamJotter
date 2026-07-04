@@ -1,3 +1,4 @@
+import DreamJotterCore
 import Foundation
 
 struct PackageGenerationFingerprint: Equatable, Sendable {
@@ -80,6 +81,41 @@ enum AutosavePolicy {
             return .deferUnavailableDestination
         }
         return .save
+    }
+}
+
+enum GuardedPackageSave {
+    static func perform(
+        at packageURL: URL,
+        fileManager: FileManager = .default,
+        operation: () throws -> Void
+    ) throws {
+        let canonicalURL = DocumentPackageIdentity(url: packageURL, fileManager: fileManager).canonicalURL
+        let parent = canonicalURL.deletingLastPathComponent()
+        let backupURL = parent.appendingPathComponent(
+            ".\(canonicalURL.lastPathComponent).backup-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        let existed = fileManager.fileExists(atPath: canonicalURL.path)
+
+        if existed {
+            try fileManager.copyItem(at: canonicalURL, to: backupURL)
+        }
+
+        do {
+            try operation()
+            if existed {
+                try? fileManager.removeItem(at: backupURL)
+            }
+        } catch {
+            if existed {
+                try? fileManager.removeItem(at: canonicalURL)
+                try? fileManager.moveItem(at: backupURL, to: canonicalURL)
+            } else {
+                try? fileManager.removeItem(at: canonicalURL)
+            }
+            throw error
+        }
     }
 }
 
