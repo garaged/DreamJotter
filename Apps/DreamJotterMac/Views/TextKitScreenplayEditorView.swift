@@ -99,7 +99,7 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
         textView.setAccessibilityLabel(String(localized: "Screenplay editor"))
     }
 
-    static func graphemeSafeRange(_ range: NSRange, in text: String) -> NSRange {
+    nonisolated static func graphemeSafeRange(_ range: NSRange, in text: String) -> NSRange {
         let source = text as NSString
         let location = min(range.location, source.length)
         let length = min(range.length, source.length - location)
@@ -112,7 +112,7 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
         return source.rangeOfComposedCharacterSequences(for: bounded)
     }
 
-    static func normalizedPaste(_ value: String) -> String {
+    nonisolated static func normalizedPaste(_ value: String) -> String {
         value
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
