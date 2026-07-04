@@ -58,7 +58,7 @@ struct DocumentPersistencePolicyTests {
 
     @Test("Guarded save restores the previous package after a failed write")
     func guardedSaveRestoresPriorPackage() throws {
-        enum Failure: Error { case injected }
+        enum Failure: Error, Equatable { case injected }
         let parent = FileManager.default.temporaryDirectory
             .appendingPathComponent("DreamJotterGuardedSave-\(UUID().uuidString)", isDirectory: true)
         let package = parent.appendingPathComponent("Project.dreamjotter", isDirectory: true)
@@ -79,7 +79,7 @@ struct DocumentPersistencePolicyTests {
 
     @Test("Guarded save removes a newly created incomplete package after failure")
     func guardedSaveRemovesIncompleteNewPackage() throws {
-        enum Failure: Error { case injected }
+        enum Failure: Error, Equatable { case injected }
         let parent = FileManager.default.temporaryDirectory
             .appendingPathComponent("DreamJotterGuardedNewSave-\(UUID().uuidString)", isDirectory: true)
         let package = parent.appendingPathComponent("Project.dreamjotter", isDirectory: true)
