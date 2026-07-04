@@ -133,3 +133,7 @@ struct LongScriptPerformanceBudget: Equatable, Sendable {
         open <= openSeconds && edit <= editSeconds && save <= saveSeconds && export <= exportSeconds
     }
 }
+
+extension Notification.Name {
+    static let dreamJotterExportDiagnostics = Notification.Name("DreamJotterExportDiagnostics")
+}
