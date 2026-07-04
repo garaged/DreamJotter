@@ -40,14 +40,6 @@ enum RuntimeLocalizationBundle {
         }
     }
 
-    /// Resolves a localization without touching `Bundle.module`.
-    ///
-    /// SwiftPM's generated `Bundle.module` accessor traps when its generated
-    /// resource bundle cannot be found. That is appropriate for a normal
-    /// SwiftPM layout, but a packaged standalone app may copy localized
-    /// resources into `Bundle.main` and may not retain the generated bundle in
-    /// the location expected by that accessor. Discovering bundles from the
-    /// filesystem keeps localization fallback non-fatal in both layouts.
     static func findBundle(localeIdentifiers: [String]) -> Bundle? {
         let parents = candidateResourceBundles()
         let available = availableLocalizations(in: parents)
@@ -67,9 +59,10 @@ enum RuntimeLocalizationBundle {
     }
 
     private static func candidateResourceBundles() -> [Bundle] {
-        var bundles = [Bundle.main]
-        var seenURLs = Set<URL>()
-        seenURLs.insert(Bundle.main.bundleURL.standardizedFileURL)
+        var bundles = [DreamJotterResourceBundle.bundle, Bundle.main]
+        var seenURLs = Set(
+            bundles.map { $0.bundleURL.standardizedFileURL }
+        )
 
         func appendBundle(at url: URL) {
             let standardizedURL = url.standardizedFileURL
@@ -80,14 +73,13 @@ enum RuntimeLocalizationBundle {
             bundles.append(bundle)
         }
 
-        let fileManager = FileManager.default
         let searchRoots = [
             Bundle.main.resourceURL,
             Bundle.main.executableURL?.deletingLastPathComponent()
         ].compactMap { $0 }
 
         for root in searchRoots {
-            guard let children = try? fileManager.contentsOfDirectory(
+            guard let children = try? FileManager.default.contentsOfDirectory(
                 at: root,
                 includingPropertiesForKeys: [.isDirectoryKey],
                 options: [.skipsHiddenFiles]
@@ -98,15 +90,6 @@ enum RuntimeLocalizationBundle {
             for child in children where child.pathExtension == "bundle" {
                 appendBundle(at: child)
             }
-        }
-
-        for bundle in Bundle.allBundles {
-            let url = bundle.bundleURL.standardizedFileURL
-            let name = url.deletingPathExtension().lastPathComponent.lowercased()
-            guard url.pathExtension == "bundle", name.contains("dreamjotter") else {
-                continue
-            }
-            appendBundle(at: url)
         }
 
         return bundles
@@ -153,8 +136,6 @@ enum RuntimeLocalizationBundle {
             if let language {
                 append(language)
 
-                // DreamJotter currently ships regional Spanish resources rather
-                // than a generic es.lproj. Keep the fallback explicit and stable.
                 if language == "es" {
                     append("es-419")
                     append("es-MX")
@@ -168,7 +149,7 @@ enum RuntimeLocalizationBundle {
         )
         preferred.forEach(append)
 
-        if let developmentRegion = Bundle.main.developmentLocalization {
+        if let developmentRegion = DreamJotterResourceBundle.bundle.developmentLocalization {
             append(developmentRegion)
         }
         append("en")
