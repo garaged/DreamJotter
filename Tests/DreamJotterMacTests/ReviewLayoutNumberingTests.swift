@@ -18,6 +18,16 @@ struct ReviewLayoutNumberingTests {
         #expect(options.showLine == false)
     }
 
+    @Test("Review numbering controls default to page and paragraph only")
+    func reviewNumberingViewDefaultsMatchOptions() throws {
+        let source = try simplifiedReviewNumberingViewSource()
+
+        #expect(source.contains("@State private var showPage = true"))
+        #expect(source.contains("@State private var showParagraph = true"))
+        #expect(source.contains("@State private var showLine = false"))
+        #expect(!source.contains("@State private var showLine = true"))
+    }
+
     @Test("Review uses the print PDF preset with visible page numbers")
     func reviewUsesNumberedPrintPreset() throws {
         let document = ProjectDocumentViewModel(project: project(), isDirty: false)
@@ -25,6 +35,8 @@ struct ReviewLayoutNumberingTests {
 
         #expect(ProjectDocumentViewModel.reviewNumberedPDFPresetID == "print-script")
         #expect(plan.settings.includePageNumbers)
+        #expect(plan.settings.includeParagraphNumbers)
+        #expect(!plan.settings.includeLineNumbers)
         #expect(plan.settings.includeTitlePage)
         #expect(plan.settings.suppressIdentifyingMetadata == false)
         #expect(plan.contentPages.first?.screenplayPageNumber == 1)
@@ -39,6 +51,8 @@ struct ReviewLayoutNumberingTests {
 
         #expect(document.isDirty == false)
         #expect(plan.settings.includePageNumbers)
+        #expect(plan.settings.includeParagraphNumbers)
+        #expect(!plan.settings.includeLineNumbers)
         #expect(plan.contentPages.first?.screenplayPageNumber == 1)
         #expect(lines.first?.screenplayPageNumber == 1)
         #expect(lines.first?.paragraphNumber == 1)
@@ -75,6 +89,20 @@ struct ReviewLayoutNumberingTests {
         _ = document.reviewLayoutLines
 
         #expect(document.isDirty)
+    }
+
+    private func simplifiedReviewNumberingViewSource() throws -> String {
+        let repositoryRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = repositoryRoot
+            .appendingPathComponent("Apps")
+            .appendingPathComponent("DreamJotterMac")
+            .appendingPathComponent("Views")
+            .appendingPathComponent("SimplifiedReviewLayoutNumberingView.swift")
+
+        return try String(contentsOf: sourceURL, encoding: .utf8)
     }
 
     private func project() -> DreamJotterProject {
