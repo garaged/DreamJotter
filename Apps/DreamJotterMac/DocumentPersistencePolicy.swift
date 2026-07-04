@@ -142,10 +142,15 @@ struct DocumentRestorationStore {
         DocumentRestorationStore(
             load: {
                 guard let data = defaults.data(forKey: key) else { return [] }
+                defaults.removeObject(forKey: key)
                 return (try? JSONDecoder().decode([DocumentRestorationRecord].self, from: data)) ?? []
             },
             save: { records in
-                defaults.set(try? JSONEncoder().encode(records), forKey: key)
+                if records.isEmpty {
+                    defaults.removeObject(forKey: key)
+                } else {
+                    defaults.set(try? JSONEncoder().encode(records), forKey: key)
+                }
             }
         )
     }
@@ -157,7 +162,11 @@ struct DocumentRestorationStore {
         }
         let storage = Storage(records: initialRecords)
         return DocumentRestorationStore(
-            load: { storage.records },
+            load: {
+                let records = storage.records
+                storage.records = []
+                return records
+            },
             save: { storage.records = $0 }
         )
     }
