@@ -23,7 +23,7 @@ public struct ScreenplaySourceParagraph: Equatable, Sendable {
 ///
 /// Explicit markers always win. Inference is intentionally conservative: ambiguous
 /// text is action, while dialogue context is limited to one contiguous paragraph
-/// block and can never cross a blank line.
+/// block and can never cross a completed dialogue block into later action prose.
 public enum ScreenplayParagraphTypeEngine {
     public static func paragraphs(in source: String) -> [ScreenplaySourceParagraph] {
         let normalized = normalizedNewlines(source)
@@ -89,62 +89,60 @@ public enum ScreenplayParagraphTypeEngine {
         return .action
     }
 
-    /// Produces parser input whose paragraph starts carry enough explicit semantics
-    /// to prevent legacy cue state from leaking across blank paragraph boundaries.
-    /// The returned markers are parser-only and are not written back to editor text.
+    /// Produces parser input with an explicit action marker only where a completed
+    /// dialogue block could otherwise leak into the following unmarked paragraph.
+    /// The inserted marker is parser-only and is never written back to editor text.
     public static func parserSafeSource(_ source: String) -> String {
         let normalized = normalizedNewlines(source)
-        let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        guard !lines.isEmpty else { return normalized }
+        let sourceParagraphs = paragraphs(in: normalized)
+        guard !sourceParagraphs.isEmpty else { return normalized }
 
-        var output: [String] = []
-        var paragraphStart = true
-        var index = 0
-        var titlePageCandidate = true
+        var insertions: [Int] = []
+        var expectsDetachedDialogue = false
+        var previousCompletedDialogue = false
 
-        while index < lines.count {
-            let raw = lines[index]
-            let trimmed = raw.trimmingCharacters(in: .whitespaces)
+        for index in sourceParagraphs.indices {
+            let paragraph = sourceParagraphs[index]
+            let text = paragraph.sourceText.trimmingCharacters(in: .whitespacesAndNewlines)
+            let nextText = index + 1 < sourceParagraphs.count
+                ? sourceParagraphs[index + 1].sourceText.trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil
 
-            if trimmed.isEmpty {
-                output.append(raw)
-                paragraphStart = true
-                titlePageCandidate = false
-                index += 1
+            if expectsDetachedDialogue {
+                expectsDetachedDialogue = false
+                previousCompletedDialogue = true
                 continue
             }
 
-            if titlePageCandidate, looksLikeTitlePageField(trimmed) {
-                output.append(raw)
-                paragraphStart = false
-                index += 1
-                continue
-            }
-            titlePageCandidate = false
-
-            guard paragraphStart else {
-                output.append(raw)
-                index += 1
+            if isDialogueBlock(text, nextParagraph: nextText) {
+                let lines = nonEmptyLines(in: text)
+                if lines.count == 1, let nextText, isPlausibleDialogue(nextText) {
+                    expectsDetachedDialogue = true
+                    previousCompletedDialogue = false
+                } else {
+                    previousCompletedDialogue = true
+                }
                 continue
             }
 
-            let nextLine = nextLineInSameParagraph(after: index, lines: lines)
-            if hasExplicitMarker(trimmed)
-                || looksLikeSceneHeading(trimmed)
-                || looksLikeTransition(trimmed)
-                || looksLikeShot(trimmed)
-                || looksLikeCharacterCue(trimmed, nextLine: nextLine) {
-                output.append(raw)
-            } else {
-                let indentation = String(raw.prefix { $0 == " " || $0 == "\t" })
-                output.append("\(indentation)! \(trimmed)")
+            if previousCompletedDialogue,
+               explicitType(for: text) == nil,
+               !looksLikeSceneHeading(text),
+               !looksLikeTransition(text),
+               !looksLikeShot(text),
+               !isUppercaseLike(text) {
+                insertions.append(paragraph.textRange.location)
             }
 
-            paragraphStart = false
-            index += 1
+            previousCompletedDialogue = false
         }
 
-        return output.joined(separator: "\n")
+        guard !insertions.isEmpty else { return normalized }
+        let mutable = NSMutableString(string: normalized)
+        for location in insertions.sorted(by: >) {
+            mutable.insert("! ", at: location)
+        }
+        return mutable as String
     }
 
     public static func explicitType(for sourceText: String) -> ScreenplayParagraphType? {
@@ -189,14 +187,6 @@ public enum ScreenplayParagraphTypeEngine {
             .replacingOccurrences(of: "\u{2029}", with: "\n")
     }
 
-    private static func hasExplicitMarker(_ line: String) -> Bool {
-        explicitType(for: line) != nil
-    }
-
-    private static func looksLikeTitlePageField(_ line: String) -> Bool {
-        line.range(of: #"^[\p{L}][\p{L} ]*:"#, options: .regularExpression) != nil
-    }
-
     private static func looksLikeSceneHeading(_ text: String) -> Bool {
         text.range(
             of: #"^(INT\.|EXT\.|INT\./EXT\.|EXT\./INT\.|INT/EXT\.|EXT/INT\.|I/E\.)\s+.+"#,
@@ -218,28 +208,39 @@ public enum ScreenplayParagraphTypeEngine {
         return ["CLOSE ON:", "ANGLE ON:", "WIDE SHOT:", "INSERT:"].contains(value)
     }
 
+    private static func isDialogueBlock(_ text: String, nextParagraph: String?) -> Bool {
+        if explicitType(for: text) == .dialogue { return true }
+        let lines = nonEmptyLines(in: text)
+        guard let first = lines.first else { return false }
+        let following = lines.dropFirst().first ?? nextParagraph
+        return looksLikeCharacterCue(first, nextLine: following)
+    }
+
     private static func looksLikeCharacterCue(_ line: String, nextLine: String?) -> Bool {
         guard isUppercaseLike(line),
               line.split(whereSeparator: \.isWhitespace).count <= 3,
               let nextLine else { return false }
-        let next = nextLine.trimmingCharacters(in: .whitespaces)
-        guard !next.isEmpty,
-              !looksLikeSceneHeading(next),
-              !looksLikeTransition(next),
-              !looksLikeShot(next) else { return false }
-        if next.hasPrefix("(") || next.hasPrefix(":") { return true }
-        return !isUppercaseLike(next) && next.count <= 240
+        return isPlausibleDialogue(nextLine)
+    }
+
+    private static func isPlausibleDialogue(_ text: String) -> Bool {
+        let first = nonEmptyLines(in: text).first ?? text
+        guard !first.isEmpty,
+              !looksLikeSceneHeading(first),
+              !looksLikeTransition(first),
+              !looksLikeShot(first) else { return false }
+        if first.hasPrefix("(") || first.hasPrefix(":") { return true }
+        return !isUppercaseLike(first) && first.count <= 240
+    }
+
+    private static func nonEmptyLines(in text: String) -> [String] {
+        text.components(separatedBy: "\n")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
     }
 
     private static func isUppercaseLike(_ line: String) -> Bool {
         let letters = line.unicodeScalars.filter { CharacterSet.letters.contains($0) }
         return !letters.isEmpty && line == line.uppercased()
-    }
-
-    private static func nextLineInSameParagraph(after index: Int, lines: [String]) -> String? {
-        let next = index + 1
-        guard next < lines.count else { return nil }
-        let value = lines[next]
-        return value.trimmingCharacters(in: .whitespaces).isEmpty ? nil : value
     }
 }
