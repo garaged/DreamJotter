@@ -13,8 +13,9 @@ Editor styling, semantic parsing, and PDF rendering must never disagree about a 
 3. Ambiguous unmarked prose resolves to Action.
 4. A completed dialogue block cannot assign Dialogue to a later paragraph.
 5. Combined cues remain one cue while exposing each speaker as an individual character.
-6. Autocomplete changes only the active cue segment.
+6. Autocomplete changes only the active cue or scene-heading segment.
 7. Keyboard acceptance happens before Smart Enter or Tab element cycling.
+8. The selected paragraph type always exposes novice-oriented usage guidance.
 
 ## Paragraph boundaries
 
@@ -57,7 +58,20 @@ Suggestion matching is case- and accent-insensitive. Ranking order:
 
 Duplicate character records collapse to one suggestion. Names already present in a combined cue are excluded. In `SOFÍA / TO`, accepting `TOM` replaces only `TO`.
 
+## Scene heading suggestions
+
+Scene heading completion is staged because a heading contains several semantic parts:
+
+1. heading prefix, such as `INT.`, `EXT.`, or `INT./EXT.`
+2. location, using previously parsed project locations
+3. the ` - ` separator
+4. localized time of day
+
+Each accepted suggestion replaces only its active segment. Accepting a location automatically appends the separator so the next suggestion stage can offer time-of-day values. Location matching is case- and accent-insensitive. Time suggestions follow the configured screenplay language.
+
 ## Keyboard autocomplete
+
+Autocomplete commands are handled by the focused TextKit editor rather than the surrounding SwiftUI hierarchy.
 
 - Down Arrow: next suggestion
 - Up Arrow: previous suggestion
@@ -71,6 +85,8 @@ Return and Tab accept a visible suggestion before invoking Smart Enter or elemen
 
 The paragraph inspector provides contextual syntax for the current type and an expandable complete guide. Each editable type has exactly one marker, example, and explanation. The guide states that markers are editor syntax and do not appear in PDF output.
 
+At the bottom of the Paragraph Type section, the selected type exposes a small **How to use this type** explanation. Guidance must distinguish novice-confusing concepts, including Action versus Dialogue, Character Introduction versus later Action, Synopsis versus screenplay Action, and Shot or Page Break versus normal automatic layout.
+
 ## Deterministic regression requirements
 
 - Reproduce the Print Script pattern: dialogue followed by long prose; prose must be Action and body width.
@@ -79,4 +95,6 @@ The paragraph inspector provides contextual syntax for the current type and an e
 - Verify mixed newline and blank-line normalization.
 - Verify combined cue parsing, character registration, and PDF roles.
 - Verify active cue segment replacement and suggestion ranking.
-- Verify keyboard command wiring and accessibility selected state.
+- Verify staged scene-heading prefix, location, and time completion.
+- Verify keyboard commands are routed through the focused TextKit view.
+- Verify selected paragraph usage guidance exists for every editable type.
