@@ -1,6 +1,6 @@
 # Milestone 13 — TextKit Editor Maturity
 
-Status: implemented pending build, automated, accessibility, and manual acceptance validation.
+Status: implementation extended; deterministic regression validation pending before manual acceptance.
 
 ## Goal
 
@@ -39,14 +39,53 @@ Retain the SwiftUI `TextEditor` fallback as a documented recovery and compatibil
 
 See `docs/editor/m13-textkit-consolidation-decision.md`.
 
+## M13.5 Robust paragraph type engine
+
+- Use one paragraph-boundary engine for editor selection, visual styling, parsing, and print/PDF semantics.
+- Explicit paragraph markers always win over inference.
+- Ambiguous unmarked paragraphs default to action rather than dialogue.
+- A completed dialogue block cannot leak dialogue context into later action paragraphs.
+- Mixed newline forms and runs of blank lines resolve to deterministic paragraph boundaries.
+- PDF layout must consume the same resolved `ScreenplayParagraphType` used by the editor.
+- The uploaded Print Script failure pattern is a required regression fixture: long prose after dialogue must remain body-width action.
+
+## M13.6 Formatting guide UX
+
+- Show contextual syntax and guidance for the paragraph at the cursor.
+- Provide a discoverable in-editor formatting guide covering every editable paragraph type.
+- Explain that markers are editor syntax and do not appear in rendered screenplay text or PDF output.
+- Document dialogue-block boundaries and when explicit action/dialogue markers should be used.
+
+## M13.7 Character cue and suggestion engine
+
+- Parse Unicode character names and combined cues such as `SOFÍA / TOM`.
+- Accept `/`, `&`, `+`, `AND`, and Spanish `Y` as input separators and emit ` / ` as the canonical separator.
+- Register each member of a combined cue as an individual detected character.
+- Suggest character names case- and accent-insensitively.
+- Match full-name prefixes, individual word prefixes, and contained text with deterministic ranking.
+- When editing a combined cue, replace only the active name segment and preserve existing speakers.
+- Do not suggest a character already present in the cue.
+
+## M13.8 Keyboard autocomplete
+
+- Keep mouse acceptance available.
+- Use Up and Down Arrow to move the active suggestion.
+- Use Return or Tab to accept the active suggestion before Smart Enter or element-kind cycling.
+- Use Escape to dismiss suggestions.
+- Keep the cursor immediately after the accepted replacement.
+- Expose selected suggestion state to accessibility.
+
 ## Acceptance gate
 
 M13 is accepted when:
 
 1. All M13 automated tests pass on macOS 14 and the current development macOS/Xcode toolchain.
-2. Manual undo/redo checks pass for typing, Smart Enter, Tab cycling, paste, cut, autocomplete, and multi-element edits.
-3. Unicode selection checks pass with accented Latin text and multi-scalar emoji.
-4. VoiceOver identifies the editor and current screenplay element type.
-5. Increased Contrast and larger system text checks remain legible.
-6. Save leaves current-session undo behavior intact, while reopen starts a fresh undo session.
-7. The compatibility editor decision is reflected in user-facing and architecture documentation.
+2. Paragraph engine regressions prove that post-dialogue prose is action in parsing, editor styling, and PDF layout.
+3. Combined cues parse, print, register individual characters, and autocomplete one active segment at a time.
+4. Keyboard suggestion selection, acceptance, dismissal, and cursor restoration pass deterministic and manual checks.
+5. Manual undo/redo checks pass for typing, Smart Enter, Tab cycling, paste, cut, autocomplete, and multi-element edits.
+6. Unicode selection checks pass with accented Latin text and multi-scalar emoji.
+7. VoiceOver identifies the editor, current screenplay element type, and selected suggestion.
+8. Increased Contrast and larger system text checks remain legible.
+9. Save leaves current-session undo behavior intact, while reopen starts a fresh undo session.
+10. The compatibility editor decision is reflected in user-facing and architecture documentation.
