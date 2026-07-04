@@ -1,6 +1,6 @@
 # Milestone 13 Acceptance — TextKit Editor Maturity
 
-Status: implementation complete; validation pending.
+Status: implementation extended; automated build/test validation and manual acceptance pending.
 
 ## Undo and command consistency
 
@@ -38,6 +38,62 @@ Given parser refresh or autocomplete updates screenplay text, when the TextKit v
 
 Given parsed style runs are available, when the editor renders, then scene headings, character cues, dialogue, parentheticals, transitions, and note references have distinguishable system-color and system-font styling without changing canonical text.
 
+## Paragraph type engine
+
+### A-M13-PARAGRAPH-001: Shared semantic ownership
+
+Given screenplay source text, when the editor resolves selection and style runs and the parser builds screenplay elements, then all consumers use the same paragraph boundaries and explicit-marker precedence.
+
+### A-M13-PARAGRAPH-002: Dialogue context boundary
+
+Given a completed character cue and dialogue block followed by a blank paragraph and prose, when the screenplay is parsed and printed, then the prose is Action and uses body-width PDF layout rather than the dialogue column.
+
+### A-M13-PARAGRAPH-003: Deterministic separators
+
+Given CRLF, CR, Unicode separators, or runs of blank lines, when paragraph boundaries are resolved, then the same ordered paragraphs and source ranges are produced.
+
+## Formatting guide UX
+
+### A-M13-GUIDE-001: Contextual help
+
+Given the cursor is in a screenplay paragraph, when the paragraph inspector is visible, then it shows the current paragraph type, syntax example, and concise formatting guidance.
+
+### A-M13-GUIDE-002: Complete guide
+
+Given the writer expands Formatting Guide, then every editable paragraph type appears exactly once with its marker, example, and explanation that markers do not print.
+
+## Character cue engine
+
+### A-M13-CUE-001: Combined cue parsing
+
+Given a cue such as `SOFÍA / TOM`, `ÍÑIGO & DOÑA ÁNGELES`, `MARA Y ELENA`, or `MARA AND ELENA`, when it is parsed, then it remains one Character Cue while each speaker is registered individually.
+
+### A-M13-CUE-002: Segment-aware suggestions
+
+Given the writer types `SOFÍA / TO`, when character suggestions appear, then matching suggestions replace only `TO`, preserve `SOFÍA /`, and exclude SOFÍA from the candidates.
+
+### A-M13-CUE-003: Robust ranking
+
+Given stored characters differ by case or accents, when a cue query is typed, then exact, full-prefix, word-prefix, and contained matches are ranked deterministically and duplicate suggestions are removed.
+
+### A-M13-CUE-004: Printing consistency
+
+Given a combined cue and following dialogue, when PDF layout is planned, then the cue uses Character Cue layout and the following text uses Dialogue layout.
+
+## Keyboard autocomplete
+
+### A-M13-AUTOCOMPLETE-001: Keyboard acceptance
+
+Given suggestions are visible, when the writer presses Return or Tab, then the active suggestion is accepted before Smart Enter or element-kind cycling and the cursor lands after the replacement.
+
+### A-M13-AUTOCOMPLETE-002: Keyboard selection and dismissal
+
+Given multiple suggestions are visible, when the writer presses Up or Down Arrow, then the active suggestion changes. When Escape is pressed, suggestions close without changing screenplay text.
+
+### A-M13-AUTOCOMPLETE-003: Accessible selected state
+
+Given a suggestion is active, when VoiceOver inspects the suggestion list, then the active suggestion exposes a selected accessibility value and the keyboard controls are visible in the panel.
+
 ## Diagnostics and accessibility
 
 ### A-M13-A11Y-001: Current element exposure
@@ -58,15 +114,26 @@ Given Increased Contrast or system text changes are enabled, when the editor and
 
 Given TextKit is the default editor, when a platform-specific TextKit issue prevents editing, then the writer may switch to the documented TextEditor compatibility mode. The fallback is recovery-only and receives no screenplay-specific feature development.
 
+## Deterministic automated matrix
+
+| Area | Automated evidence |
+|---|---|
+| Paragraph ownership | Shared selection/style ranges, marker precedence, mixed-separator boundaries |
+| PDF regression | Post-dialogue prose remains body-width Action |
+| Formatting guide | All editable types covered once; contextual guide wired into inspector |
+| Combined cues | Separator parsing, canonicalization, individual character registration, PDF roles |
+| Cue suggestions | Active segment replacement, accent-insensitive ranking, duplicate/existing-name filtering |
+| Keyboard autocomplete | Return/Tab acceptance, arrow selection, Escape dismissal, selected accessibility state |
+
 ## Manual matrix
 
 | Area | Scenario | Expected result |
 |---|---|---|
-| Undo | Type, Smart Enter, Tab cycle, paste, cut | One logical operation per undo step |
-| Unicode | Accented names and composed emoji sequences | No split graphemes or cursor jumps |
+| Undo | Type, Smart Enter, Tab cycle, paste, cut, autocomplete | One logical operation per undo step |
+| Unicode | Accented names, combined cues, and composed emoji sequences | No split graphemes or cursor jumps |
 | Selection | Partial line, full line, multi-line, all text | Stable selection after parse refresh |
-| Autocomplete | Accept heading, cue, transition, parenthetical | Cursor lands after inserted value |
-| Accessibility | Navigate heading, cue, dialogue, note | VoiceOver announces meaningful type |
-| Appearance | Increased Contrast and larger text | Semantic distinctions remain readable |
+| Autocomplete | Accept heading and single/combined character cue suggestions with keyboard | Correct segment replaced; cursor lands after inserted value |
+| Accessibility | Navigate heading, cue, dialogue, note, and suggestions | VoiceOver announces meaningful type and active suggestion |
+| Appearance | Increased Contrast and larger text | Semantic distinctions and guide remain readable |
 | Persistence | Save, undo, redo; close and reopen | Save preserves live session; reopen resets history |
 | Recovery | Switch to TextEditor mode | Same canonical text remains editable |
