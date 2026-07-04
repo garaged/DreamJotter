@@ -62,8 +62,8 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(printPDF.contains("(1.) Tj"))
     }
 
-    @Test("Print Script renders page paragraph and line numbering")
-    func printScriptRendersFullNumbering() throws {
+    @Test("Print Script renders page and paragraph numbering without line labels")
+    func printScriptRendersPageAndParagraphNumbering() throws {
         let project = makeProject(elements: [
             ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY"),
             ScriptElement(kind: .action, text: "A visible action paragraph.")
@@ -79,9 +79,11 @@ struct ProductionPDFRendererExecutableSpecs {
         ))
 
         #expect(printPDF.contains("(1.) Tj"))
-        #expect(printPDF.contains("(P1 \\267 L1) Tj"))
-        #expect(printPDF.contains("(P2 \\267 L1) Tj"))
-        #expect(!readerPDF.contains("(P1 \\267 L1) Tj"))
+        #expect(printPDF.contains("(P1) Tj"))
+        #expect(printPDF.contains("(P2) Tj"))
+        #expect(!printPDF.contains("(L1) Tj"))
+        #expect(!printPDF.contains("\\267 L1"))
+        #expect(!readerPDF.contains("(P1) Tj"))
     }
 
     @Test("Line numbering remains sequential within a wrapped paragraph")
@@ -151,7 +153,7 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(!pdf.contains("TODO secret rewrite"))
     }
 
-    @Test("Existing export workflow produces numbered production PDF without dirty-state change")
+    @Test("Existing export workflow produces paragraph-numbered production PDF without dirty-state change")
     func exportWorkflowProducesProductionPDF() throws {
         let preset = try preset("print-script")
         let project = makeProject(elements: [ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY")])
@@ -175,7 +177,8 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(export.result.dirtyStateChanged == false)
         #expect(pdf.contains("/Count 2"))
         #expect(pdf.contains("/Courier-Bold"))
-        #expect(pdf.contains("(P1 \\267 L1) Tj"))
+        #expect(pdf.contains("(P1) Tj"))
+        #expect(!pdf.contains("\\267 L1"))
     }
 
     private func preset(_ id: String) throws -> ExportPreset {
