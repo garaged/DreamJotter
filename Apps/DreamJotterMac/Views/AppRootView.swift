@@ -124,8 +124,10 @@ struct AppRootView: View {
     private func openProject() {
         let panel = NSOpenPanel()
         panel.title = String(localized: "Open DreamJotter Package")
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.treatsFilePackagesAsDirectories = false
+        panel.allowedFileTypes = ["dreamjotter"]
         panel.allowsMultipleSelection = false
         guard panel.runModal() == .OK, let url = panel.url else { return }
         openRecentProject(url)
