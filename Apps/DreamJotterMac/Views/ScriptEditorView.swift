@@ -4,7 +4,6 @@ import DreamJotterCore
 enum ScreenplayEditorAdapter: String, CaseIterable, Identifiable {
     case textKit = "TextKit"
     case textEditor = "TextEditor"
-
     var id: String { rawValue }
 }
 
@@ -20,7 +19,6 @@ struct ScriptEditorView: View {
         VStack(alignment: .leading, spacing: 8) {
             header
             searchBar
-
             editorView
                 .overlay(alignment: .topLeading) {
                     if document.isEmptyEditorGuidanceVisible {
@@ -29,32 +27,14 @@ struct ScriptEditorView: View {
                             .allowsHitTesting(false)
                     }
                 }
-
             SuggestionsPanel(
                 suggestions: suggestions,
                 selectedIndex: selectedSuggestionIndex,
                 acceptAction: acceptSuggestion,
-                ignoreAction: clearSuggestions
+                ignoreAction: { _ = dismissSuggestions() }
             )
         }
         .padding()
-        .onKeyPress(.downArrow) {
-            moveSuggestionSelection(by: 1) ? .handled : .ignored
-        }
-        .onKeyPress(.upArrow) {
-            moveSuggestionSelection(by: -1) ? .handled : .ignored
-        }
-        .onKeyPress(.return) {
-            acceptSelectedSuggestion() ? .handled : .ignored
-        }
-        .onKeyPress(.tab) {
-            acceptSelectedSuggestion() ? .handled : .ignored
-        }
-        .onKeyPress(.escape) {
-            guard !suggestions.isEmpty else { return .ignored }
-            clearSuggestions()
-            return .handled
-        }
         .onChange(of: searchText) { _, _ in
             selectedMatchIndex = 0
             navigateToSelectedMatch()
@@ -66,59 +46,29 @@ struct ScriptEditorView: View {
 
     private var header: some View {
         HStack {
-            Text(document.project.metadata.title)
-                .font(.title2.weight(.semibold))
-
+            Text(document.project.metadata.title).font(.title2.weight(.semibold))
             Spacer()
-
             ScreenplayLanguagePicker(document: $document)
-
             Picker("Editor", selection: $editorAdapter) {
-                ForEach(ScreenplayEditorAdapter.allCases) { adapter in
-                    Text(adapter.rawValue).tag(adapter)
-                }
+                ForEach(ScreenplayEditorAdapter.allCases) { Text($0.rawValue).tag($0) }
             }
             .pickerStyle(.segmented)
             .frame(width: 180)
-
-            Button("Refresh Parse") {
-                document.refreshParseRespectingLanguage()
-            }
+            Button("Refresh Parse") { document.refreshParseRespectingLanguage() }
         }
     }
 
     private var searchBar: some View {
         HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-            TextField("Find in script", text: $searchText)
-                .textFieldStyle(.roundedBorder)
-            Text(matchSummary)
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
-                .frame(minWidth: 72, alignment: .trailing)
-            Button {
-                selectPreviousMatch()
-            } label: {
-                Image(systemName: "chevron.up")
-            }
-            .disabled(matches.isEmpty)
-            .help("Previous match")
-            .accessibilityLabel("Previous match")
-            Button {
-                selectNextMatch()
-            } label: {
-                Image(systemName: "chevron.down")
-            }
-            .disabled(matches.isEmpty)
-            .help("Next match")
-            .accessibilityLabel("Next match")
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+            TextField("Find in script", text: $searchText).textFieldStyle(.roundedBorder)
+            Text(matchSummary).font(.caption.monospacedDigit()).foregroundStyle(.secondary).frame(minWidth: 72, alignment: .trailing)
+            Button(action: selectPreviousMatch) { Image(systemName: "chevron.up") }
+                .disabled(matches.isEmpty).help("Previous match").accessibilityLabel("Previous match")
+            Button(action: selectNextMatch) { Image(systemName: "chevron.down") }
+                .disabled(matches.isEmpty).help("Next match").accessibilityLabel("Next match")
             if !searchText.isEmpty {
-                Button("Clear") {
-                    searchText = ""
-                    selectedMatchIndex = 0
-                }
+                Button("Clear") { searchText = ""; selectedMatchIndex = 0 }
             }
         }
     }
@@ -127,31 +77,31 @@ struct ScriptEditorView: View {
     private var editorView: some View {
         switch editorAdapter {
         case .textKit:
-            TextKitScreenplayEditorView(text: Binding(
-                get: { document.scriptText },
-                set: { document.updateScriptTextRespectingLanguage($0) }
-            ), navigationState: document.editorNavigationState,
-            styleRuns: ScreenplayParagraphTypeControl.styleRuns(in: document.scriptText),
-            onSmartEnter: { location in
-                if !acceptSelectedSuggestion() {
+            TextKitScreenplayEditorView(
+                text: Binding(
+                    get: { document.scriptText },
+                    set: { document.updateScriptTextRespectingLanguage($0) }
+                ),
+                navigationState: document.editorNavigationState,
+                styleRuns: ScreenplayParagraphTypeControl.styleRuns(in: document.scriptText),
+                onSmartEnter: { location in
                     document.performSmartEnterRespectingLanguage(at: location)
                     refreshSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)
-                }
-            },
-            onTabCycle: { location in
-                if !acceptSelectedSuggestion() {
+                },
+                onTabCycle: { location in
                     document.performTabCycleRespectingLanguage(at: location)
                     refreshSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)
-                }
-            },
-            onTextChanged: refreshSuggestions,
-            onSelectionChanged: { location in
-                document.updateSelectedSceneForCursor(location: location)
-                refreshSuggestions(cursorLocation: location)
-            },
-            onNavigationApplied: {
-                document.clearEditorNavigationRequest()
-            })
+                },
+                onTextChanged: refreshSuggestions,
+                onSelectionChanged: { location in
+                    document.updateSelectedSceneForCursor(location: location)
+                    refreshSuggestions(cursorLocation: location)
+                },
+                onSuggestionMove: moveSuggestionSelection,
+                onSuggestionAccept: acceptSelectedSuggestion,
+                onSuggestionDismiss: dismissSuggestions,
+                onNavigationApplied: { document.clearEditorNavigationRequest() }
+            )
             .clipShape(RoundedRectangle(cornerRadius: 6))
         case .textEditor:
             TextEditor(text: Binding(
@@ -170,23 +120,20 @@ struct ScriptEditorView: View {
     }
 
     private func refreshSuggestions(cursorLocation: Int) {
-        let currentLine = EditorUsabilityService.currentLine(
-            in: document.scriptText,
-            cursorLocation: cursorLocation
-        )
+        let currentLine = EditorUsabilityService.currentLine(in: document.scriptText, cursorLocation: cursorLocation)
         let lineStart = currentLine.range.location
         let lineLength = (currentLine.text as NSString).length
         let safeCursor = min(max(cursorLocation, lineStart), lineStart + lineLength)
         let prefixLength = safeCursor - lineStart
-        let prefix = (currentLine.text as NSString).substring(
-            with: NSRange(location: 0, length: prefixLength)
-        )
-        let trimmed = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
+        let prefix = (currentLine.text as NSString).substring(with: NSRange(location: 0, length: prefixLength))
 
-        if isSceneHeadingDraft(trimmed) {
-            suggestions = document.sceneHeadingSuggestions(
-                prefix: prefix,
-                replacementRange: EditorTextRange(location: lineStart, length: prefixLength)
+        if isSceneHeadingDraft(prefix) {
+            suggestions = SceneHeadingAutocompleteEngine.suggestions(
+                line: currentLine.text,
+                lineStart: lineStart,
+                cursorLocation: safeCursor,
+                scenes: document.scenes,
+                language: document.screenplayLanguage
             )
         } else {
             let context = CharacterCueEngine.suggestionContext(
@@ -199,23 +146,21 @@ struct ScriptEditorView: View {
                 characters: document.characters.map(\.displayName)
             )
         }
-        selectedSuggestionIndex = min(selectedSuggestionIndex, max(suggestions.count - 1, 0))
+        selectedSuggestionIndex = suggestions.isEmpty
+            ? 0
+            : min(selectedSuggestionIndex, suggestions.count - 1)
     }
 
     private func isSceneHeadingDraft(_ text: String) -> Bool {
-        let uppercased = text.uppercased()
-        return uppercased.hasPrefix("INT.")
-            || uppercased.hasPrefix("EXT.")
-            || uppercased.hasPrefix("INT./EXT.")
-            || uppercased.hasPrefix("EXT./INT.")
-            || uppercased.hasPrefix("I/E.")
+        let value = text.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        guard !value.isEmpty else { return false }
+        let prefixes = ["INT.", "EXT.", "INT./EXT.", "EXT./INT.", "I/E."]
+        return prefixes.contains { $0.hasPrefix(value) || value.hasPrefix($0) }
     }
 
     private func moveSuggestionSelection(by offset: Int) -> Bool {
         guard !suggestions.isEmpty else { return false }
-        selectedSuggestionIndex = (
-            selectedSuggestionIndex + offset + suggestions.count
-        ) % suggestions.count
+        selectedSuggestionIndex = (selectedSuggestionIndex + offset + suggestions.count) % suggestions.count
         return true
     }
 
@@ -231,31 +176,31 @@ struct ScriptEditorView: View {
             location: suggestion.textRange.location + (suggestion.replacementText as NSString).length,
             length: 0
         ))
-        clearSuggestions()
+        suggestions = []
+        selectedSuggestionIndex = 0
     }
 
-    private func clearSuggestions() {
+    private func dismissSuggestions() -> Bool {
+        guard !suggestions.isEmpty else { return false }
         suggestions = []
         selectedSuggestionIndex = 0
         document.ignoreEditorSuggestions()
+        return true
     }
 
     private var matches: [EditorTextRange] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return [] }
-
         let source = document.scriptText as NSString
         var results: [EditorTextRange] = []
         var searchRange = NSRange(location: 0, length: source.length)
-        let options: NSString.CompareOptions = [.caseInsensitive, .diacriticInsensitive]
-
         while searchRange.length > 0 {
-            let range = source.range(of: query, options: options, range: searchRange)
+            let range = source.range(of: query, options: [.caseInsensitive, .diacriticInsensitive], range: searchRange)
             guard range.location != NSNotFound else { break }
             results.append(EditorTextRange(location: range.location, length: range.length))
-            let nextLocation = range.location + max(range.length, 1)
-            guard nextLocation <= source.length else { break }
-            searchRange = NSRange(location: nextLocation, length: source.length - nextLocation)
+            let next = range.location + max(range.length, 1)
+            guard next <= source.length else { break }
+            searchRange = NSRange(location: next, length: source.length - next)
         }
         return results
     }
@@ -263,11 +208,7 @@ struct ScriptEditorView: View {
     private var matchSummary: String {
         guard !searchText.isEmpty else { return "" }
         guard !matches.isEmpty else { return String(localized: "No matches") }
-        return String(
-            format: String(localized: "%lld of %lld"),
-            selectedMatchIndex + 1,
-            matches.count
-        )
+        return String(format: String(localized: "%lld of %lld"), selectedMatchIndex + 1, matches.count)
     }
 
     private func selectNextMatch() {
@@ -300,30 +241,20 @@ private struct SuggestionsPanel: View {
         if !suggestions.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Suggestions")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    Text("↑↓ select • Return or Tab accept • Esc dismiss")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    Text("Suggestions").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    Text("↑↓ select • Return or Tab accept • Esc dismiss").font(.caption2).foregroundStyle(.secondary)
                     Spacer()
-                    Button("Ignore") { ignoreAction() }
-                        .buttonStyle(.borderless)
+                    Button("Ignore", action: ignoreAction).buttonStyle(.borderless)
                 }
-
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, suggestion in
                             Button { acceptAction(suggestion) } label: {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(suggestion.displayText)
-                                        .font(.callout.monospaced())
-                                    Text(localizedType(suggestion.type.rawValue))
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                                    Text(suggestion.displayText).font(.callout.monospaced())
+                                    Text(localizedType(suggestion.type.rawValue)).font(.caption2).foregroundStyle(.secondary)
                                 }
-                                .padding(.vertical, 4)
-                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4).padding(.horizontal, 8)
                                 .background(index == selectedIndex ? Color.accentColor.opacity(0.16) : Color.clear)
                                 .clipShape(RoundedRectangle(cornerRadius: 5))
                             }
@@ -343,9 +274,8 @@ private struct SuggestionsPanel: View {
         switch rawValue {
         case "sceneHeading": String(localized: "Scene Heading")
         case "character": String(localized: "Character")
-        case "transition": String(localized: "Transition")
-        case "shot": String(localized: "Shot")
-        case "parenthetical": String(localized: "Parenthetical")
+        case "location": String(localized: "Location")
+        case "timeOfDay": String(localized: "Time of Day")
         default: String(localized: String.LocalizationValue(rawValue))
         }
     }
@@ -353,27 +283,19 @@ private struct SuggestionsPanel: View {
 
 private struct EmptyScriptGuidance: View {
     let language: ScreenplayLanguageProfile
-
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Start with a scene heading")
-                .font(.callout.weight(.semibold))
-            Text(language == .spanishLatinAmerica ? "INT. DEPARTAMENTO - MAÑANA" : "INT. APARTMENT - MORNING")
-                .font(.callout.monospaced())
-            Text(language == .spanishLatinAmerica ? "Una habitación tranquila antes del amanecer." : "A quiet room before sunrise.")
-                .font(.callout.monospaced())
-            Text(language == .spanishLatinAmerica ? "SOFÍA" : "ELENA")
-                .font(.callout.monospaced())
-            Text(language == .spanishLatinAmerica ? "Aquí comenzamos." : "We begin here.")
-                .font(.callout.monospaced())
-        }
-        .foregroundStyle(.secondary)
+            Text("Start with a scene heading").font(.callout.weight(.semibold))
+            Text(language == .spanishLatinAmerica ? "INT. DEPARTAMENTO - MAÑANA" : "INT. APARTMENT - MORNING").font(.callout.monospaced())
+            Text(language == .spanishLatinAmerica ? "Una habitación tranquila antes del amanecer." : "A quiet room before sunrise.").font(.callout.monospaced())
+            Text(language == .spanishLatinAmerica ? "SOFÍA" : "ELENA").font(.callout.monospaced())
+            Text(language == .spanishLatinAmerica ? "Aquí comenzamos." : "We begin here.").font(.callout.monospaced())
+        }.foregroundStyle(.secondary)
     }
 }
 
 private struct ScreenplayLanguagePicker: View {
     @Binding var document: ProjectDocumentViewModel
-
     var body: some View {
         Picker("Screenplay Language", selection: Binding(
             get: { document.screenplayLanguage },
@@ -382,86 +304,47 @@ private struct ScreenplayLanguagePicker: View {
             Text("Automatic").tag(ScreenplayLanguageProfile.automatic)
             Text("English").tag(ScreenplayLanguageProfile.english)
             Text("Spanish (Latin America)").tag(ScreenplayLanguageProfile.spanishLatinAmerica)
-        }
-        .frame(width: 240)
+        }.frame(width: 240)
     }
 }
 
 extension ProjectDocumentViewModel {
-    var screenplayLanguage: ScreenplayLanguageProfile {
-        ScreenplayLanguagePersistence.language(in: project)
-    }
+    var screenplayLanguage: ScreenplayLanguageProfile { ScreenplayLanguagePersistence.language(in: project) }
 
     mutating func setScreenplayLanguage(_ language: ScreenplayLanguageProfile) {
         guard language != screenplayLanguage else { return }
-        let projectWithSetting = ScreenplayLanguagePersistence.setting(language, in: project)
+        let configured = ScreenplayLanguagePersistence.setting(language, in: project)
         let parsed = ScreenplayParser.parse(scriptText, language: language)
         let updated = DreamJotterProject(
-            metadata: projectWithSetting.metadata,
-            screenplay: parsed,
-            mode: projectWithSetting.mode,
-            template: projectWithSetting.template,
-            characters: projectWithSetting.characters,
-            ignoredDetectedCharacterKeys: projectWithSetting.ignoredDetectedCharacterKeys,
-            locations: projectWithSetting.locations,
-            ignoredDetectedLocationKeys: projectWithSetting.ignoredDetectedLocationKeys,
-            notes: projectWithSetting.notes,
-            inboxItems: projectWithSetting.inboxItems,
-            sceneCards: projectWithSetting.sceneCards,
-            snapshots: projectWithSetting.snapshots,
-            exportPresets: projectWithSetting.exportPresets,
-            story: projectWithSetting.story,
-            pro: projectWithSetting.pro
+            metadata: configured.metadata, screenplay: parsed, mode: configured.mode,
+            template: configured.template, characters: configured.characters,
+            ignoredDetectedCharacterKeys: configured.ignoredDetectedCharacterKeys,
+            locations: configured.locations, ignoredDetectedLocationKeys: configured.ignoredDetectedLocationKeys,
+            notes: configured.notes, inboxItems: configured.inboxItems, sceneCards: configured.sceneCards,
+            snapshots: configured.snapshots, exportPresets: configured.exportPresets,
+            story: configured.story, pro: configured.pro
         )
         self = ScreenplayParsingContext.$language.withValue(language) {
-            ProjectDocumentViewModel(
-                project: updated,
-                packageURL: packageURL,
-                scriptText: scriptText,
-                isDirty: true
-            )
+            ProjectDocumentViewModel(project: updated, packageURL: packageURL, scriptText: scriptText, isDirty: true)
         }
     }
 
     mutating func updateScriptTextRespectingLanguage(_ text: String) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
-            updateScriptText(text)
-        }
+        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { updateScriptText(text) }
     }
-
     mutating func refreshParseRespectingLanguage(now: Date = Date()) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
-            refreshParse(now: now)
-        }
+        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { refreshParse(now: now) }
     }
-
     mutating func acceptEditorSuggestionRespectingLanguage(_ suggestion: EditorSuggestion) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
-            acceptEditorSuggestion(suggestion)
-        }
+        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { acceptEditorSuggestion(suggestion) }
     }
-
     mutating func performSmartEnterRespectingLanguage(at cursorLocation: Int) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
-            performSmartEnter(at: cursorLocation)
-        }
+        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { performSmartEnter(at: cursorLocation) }
     }
-
     mutating func performTabCycleRespectingLanguage(at cursorLocation: Int) {
-        let language = screenplayLanguage
-        ScreenplayParsingContext.$language.withValue(language) {
-            performTabCycle(at: cursorLocation)
-        }
+        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { performTabCycle(at: cursorLocation) }
     }
-
     mutating func saveRespectingLanguage(to packageURL: URL, now: Date = Date()) throws {
-        let language = screenplayLanguage
-        try ScreenplayParsingContext.$language.withValue(language) {
-            try save(to: packageURL, now: now)
-        }
+        try ScreenplayParsingContext.$language.withValue(screenplayLanguage) { try save(to: packageURL, now: now) }
     }
 }
