@@ -6,7 +6,7 @@ public enum PDFLayoutPlanner {
         preset: ExportPreset,
         settings explicitSettings: PDFLayoutSettings? = nil
     ) -> PDFLayoutPlan {
-        let settings = explicitSettings ?? .defaults(for: preset)
+        let settings = normalizedSettings(explicitSettings ?? .defaults(for: preset), preset: preset)
         let title = normalizedTitle(project.metadata.title)
         var warnings = initialWarnings(for: project, preset: preset, title: title)
         var pages: [PDFPagePlan] = []
@@ -48,30 +48,30 @@ public enum PDFLayoutPlanner {
         while sourceElementIndex < elements.count {
             let element = elements[sourceElementIndex]
 
-            if element.kind == .pageBreak {
+            if element.paragraphType == .pageBreak {
                 appendCurrentPageIfNeeded()
                 sourceElementIndex += 1
                 continue
             }
 
-            if element.kind == .noteReference, !preset.includesNotes {
+            if element.paragraphType == .note, !preset.includesNotes {
                 sourceElementIndex += 1
                 continue
             }
 
             var block = makeBlock(
                 for: element,
-                role: normalizedRole(at: sourceElementIndex, in: elements),
+                role: role(for: element.paragraphType),
                 paragraphNumber: paragraphNumber,
                 sourceElementIndex: sourceElementIndex,
                 settings: settings,
                 warnings: &warnings
             )
 
-            if element.kind == .characterCue,
+            if element.paragraphType == .characterCue,
                sourceElementIndex + 1 < elements.count {
                 let nextElement = elements[sourceElementIndex + 1]
-                if nextElement.kind == .dialogue || nextElement.kind == .parenthetical {
+                if nextElement.paragraphType == .dialogue || nextElement.paragraphType == .parenthetical {
                     block = PDFBlockPlan(
                         blockNumber: 0,
                         paragraphNumber: block.paragraphNumber,
@@ -83,7 +83,7 @@ public enum PDFLayoutPlanner {
                     )
                     let nextBlock = makeBlock(
                         for: nextElement,
-                        role: normalizedRole(at: sourceElementIndex + 1, in: elements),
+                        role: role(for: nextElement.paragraphType),
                         paragraphNumber: paragraphNumber + 1,
                         sourceElementIndex: sourceElementIndex + 1,
                         settings: settings,
@@ -121,6 +121,28 @@ public enum PDFLayoutPlanner {
         return PDFLayoutPlan(documentTitle: title, settings: settings, pages: pages, warnings: warnings)
     }
 
+    private static func normalizedSettings(
+        _ settings: PDFLayoutSettings,
+        preset: ExportPreset
+    ) -> PDFLayoutSettings {
+        guard preset.id == "print-script", settings.includeLineNumbers else {
+            return settings
+        }
+
+        return PDFLayoutSettings(
+            pageSize: settings.pageSize,
+            margins: settings.margins,
+            lineHeight: settings.lineHeight,
+            charactersPerBodyLine: settings.charactersPerBodyLine,
+            contentLinesPerPage: settings.contentLinesPerPage,
+            includeTitlePage: settings.includeTitlePage,
+            includePageNumbers: settings.includePageNumbers,
+            includeParagraphNumbers: settings.includeParagraphNumbers,
+            includeLineNumbers: false,
+            suppressIdentifyingMetadata: settings.suppressIdentifyingMetadata
+        )
+    }
+
     private static func initialWarnings(
         for project: DreamJotterProject,
         preset: ExportPreset,
@@ -130,7 +152,7 @@ public enum PDFLayoutPlanner {
         if title == "Untitled" {
             warnings.append(PDFLayoutWarning(code: .missingTitleMetadata, message: "Project title is missing; using Untitled."))
         }
-        let hasOmittedNotes = !project.notes.isEmpty || project.screenplay.elements.contains { $0.kind == .noteReference }
+        let hasOmittedNotes = !project.notes.isEmpty || project.screenplay.elements.contains { $0.paragraphType == .note }
         if hasOmittedNotes && !preset.includesNotes {
             warnings.append(PDFLayoutWarning(code: .notesOmitted, message: "Project notes and screenplay TODOs are omitted from this PDF preset."))
         }
@@ -164,7 +186,7 @@ public enum PDFLayoutPlanner {
         settings: PDFLayoutSettings,
         warnings: inout [PDFLayoutWarning]
     ) -> PDFBlockPlan {
-        if element.kind == .unknown {
+        if element.paragraphType == .unknown {
             warnings.append(PDFLayoutWarning(code: .malformedElementFallback, message: "Unknown screenplay text was included as readable fallback text."))
         }
         let lines = wrap(element.text, width: width(for: role, settings: settings)).enumerated().map {
@@ -193,18 +215,8 @@ public enum PDFLayoutPlanner {
         )
     }
 
-    private static func normalizedRole(at index: Int, in elements: [ScriptElement]) -> PDFBlockRole {
-        let element = elements[index]
-        if element.kind == .dialogue,
-           index > 0,
-           elements[index - 1].kind == .dialogue {
-            return .action
-        }
-        return role(for: element.kind)
-    }
-
-    private static func role(for kind: ScriptElementKind) -> PDFBlockRole {
-        switch kind {
+    private static func role(for paragraphType: ScreenplayParagraphType) -> PDFBlockRole {
+        switch paragraphType {
         case .sceneHeading:
             return .sceneHeading
         case .characterCue:
@@ -217,9 +229,9 @@ public enum PDFLayoutPlanner {
             return .transition
         case .titlePage:
             return .title
-        case .action, .shot, .section, .synopsis:
+        case .action, .shot, .section, .synopsis, .montage, .characterIntroduction:
             return .action
-        case .noteReference, .pageBreak, .unknown:
+        case .note, .pageBreak, .unknown:
             return .fallback
         }
     }

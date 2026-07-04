@@ -86,8 +86,8 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(!readerPDF.contains("(P1) Tj"))
     }
 
-    @Test("Line numbering remains sequential within a wrapped paragraph")
-    func wrappedParagraphLineNumbersAreSequential() throws {
+    @Test("Print Script suppresses stale line numbering across wrapped paragraphs")
+    func wrappedParagraphSuppressesStaleLineNumbers() throws {
         let text = Array(repeating: "This action continues across a deliberately narrow body line.", count: 5)
             .joined(separator: " ")
         let project = makeProject(elements: [ScriptElement(kind: .action, text: text)])
@@ -108,8 +108,10 @@ struct ProductionPDFRendererExecutableSpecs {
         let plan = PDFLayoutPlanner.plan(for: project, preset: preset, settings: settings)
         let pdf = pdfString(ProductionPDFRenderer.render(plan: plan))
 
-        #expect(pdf.contains("(P1 \\267 L1) Tj"))
-        #expect(pdf.contains("(L2) Tj"))
+        #expect(!plan.settings.includeLineNumbers)
+        #expect(pdf.contains("(P1) Tj"))
+        #expect(!pdf.contains("\\267 L1"))
+        #expect(!pdf.contains("(L2) Tj"))
     }
 
     @Test("Built-in screenplay presets produce distinct deterministic PDF artifacts")

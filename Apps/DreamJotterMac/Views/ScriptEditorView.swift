@@ -115,7 +115,7 @@ struct ScriptEditorView: View {
                 get: { document.scriptText },
                 set: { document.updateScriptTextRespectingLanguage($0) }
             ), navigationState: document.editorNavigationState,
-            styleRuns: document.editorStyleRuns,
+            styleRuns: ScreenplayParagraphTypeControl.styleRuns(in: document.scriptText),
             onSmartEnter: { location in
                 document.performSmartEnterRespectingLanguage(at: location)
                 document.refreshEditorSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)

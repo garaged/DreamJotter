@@ -2,17 +2,8 @@ import DreamJotterCore
 import SwiftUI
 
 enum WorkspaceSection: String, CaseIterable, Identifiable {
-    case dashboard
-    case script
-    case scenes
-    case characters
-    case locations
-    case notes
-    case review
-    case healthReport
-
+    case dashboard, script, scenes, characters, locations, notes, review, healthReport
     var id: String { rawValue }
-
     var localizedTitle: LocalizedStringKey {
         switch self {
         case .dashboard: "Dashboard"
@@ -30,7 +21,6 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
 struct ProjectWorkspaceView: View {
     @Binding var document: ProjectDocumentViewModel
     @State private var selectedSection: WorkspaceSection? = .dashboard
-
     let saveAction: () -> Void
     let saveAsAction: () -> Void
     let openAction: () -> Void
@@ -48,19 +38,9 @@ struct ProjectWorkspaceView: View {
                 }
             }
             .navigationSplitViewColumnWidth(min: 220, ideal: 260)
-        } content: {
-            contentView
-                .navigationSplitViewColumnWidth(min: 520, ideal: 680)
         } detail: {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ProjectDashboardView(document: $document)
-                    HealthReportView(findings: document.healthFindings)
-                    NotesListView(notes: document.notes)
-                }
-                .padding()
-            }
-            .navigationSplitViewColumnWidth(min: 280, ideal: 340)
+            contentView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .toolbar {
             ToolbarItemGroup {
@@ -78,107 +58,68 @@ struct ProjectWorkspaceView: View {
 
     private var documentStatus: String {
         if document.packageURL == nil {
-            return document.isDirty
-                ? String(localized: "Unsaved changes")
-                : String(localized: "Unsaved project")
+            return document.isDirty ? String(localized: "Unsaved changes") : String(localized: "Unsaved project")
         }
-        return document.isDirty
-            ? String(localized: "Unsaved changes")
-            : String(localized: "Saved")
+        return document.isDirty ? String(localized: "Unsaved changes") : String(localized: "Saved")
     }
 
     @ViewBuilder
     private var contentView: some View {
         switch selectedSection ?? .dashboard {
         case .dashboard:
-            ScrollView {
-                ProjectDashboardView(document: $document).padding()
-            }
+            ScrollView { ProjectDashboardView(document: $document).padding() }
         case .script:
-            ScriptEditorView(document: $document)
+            HSplitView {
+                ScriptEditorView(document: $document)
+                    .frame(minWidth: 520, maxWidth: .infinity, maxHeight: .infinity)
+                ScreenplayParagraphInspectorView(document: $document)
+                    .frame(minWidth: 260, idealWidth: 300, maxWidth: 360, maxHeight: .infinity)
+            }
         case .scenes:
             ScrollView {
-                BoundSceneWorkflowView(
-                    document: $document,
-                    openScriptAction: { selectedSection = .script }
-                )
-                .padding()
+                BoundSceneWorkflowView(document: $document, openScriptAction: { selectedSection = .script })
+                    .padding()
             }
         case .characters:
             ScrollView {
                 CharacterListView(
                     characters: document.project.characters,
                     unresolvedDetectedCharacters: document.unresolvedDetectedCharacters,
-                    createAction: { name, note in
-                        document.createCharacterProfile(name: name, note: note)
-                    },
-                    updateAction: { character, name, note in
-                        document.updateCharacterProfile(character, name: name, note: note)
-                    },
-                    deleteAction: { character in
-                        document.removeStoredProfile(id: character.id, kind: .character)
-                    },
-                    convertAction: { detection in
-                        document.convertDetectedCharacterToProfile(detection)
-                    },
-                    ignoreAction: { detection in
-                        document.ignoreDetectedCharacter(detection)
-                    }
-                )
-                .padding()
+                    createAction: { name, note in document.createCharacterProfile(name: name, note: note) },
+                    updateAction: { character, name, note in document.updateCharacterProfile(character, name: name, note: note) },
+                    deleteAction: { character in document.removeStoredProfile(id: character.id, kind: .character) },
+                    convertAction: { detection in document.convertDetectedCharacterToProfile(detection) },
+                    ignoreAction: { detection in document.ignoreDetectedCharacter(detection) }
+                ).padding()
             }
         case .locations:
             ScrollView {
                 LocationListView(
                     locations: document.project.locations,
                     unresolvedDetectedLocations: document.unresolvedDetectedLocations,
-                    createAction: { name, note in
-                        document.createLocationProfile(name: name, note: note)
-                    },
-                    updateAction: { location, name, note in
-                        document.updateLocationProfile(location, name: name, note: note)
-                    },
-                    deleteAction: { location in
-                        document.removeStoredProfile(id: location.id, kind: .location)
-                    },
-                    convertAction: { detection in
-                        document.convertDetectedLocationToProfile(detection)
-                    },
-                    ignoreAction: { detection in
-                        document.ignoreDetectedLocation(detection)
-                    }
-                )
-                .padding()
+                    createAction: { name, note in document.createLocationProfile(name: name, note: note) },
+                    updateAction: { location, name, note in document.updateLocationProfile(location, name: name, note: note) },
+                    deleteAction: { location in document.removeStoredProfile(id: location.id, kind: .location) },
+                    convertAction: { detection in document.convertDetectedLocationToProfile(detection) },
+                    ignoreAction: { detection in document.ignoreDetectedLocation(detection) }
+                ).padding()
             }
         case .notes:
             ScrollView {
-                NotesView(
-                    document: $document,
-                    navigateAction: navigateToNoteTarget
-                )
-                .padding()
+                NotesView(document: $document, navigateAction: navigateToNoteTarget).padding()
             }
         case .review:
-            ReviewModeView(
-                document: $document,
-                exportAction: reviewExportAction,
-                openScriptAction: { selectedSection = .script }
-            )
+            ReviewModeView(document: $document, exportAction: reviewExportAction, openScriptAction: { selectedSection = .script })
         case .healthReport:
-            ScrollView {
-                HealthReportView(findings: document.healthFindings).padding()
-            }
+            ScrollView { HealthReportView(findings: document.healthFindings).padding() }
         }
     }
 
     private func navigateToNoteTarget(_ link: NoteLink) {
         switch link.targetKind {
-        case .project:
-            selectedSection = .dashboard
-        case .character:
-            selectedSection = .characters
-        case .location:
-            selectedSection = .locations
+        case .project: selectedSection = .dashboard
+        case .character: selectedSection = .characters
+        case .location: selectedSection = .locations
         case .scene:
             if let sceneIndex = document.scenes.firstIndex(where: { $0.heading == link.targetID }) {
                 document.requestNavigation(toSceneAt: sceneIndex)
@@ -196,15 +137,10 @@ struct ProjectWorkspaceView: View {
         guard elementID.hasPrefix("element-"),
               let oneBasedElementIndex = Int(elementID.dropFirst("element-".count)),
               oneBasedElementIndex > 0,
-              oneBasedElementIndex <= document.project.screenplay.elements.count else {
-            return nil
-        }
-
+              oneBasedElementIndex <= document.project.screenplay.elements.count else { return nil }
         var sceneIndex: Int?
-        for index in 0..<oneBasedElementIndex {
-            if document.project.screenplay.elements[index].kind == .sceneHeading {
-                sceneIndex = (sceneIndex ?? -1) + 1
-            }
+        for index in 0..<oneBasedElementIndex where document.project.screenplay.elements[index].kind == .sceneHeading {
+            sceneIndex = (sceneIndex ?? -1) + 1
         }
         return sceneIndex
     }
