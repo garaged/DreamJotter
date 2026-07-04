@@ -103,9 +103,25 @@ struct ScreenplayParagraphInspectorView: View {
                     .padding(.top, 8)
                 }
 
+                if let entry = currentGuideEntry {
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 5) {
+                        Label("How to use this type", systemImage: "lightbulb")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Text(entry.howToUse)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .combine)
+                }
+
                 Text("The paragraph type engine is shared by editor styling, semantic parsing, and PDF layout.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding()
