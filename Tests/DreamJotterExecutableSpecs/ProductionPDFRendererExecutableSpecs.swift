@@ -62,20 +62,62 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(printPDF.contains("(1.) Tj"))
     }
 
+    @Test("Print Script renders page paragraph and line numbering")
+    func printScriptRendersFullNumbering() throws {
+        let project = makeProject(elements: [
+            ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY"),
+            ScriptElement(kind: .action, text: "A visible action paragraph.")
+        ])
+
+        let printPDF = pdfString(ProductionPDFRenderer.render(
+            project: project,
+            preset: try preset("print-script")
+        ))
+        let readerPDF = pdfString(ProductionPDFRenderer.render(
+            project: project,
+            preset: try preset("reader-copy")
+        ))
+
+        #expect(printPDF.contains("(1.) Tj"))
+        #expect(printPDF.contains("(P1 \\267 L1) Tj"))
+        #expect(printPDF.contains("(P2 \\267 L1) Tj"))
+        #expect(!readerPDF.contains("(P1 \\267 L1) Tj"))
+    }
+
+    @Test("Line numbering remains sequential within a wrapped paragraph")
+    func wrappedParagraphLineNumbersAreSequential() throws {
+        let text = Array(repeating: "This action continues across a deliberately narrow body line.", count: 5)
+            .joined(separator: " ")
+        let project = makeProject(elements: [ScriptElement(kind: .action, text: text)])
+        let preset = try preset("print-script")
+        let defaults = PDFLayoutSettings.defaults(for: preset)
+        let settings = PDFLayoutSettings(
+            pageSize: defaults.pageSize,
+            margins: defaults.margins,
+            lineHeight: defaults.lineHeight,
+            charactersPerBodyLine: 24,
+            contentLinesPerPage: defaults.contentLinesPerPage,
+            includeTitlePage: false,
+            includePageNumbers: true,
+            includeParagraphNumbers: true,
+            includeLineNumbers: true,
+            suppressIdentifyingMetadata: defaults.suppressIdentifyingMetadata
+        )
+        let plan = PDFLayoutPlanner.plan(for: project, preset: preset, settings: settings)
+        let pdf = pdfString(ProductionPDFRenderer.render(plan: plan))
+
+        #expect(pdf.contains("(P1 \\267 L1) Tj"))
+        #expect(pdf.contains("(L2) Tj"))
+    }
+
     @Test("Built-in screenplay presets produce distinct deterministic PDF artifacts")
     func builtInPDFPresetsProduceDistinctArtifacts() throws {
         let project = makeProject(elements: [
             ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY"),
             ScriptElement(kind: .action, text: "Distinct screenplay body.")
         ])
-        let presets = try [
-            preset("reader-copy"),
-            preset("print-script"),
-            preset("contest-submission")
-        ]
-        let artifacts = presets.map { preset in
-            ProductionPDFRenderer.render(project: project, preset: preset)
-        }
+        let presets = try [preset("reader-copy"), preset("print-script"), preset("contest-submission")]
+        let artifacts = presets.map { ProductionPDFRenderer.render(project: project, preset: $0) }
 
         #expect(artifacts.count == 3)
         #expect(Set(artifacts).count == 3)
@@ -109,7 +151,7 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(!pdf.contains("TODO secret rewrite"))
     }
 
-    @Test("Existing export workflow produces production PDF without dirty-state change")
+    @Test("Existing export workflow produces numbered production PDF without dirty-state change")
     func exportWorkflowProducesProductionPDF() throws {
         let preset = try preset("print-script")
         let project = makeProject(elements: [ScriptElement(kind: .sceneHeading, text: "INT. ROOM - DAY")])
@@ -133,6 +175,7 @@ struct ProductionPDFRendererExecutableSpecs {
         #expect(export.result.dirtyStateChanged == false)
         #expect(pdf.contains("/Count 2"))
         #expect(pdf.contains("/Courier-Bold"))
+        #expect(pdf.contains("(P1 \\267 L1) Tj"))
     }
 
     private func preset(_ id: String) throws -> ExportPreset {
