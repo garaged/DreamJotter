@@ -29,7 +29,10 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
 
         let storage = NSTextStorage()
         let manager = NSLayoutManager()
-        let container = NSTextContainer(containerSize: NSSize(width: scrollView.contentSize.width, height: .greatestFiniteMagnitude))
+        let container = NSTextContainer(containerSize: NSSize(
+            width: scrollView.contentSize.width,
+            height: CGFloat.greatestFiniteMagnitude
+        ))
         container.widthTracksTextView = true
         storage.addLayoutManager(manager)
         manager.addTextContainer(container)
@@ -77,7 +80,10 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
         textView.isGrammarCheckingEnabled = false
         textView.isContinuousSpellCheckingEnabled = false
         textView.minSize = .zero
-        textView.maxSize = NSSize(width: .greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
+        textView.maxSize = NSSize(
+            width: CGFloat.greatestFiniteMagnitude,
+            height: CGFloat.greatestFiniteMagnitude
+        )
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
         textView.textContainerInset = NSSize(width: 12, height: 12)
