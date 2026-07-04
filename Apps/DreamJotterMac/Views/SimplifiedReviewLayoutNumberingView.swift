@@ -68,24 +68,19 @@ struct SimplifiedReviewLayoutNumberingView: View {
     }
 
     private func numberedLines(_ block: PDFBlockPlan) -> some View {
-        LazyVGrid(
-            columns: [
-                GridItem(.fixed(92), alignment: .trailing),
-                GridItem(.flexible(), alignment: .leading)
-            ],
-            alignment: .leading,
-            horizontalSpacing: 8,
-            verticalSpacing: 2
-        ) {
+        LazyVStack(alignment: .leading, spacing: 2) {
             ForEach(Array(block.lines.enumerated()), id: \.element.lineNumber) { index, line in
-                lineLabel(
-                    paragraphNumber: block.paragraphNumber,
-                    lineNumber: line.lineNumber,
-                    isFirstLine: index == 0
-                )
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    lineLabel(
+                        paragraphNumber: block.paragraphNumber,
+                        lineNumber: line.lineNumber,
+                        isFirstLine: index == 0
+                    )
+                    .frame(width: 92, alignment: .trailing)
 
-                Text(line.text.isEmpty ? " " : line.text)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(line.text.isEmpty ? " " : line.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
