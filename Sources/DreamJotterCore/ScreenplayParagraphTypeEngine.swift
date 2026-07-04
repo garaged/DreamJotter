@@ -109,8 +109,13 @@ public enum ScreenplayParagraphTypeEngine {
                 : nil
 
             if expectsDetachedDialogue {
-                expectsDetachedDialogue = false
-                previousCompletedDialogue = true
+                if paragraph.type == .parenthetical {
+                    expectsDetachedDialogue = nextText.map(isPlausibleDialogue) ?? false
+                    previousCompletedDialogue = !expectsDetachedDialogue
+                } else {
+                    expectsDetachedDialogue = false
+                    previousCompletedDialogue = true
+                }
                 continue
             }
 
