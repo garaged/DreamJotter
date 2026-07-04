@@ -43,9 +43,10 @@ public enum PDFLayoutPlanner {
             lineCount += block.lineCount
         }
 
+        let elements = project.screenplay.elements
         var sourceElementIndex = 0
-        while sourceElementIndex < project.screenplay.elements.count {
-            let element = project.screenplay.elements[sourceElementIndex]
+        while sourceElementIndex < elements.count {
+            let element = elements[sourceElementIndex]
 
             if element.kind == .pageBreak {
                 appendCurrentPageIfNeeded()
@@ -60,6 +61,7 @@ public enum PDFLayoutPlanner {
 
             var block = makeBlock(
                 for: element,
+                role: normalizedRole(at: sourceElementIndex, in: elements),
                 paragraphNumber: paragraphNumber,
                 sourceElementIndex: sourceElementIndex,
                 settings: settings,
@@ -67,8 +69,8 @@ public enum PDFLayoutPlanner {
             )
 
             if element.kind == .characterCue,
-               sourceElementIndex + 1 < project.screenplay.elements.count {
-                let nextElement = project.screenplay.elements[sourceElementIndex + 1]
+               sourceElementIndex + 1 < elements.count {
+                let nextElement = elements[sourceElementIndex + 1]
                 if nextElement.kind == .dialogue || nextElement.kind == .parenthetical {
                     block = PDFBlockPlan(
                         blockNumber: 0,
@@ -81,6 +83,7 @@ public enum PDFLayoutPlanner {
                     )
                     let nextBlock = makeBlock(
                         for: nextElement,
+                        role: normalizedRole(at: sourceElementIndex + 1, in: elements),
                         paragraphNumber: paragraphNumber + 1,
                         sourceElementIndex: sourceElementIndex + 1,
                         settings: settings,
@@ -155,12 +158,12 @@ public enum PDFLayoutPlanner {
 
     private static func makeBlock(
         for element: ScriptElement,
+        role: PDFBlockRole,
         paragraphNumber: Int,
         sourceElementIndex: Int,
         settings: PDFLayoutSettings,
         warnings: inout [PDFLayoutWarning]
     ) -> PDFBlockPlan {
-        let role = role(for: element.kind)
         if element.kind == .unknown {
             warnings.append(PDFLayoutWarning(code: .malformedElementFallback, message: "Unknown screenplay text was included as readable fallback text."))
         }
@@ -188,6 +191,16 @@ public enum PDFLayoutPlanner {
             lines: block.lines,
             keepWithNext: block.keepWithNext
         )
+    }
+
+    private static func normalizedRole(at index: Int, in elements: [ScriptElement]) -> PDFBlockRole {
+        let element = elements[index]
+        if element.kind == .dialogue,
+           index > 0,
+           elements[index - 1].kind == .dialogue {
+            return .action
+        }
+        return role(for: element.kind)
     }
 
     private static func role(for kind: ScriptElementKind) -> PDFBlockRole {
