@@ -10,8 +10,9 @@ struct ReviewLayoutPerformanceRegressionTests {
         )
 
         #expect(source.contains("LazyVStack(alignment: .leading, spacing: 12)"))
-        #expect(source.contains("LazyVGrid("))
+        #expect(source.contains("LazyVStack(alignment: .leading, spacing: 2)"))
         #expect(!source.contains("Grid(alignment:"))
+        #expect(!source.contains("LazyVGrid("))
         #expect(!source.contains(".textSelection(.enabled)"))
     }
 
