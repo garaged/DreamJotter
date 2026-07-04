@@ -52,15 +52,8 @@ struct ProjectWorkspaceView: View {
             contentView
                 .navigationSplitViewColumnWidth(min: 520, ideal: 680)
         } detail: {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ProjectDashboardView(document: $document)
-                    HealthReportView(findings: document.healthFindings)
-                    NotesListView(notes: document.notes)
-                }
-                .padding()
-            }
-            .navigationSplitViewColumnWidth(min: 280, ideal: 340)
+            detailView
+                .navigationSplitViewColumnWidth(min: 280, ideal: 340)
         }
         .toolbar {
             ToolbarItemGroup {
@@ -72,6 +65,22 @@ struct ProjectWorkspaceView: View {
                     .keyboardShortcut("s", modifiers: [.command])
                 Button("Save As") { saveAsAction() }
                 Button("Export") { exportAction() }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var detailView: some View {
+        if selectedSection == .script {
+            ScreenplayParagraphInspectorView(document: $document)
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ProjectDashboardView(document: $document)
+                    HealthReportView(findings: document.healthFindings)
+                    NotesListView(notes: document.notes)
+                }
+                .padding()
             }
         }
     }
