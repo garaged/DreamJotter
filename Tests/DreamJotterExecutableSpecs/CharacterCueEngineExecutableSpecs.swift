@@ -68,7 +68,8 @@ struct CharacterCueEngineExecutableSpecs {
         #expect(document.characters.contains("TOM"))
     }
 
-    @Test("Combined cue remains a character cue in PDF planning") throws {
+    @Test("Combined cue remains a character cue in PDF planning")
+    func combinedCuePDFPlanning() throws {
         let project = DreamJotterProject(
             metadata: ProjectMetadata(
                 id: "combined-cue",
