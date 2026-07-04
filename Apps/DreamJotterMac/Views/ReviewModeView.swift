@@ -69,7 +69,7 @@ struct ReviewModeView: View {
     let exportAction: () -> Void
     let openScriptAction: () -> Void
 
-    @State private var showLayoutNumbering = true
+    @State private var showLayoutNumbering = false
     @State private var searchText = ""
     @State private var severityFilter: ReviewSeverityFilter = .all
     @State private var sourceFilter: ReviewSourceFilter = .all
