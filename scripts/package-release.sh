@@ -15,6 +15,7 @@ if [[ ! -d "${APP_PATH}" ]]; then
   exit 66
 fi
 
+REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_PATH="$(cd "$(dirname "${APP_PATH}")" && pwd)/$(basename "${APP_PATH}")"
 mkdir -p "${OUTPUT_DIR}"
 OUTPUT_DIR="$(cd "${OUTPUT_DIR}" && pwd)"
@@ -22,11 +23,12 @@ OUTPUT_DIR="$(cd "${OUTPUT_DIR}" && pwd)"
 APP_NAME="$(basename "${APP_PATH}" .app)"
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${APP_PATH}/Contents/Info.plist")"
 ZIP_PATH="${OUTPUT_DIR}/${APP_NAME}-${VERSION}.zip"
-ENTITLEMENTS="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/config/DreamJotter.entitlements"
+ENTITLEMENTS="${REPOSITORY_ROOT}/config/DreamJotter.entitlements"
+ICON_PATH="${APP_PATH}/Contents/Resources/DreamJotter.icns"
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-}"
 NOTARY_PROFILE="${NOTARY_PROFILE:-}"
 
-for tool in codesign ditto spctl xcrun lipo; do
+for tool in codesign ditto spctl xcrun lipo sips iconutil python3; do
   command -v "${tool}" >/dev/null 2>&1 || {
     echo "Error: required tool '${tool}' was not found." >&2
     exit 69
@@ -37,6 +39,10 @@ if [[ -z "${SIGNING_IDENTITY}" ]]; then
   echo "Error: SIGNING_IDENTITY must contain a Developer ID Application identity." >&2
   exit 78
 fi
+
+python3 "${REPOSITORY_ROOT}/scripts/generate-app-icon" "${ICON_PATH}"
+/usr/libexec/PlistBuddy -c 'Delete :CFBundleIconFile' "${APP_PATH}/Contents/Info.plist" 2>/dev/null || true
+/usr/libexec/PlistBuddy -c 'Add :CFBundleIconFile string DreamJotter' "${APP_PATH}/Contents/Info.plist"
 
 EXECUTABLE="${APP_PATH}/Contents/MacOS/DreamJotterMac"
 ARCHITECTURES="$(lipo -archs "${EXECUTABLE}")"
