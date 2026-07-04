@@ -4,6 +4,7 @@ import SwiftUI
 enum WorkspaceSection: String, CaseIterable, Identifiable {
     case dashboard, script, scenes, characters, locations, notes, review, healthReport
     var id: String { rawValue }
+
     var localizedTitle: LocalizedStringKey {
         switch self {
         case .dashboard: "Dashboard"
@@ -14,6 +15,19 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
         case .notes: "Notes"
         case .review: "Review"
         case .healthReport: "Health Report"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .dashboard: "rectangle.grid.2x2"
+        case .script: "doc.text"
+        case .scenes: "rectangle.stack"
+        case .characters: "person.2"
+        case .locations: "mappin.and.ellipse"
+        case .notes: "note.text"
+        case .review: "checkmark.bubble"
+        case .healthReport: "waveform.path.ecg"
         }
     }
 }
@@ -33,10 +47,14 @@ struct ProjectWorkspaceView: View {
             List(selection: $selectedSection) {
                 Section("Project") {
                     ForEach(WorkspaceSection.allCases) { section in
-                        Text(section.localizedTitle).tag(section)
+                        Label(section.localizedTitle, systemImage: section.systemImage)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                            .tag(Optional(section))
                     }
                 }
             }
+            .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 220, ideal: 260)
         } detail: {
             contentView
