@@ -1,4 +1,5 @@
 import DreamJotterCore
+import Foundation
 import Testing
 
 @Suite("Screenplay Paragraph Semantics Executable Specs")
