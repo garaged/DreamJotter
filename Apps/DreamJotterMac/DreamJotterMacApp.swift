@@ -113,6 +113,7 @@ struct DreamJotterHelpCommands: Commands {
     }
 }
 
+@MainActor
 final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
     private static let preferenceKey = "dreamjotter.applicationLanguage"
     private var diagnosticsObserver: NSObjectProtocol?
@@ -148,8 +149,10 @@ final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
             forName: .dreamJotterExportDiagnostics,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
-            self?.exportSupportDiagnostics()
+        ) { _ in
+            Task { @MainActor in
+                Self.exportSupportDiagnostics()
+            }
         }
     }
 
@@ -160,13 +163,11 @@ final class DreamJotterMacApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        Task { @MainActor in
-            NativeDocumentApplicationRouter.shared.enqueue(urls)
-            application.activate(ignoringOtherApps: true)
-        }
+        NativeDocumentApplicationRouter.shared.enqueue(urls)
+        application.activate(ignoringOtherApps: true)
     }
 
-    private func exportSupportDiagnostics() {
+    private static func exportSupportDiagnostics() {
         let panel = NSSavePanel()
         panel.title = "Export Support Diagnostics"
         panel.nameFieldStringValue = "DreamJotter-Diagnostics.json"
