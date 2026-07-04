@@ -15,43 +15,100 @@ struct DreamJotterMacApp: App {
         }
         .windowStyle(.titleBar)
         .commands {
-            CommandGroup(replacing: .newItem) {
-                Button("New Project") {
-                    NotificationCenter.default.post(name: .dreamJotterNewProject, object: nil)
-                }
-                .keyboardShortcut("n", modifiers: [.command])
-            }
-
-            CommandGroup(after: .newItem) {
-                Button("Open...") {
-                    NotificationCenter.default.post(name: .dreamJotterOpenProject, object: nil)
-                }
-                .keyboardShortcut("o", modifiers: [.command])
-            }
-
-            CommandGroup(replacing: .saveItem) {
-                Button("Save") {
-                    NotificationCenter.default.post(name: .dreamJotterSaveProject, object: nil)
-                }
-                .keyboardShortcut("s", modifiers: [.command])
-
-                Button("Save As...") {
-                    NotificationCenter.default.post(name: .dreamJotterSaveProjectAs, object: nil)
-                }
-                .keyboardShortcut("s", modifiers: [.command, .shift])
-            }
-
-            CommandMenu("Export") {
-                Button("Export...") {
-                    NotificationCenter.default.post(name: .dreamJotterExportFountain, object: nil)
-                }
-            }
+            DreamJotterFileCommands()
+            DreamJotterHelpCommands()
         }
+
+        Window("About DreamJotter", id: "about-dreamjotter") {
+            AboutDreamJotterView()
+        }
+        .windowResizability(.contentSize)
+
+        Window("DreamJotter Help", id: "dreamjotter-help") {
+            DreamJotterHelpView()
+        }
+        .defaultSize(width: 760, height: 640)
+
+        Window("Privacy Statement", id: "privacy-statement") {
+            PrivacyStatementView()
+        }
+        .defaultSize(width: 760, height: 560)
+
+        Window("Welcome to DreamJotter", id: "onboarding") {
+            OnboardingView()
+        }
+        .windowResizability(.contentSize)
 
         Settings {
             LocalizationSettingsView()
                 .environmentObject(localizationSettings)
                 .environment(\.locale, localizationSettings.locale)
+        }
+    }
+}
+
+struct DreamJotterFileCommands: Commands {
+    var body: some Commands {
+        CommandGroup(replacing: .newItem) {
+            Button("New Project") {
+                NotificationCenter.default.post(name: .dreamJotterNewProject, object: nil)
+            }
+            .keyboardShortcut("n", modifiers: [.command])
+        }
+
+        CommandGroup(after: .newItem) {
+            Button("Open...") {
+                NotificationCenter.default.post(name: .dreamJotterOpenProject, object: nil)
+            }
+            .keyboardShortcut("o", modifiers: [.command])
+        }
+
+        CommandGroup(replacing: .saveItem) {
+            Button("Save") {
+                NotificationCenter.default.post(name: .dreamJotterSaveProject, object: nil)
+            }
+            .keyboardShortcut("s", modifiers: [.command])
+
+            Button("Save As...") {
+                NotificationCenter.default.post(name: .dreamJotterSaveProjectAs, object: nil)
+            }
+            .keyboardShortcut("s", modifiers: [.command, .shift])
+        }
+
+        CommandMenu("Export") {
+            Button("Export...") {
+                NotificationCenter.default.post(name: .dreamJotterExportFountain, object: nil)
+            }
+            .keyboardShortcut("e", modifiers: [.command, .shift])
+
+            Divider()
+
+            Button("Export Support Diagnostics...") {
+                NotificationCenter.default.post(name: .dreamJotterExportDiagnostics, object: nil)
+            }
+        }
+    }
+}
+
+struct DreamJotterHelpCommands: Commands {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        CommandGroup(replacing: .appInfo) {
+            Button("About DreamJotter") { openWindow(id: "about-dreamjotter") }
+        }
+
+        CommandGroup(replacing: .help) {
+            Button("DreamJotter Help") { openWindow(id: "dreamjotter-help") }
+                .keyboardShortcut("?", modifiers: [.command])
+            Button("Keyboard Shortcuts") { openWindow(id: "dreamjotter-help") }
+            Divider()
+            Button("Privacy Statement") { openWindow(id: "privacy-statement") }
+            Button("Show Welcome") { openWindow(id: "onboarding") }
+            Divider()
+            Button("Export Support Diagnostics...") {
+                NotificationCenter.default.post(name: .dreamJotterExportDiagnostics, object: nil)
+            }
         }
     }
 }
