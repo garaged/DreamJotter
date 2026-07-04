@@ -36,6 +36,8 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
     public let contentLinesPerPage: Int
     public let includeTitlePage: Bool
     public let includePageNumbers: Bool
+    public let includeParagraphNumbers: Bool
+    public let includeLineNumbers: Bool
     public let suppressIdentifyingMetadata: Bool
 
     public init(
@@ -46,6 +48,8 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
         contentLinesPerPage: Int = 54,
         includeTitlePage: Bool = true,
         includePageNumbers: Bool = true,
+        includeParagraphNumbers: Bool = false,
+        includeLineNumbers: Bool = false,
         suppressIdentifyingMetadata: Bool = false
     ) {
         self.pageSize = pageSize
@@ -55,7 +59,38 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
         self.contentLinesPerPage = contentLinesPerPage
         self.includeTitlePage = includeTitlePage
         self.includePageNumbers = includePageNumbers
+        self.includeParagraphNumbers = includeParagraphNumbers
+        self.includeLineNumbers = includeLineNumbers
         self.suppressIdentifyingMetadata = suppressIdentifyingMetadata
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case pageSize
+        case margins
+        case lineHeight
+        case charactersPerBodyLine
+        case contentLinesPerPage
+        case includeTitlePage
+        case includePageNumbers
+        case includeParagraphNumbers
+        case includeLineNumbers
+        case suppressIdentifyingMetadata
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            pageSize: try container.decodeIfPresent(PDFPageSize.self, forKey: .pageSize) ?? .usLetter,
+            margins: try container.decodeIfPresent(PDFPageMargins.self, forKey: .margins) ?? .screenplay,
+            lineHeight: try container.decodeIfPresent(Double.self, forKey: .lineHeight) ?? 12,
+            charactersPerBodyLine: try container.decodeIfPresent(Int.self, forKey: .charactersPerBodyLine) ?? 60,
+            contentLinesPerPage: try container.decodeIfPresent(Int.self, forKey: .contentLinesPerPage) ?? 54,
+            includeTitlePage: try container.decodeIfPresent(Bool.self, forKey: .includeTitlePage) ?? true,
+            includePageNumbers: try container.decodeIfPresent(Bool.self, forKey: .includePageNumbers) ?? true,
+            includeParagraphNumbers: try container.decodeIfPresent(Bool.self, forKey: .includeParagraphNumbers) ?? false,
+            includeLineNumbers: try container.decodeIfPresent(Bool.self, forKey: .includeLineNumbers) ?? false,
+            suppressIdentifyingMetadata: try container.decodeIfPresent(Bool.self, forKey: .suppressIdentifyingMetadata) ?? false
+        )
     }
 
     public static func defaults(for preset: ExportPreset) -> PDFLayoutSettings {
@@ -64,24 +99,32 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
             return PDFLayoutSettings(
                 includeTitlePage: true,
                 includePageNumbers: false,
+                includeParagraphNumbers: false,
+                includeLineNumbers: false,
                 suppressIdentifyingMetadata: false
             )
         case "print-script":
             return PDFLayoutSettings(
                 includeTitlePage: true,
                 includePageNumbers: true,
+                includeParagraphNumbers: true,
+                includeLineNumbers: false,
                 suppressIdentifyingMetadata: false
             )
         case "contest-submission":
             return PDFLayoutSettings(
                 includeTitlePage: false,
                 includePageNumbers: true,
+                includeParagraphNumbers: false,
+                includeLineNumbers: false,
                 suppressIdentifyingMetadata: true
-            )
+           )
         default:
             return PDFLayoutSettings(
                 includeTitlePage: true,
                 includePageNumbers: false,
+                includeParagraphNumbers: false,
+                includeLineNumbers: false,
                 suppressIdentifyingMetadata: !preset.includesInternalIDs
             )
         }
@@ -172,9 +215,7 @@ public struct PDFBlockPlan: Codable, Equatable, Sendable {
         self.keepWithNext = keepWithNext
     }
 
-    public var lineCount: Int {
-        lines.count
-    }
+    public var lineCount: Int { lines.count }
 }
 
 public struct PDFPagePlan: Codable, Equatable, Sendable {
@@ -228,9 +269,7 @@ public struct PDFLayoutPlan: Codable, Equatable, Sendable {
         self.warnings = warnings
     }
 
-    public var contentPages: [PDFPagePlan] {
-        pages.filter { !$0.isTitlePage }
-    }
+    public var contentPages: [PDFPagePlan] { pages.filter { !$0.isTitlePage } }
 
     public func address(pageIndex: Int, blockIndex: Int, lineIndex: Int) -> PDFContentAddress? {
         guard pages.indices.contains(pageIndex) else { return nil }

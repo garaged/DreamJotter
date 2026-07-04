@@ -137,7 +137,16 @@ public enum ProductionPDFRenderer {
                 y -= settings.lineHeight * 0.5
             }
 
-            for line in block.lines {
+            for (lineIndex, line) in block.lines.enumerated() {
+                appendNumbering(
+                    for: block,
+                    line: line,
+                    lineIndex: lineIndex,
+                    y: y,
+                    settings: settings,
+                    commands: &commands,
+                    unsupportedCharacters: &unsupportedCharacters
+                )
                 let style = style(for: block.role, text: line.text, settings: settings)
                 commands.append(textCommand(text: line.text, font: style.font, size: style.fontSize, x: style.x, y: y, unsupportedCharacters: &unsupportedCharacters))
                 y -= settings.lineHeight
@@ -145,6 +154,40 @@ public enum ProductionPDFRenderer {
 
             y -= spacingAfter(block.role, lineHeight: settings.lineHeight)
         }
+    }
+
+    private static func appendNumbering(
+        for block: PDFBlockPlan,
+        line: PDFLinePlan,
+        lineIndex: Int,
+        y: Double,
+        settings: PDFLayoutSettings,
+        commands: inout [String],
+        unsupportedCharacters: inout Set<String>
+    ) {
+        var labels: [String] = []
+        if settings.includeParagraphNumbers,
+           lineIndex == 0,
+           let paragraphNumber = block.paragraphNumber {
+            labels.append("P\(paragraphNumber)")
+        }
+        if settings.includeLineNumbers {
+            labels.append("L\(line.lineNumber)")
+        }
+        guard !labels.isEmpty else { return }
+
+        let label = labels.joined(separator: " · ")
+        let fontSize = 8.0
+        let rightEdge = max(12, settings.margins.left - 8)
+        let x = max(8, rightEdge - estimatedWidth(label, fontSize: fontSize))
+        commands.append(textCommand(
+            text: label,
+            font: .regular,
+            size: fontSize,
+            x: x,
+            y: y,
+            unsupportedCharacters: &unsupportedCharacters
+        ))
     }
 
     private static func style(for role: PDFBlockRole, text: String, settings: PDFLayoutSettings) -> (font: Font, fontSize: Double, x: Double) {

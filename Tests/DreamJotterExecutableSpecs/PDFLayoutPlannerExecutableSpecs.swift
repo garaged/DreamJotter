@@ -78,6 +78,31 @@ struct PDFLayoutPlannerExecutableSpecs {
         #expect(!blocks.flatMap(\.lines).contains { $0.text.contains("private note") })
     }
 
+    @Test("A prose paragraph after dialogue returns to the action column")
+    func proseAfterDialogueUsesActionWidth() throws {
+        let preset = try #require(ExportPresetCatalog.builtInPresets().first { $0.id == "print-script" })
+        let prose = "This paragraph follows completed dialogue and must use the normal screenplay body width instead of remaining trapped in the dialogue column."
+        let project = project(elements: [
+            ScriptElement(kind: .characterCue, text: "TOM"),
+            ScriptElement(kind: .dialogue, text: "We go now."),
+            ScriptElement(kind: .dialogue, text: prose)
+        ])
+        let settings = PDFLayoutSettings(
+            charactersPerBodyLine: 40,
+            includeTitlePage: false,
+            includePageNumbers: true,
+            includeParagraphNumbers: true,
+            includeLineNumbers: false
+        )
+
+        let plan = PDFLayoutPlanner.plan(for: project, preset: preset, settings: settings)
+        let blocks = try #require(plan.contentPages.first?.blocks)
+
+        #expect(blocks.map(\.role) == [.characterCue, .dialogue, .action])
+        #expect(blocks[2].lines.allSatisfy { $0.text.count <= 40 })
+        #expect(blocks[2].lines.contains { $0.text.count > 16 })
+    }
+
     private func project(elements: [ScriptElement]) -> DreamJotterProject {
         DreamJotterProject(
             metadata: ProjectMetadata(
