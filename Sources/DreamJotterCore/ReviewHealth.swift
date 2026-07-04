@@ -177,6 +177,11 @@ public struct ReviewModeState: Codable, Equatable, Sendable {
 }
 
 public enum ScriptHealthReportBuilder {
+    private struct SceneAnalysis {
+        var summary: SceneHealthSummary
+        var hasDialogue: Bool
+    }
+
     public static func report(for project: DreamJotterProject, generatedAt: Date = Date(), lastSavedAt: Date? = nil) -> ScriptHealthReport {
         let unresolvedCharacters = CharacterManager.unresolvedDetectedCharacters(for: project)
         let unresolvedLocations = LocationManager.unresolvedDetectedLocations(for: project)
@@ -191,6 +196,7 @@ public enum ScriptHealthReportBuilder {
             formattingWarnings: formattingWarnings,
             generatedAt: generatedAt
         )
+        let analysis = analyze(project.screenplay)
 
         return ScriptHealthReport(
             id: "script-health-\(project.metadata.id)-\(Int(generatedAt.timeIntervalSince1970))",
@@ -204,57 +210,65 @@ public enum ScriptHealthReportBuilder {
             unresolvedDetectedLocationCount: unresolvedLocations.count,
             openNotesCount: openNotes.count,
             todoCount: todos.count,
-            dialogueActionRatio: dialogueActionRatio(in: project.screenplay),
-            longestScenes: Array(sceneSummaries(in: project.screenplay).sorted { $0.elementCount > $1.elementCount }.prefix(5)),
-            scenesWithoutDialogue: sceneSummariesWithoutDialogue(in: project.screenplay),
+            dialogueActionRatio: analysis.dialogueActionRatio,
+            longestScenes: Array(analysis.scenes.map(\.summary).sorted { $0.elementCount > $1.elementCount }.prefix(5)),
+            scenesWithoutDialogue: analysis.scenes.compactMap { $0.hasDialogue ? nil : $0.summary },
             formattingWarnings: formattingWarnings,
             findings: findings,
             lastSavedAt: lastSavedAt
         )
     }
 
-    private static func dialogueActionRatio(in document: ScreenplayDocument) -> Double {
-        let dialogueCount = document.elements.filter { $0.kind == .dialogue }.count
-        let actionCount = document.elements.filter { $0.kind == .action }.count
-        guard dialogueCount > 0 || actionCount > 0 else { return 0 }
-        return Double(dialogueCount) / Double(max(actionCount, 1))
-    }
-
-    private static func sceneSummariesWithoutDialogue(in document: ScreenplayDocument) -> [SceneHealthSummary] {
-        sceneRuns(in: document).compactMap { run in
-            run.elements.contains(where: { $0.kind == .dialogue }) ? nil : run.summary
-        }
-    }
-
-    private static func sceneSummaries(in document: ScreenplayDocument) -> [SceneHealthSummary] {
-        sceneRuns(in: document).map(\.summary)
-    }
-
-    private static func sceneRuns(in document: ScreenplayDocument) -> [(summary: SceneHealthSummary, elements: [ScriptElement])] {
-        var runs: [(summary: SceneHealthSummary, elements: [ScriptElement])] = []
-        var currentIndex = -1
+    private static func analyze(_ document: ScreenplayDocument) -> (dialogueActionRatio: Double, scenes: [SceneAnalysis]) {
+        var dialogueCount = 0
+        var actionCount = 0
+        var scenes: [SceneAnalysis] = []
+        scenes.reserveCapacity(document.scenes.count)
+        var currentSceneIndex: Int?
 
         for element in document.elements {
-            if element.kind == .sceneHeading {
-                currentIndex += 1
-                let heading = element.text.trimmingCharacters(in: .whitespacesAndNewlines)
-                runs.append((
-                    SceneHealthSummary(sceneID: "scene-\(currentIndex + 1)", heading: heading, elementCount: 0),
-                    []
-                ))
-            } else if currentIndex >= 0 {
-                var run = runs[currentIndex]
-                run.elements.append(element)
-                run.summary = SceneHealthSummary(
-                    sceneID: run.summary.sceneID,
-                    heading: run.summary.heading,
-                    elementCount: run.elements.count
-                )
-                runs[currentIndex] = run
+            switch element.kind {
+            case .dialogue:
+                dialogueCount += 1
+            case .action:
+                actionCount += 1
+            default:
+                break
             }
+
+            if element.kind == .sceneHeading {
+                let sceneIndex = scenes.count
+                scenes.append(SceneAnalysis(
+                    summary: SceneHealthSummary(
+                        sceneID: "scene-\(sceneIndex + 1)",
+                        heading: element.text.trimmingCharacters(in: .whitespacesAndNewlines),
+                        elementCount: 0
+                    ),
+                    hasDialogue: false
+                ))
+                currentSceneIndex = sceneIndex
+                continue
+            }
+
+            guard let currentSceneIndex else { continue }
+            let current = scenes[currentSceneIndex]
+            scenes[currentSceneIndex] = SceneAnalysis(
+                summary: SceneHealthSummary(
+                    sceneID: current.summary.sceneID,
+                    heading: current.summary.heading,
+                    elementCount: current.summary.elementCount + 1
+                ),
+                hasDialogue: current.hasDialogue || element.kind == .dialogue
+            )
         }
 
-        return runs
+        let ratio: Double
+        if dialogueCount == 0, actionCount == 0 {
+            ratio = 0
+        } else {
+            ratio = Double(dialogueCount) / Double(max(actionCount, 1))
+        }
+        return (ratio, scenes)
     }
 }
 
@@ -320,141 +334,53 @@ public enum ReviewFindingBuilder {
     }
 
     private static func sceneHeadingFindings(for document: ScreenplayDocument, generatedAt: Date) -> [ReviewFinding] {
-        document.scenes.enumerated().flatMap { index, scene in
+        document.scenes.flatMap { scene in
             var findings: [ReviewFinding] = []
-            let sceneID = "scene-\(index + 1)"
             if scene.location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                findings.append(ReviewFinding(
-                    id: "finding-scene-missing-location-\(index + 1)",
-                    severity: .warning,
-                    title: "Scene heading missing location",
-                    message: "\(scene.heading) does not include a clear location.",
-                    source: .formatting,
-                    linkedEntityType: .scene,
-                    linkedEntityID: sceneID,
-                    suggestedAction: "Add a location after the scene prefix.",
-                    generatedAt: generatedAt
-                ))
+                findings.append(ReviewFinding(id: "finding-scene-missing-location-\(scene.id)", severity: .warning, title: "Scene heading missing location", message: "\(scene.heading) does not include a clear location.", source: .formatting, linkedEntityType: .scene, linkedEntityID: scene.id, suggestedAction: "Add a location to the scene heading.", generatedAt: generatedAt))
             }
-            if scene.timeOfDay == nil {
-                findings.append(ReviewFinding(
-                    id: "finding-scene-missing-time-\(index + 1)",
-                    severity: .warning,
-                    title: "Scene heading missing time of day",
-                    message: "\(scene.heading) does not include a time of day.",
-                    source: .formatting,
-                    linkedEntityType: .scene,
-                    linkedEntityID: sceneID,
-                    suggestedAction: "Add a time of day such as DAY or NIGHT.",
-                    generatedAt: generatedAt
-                ))
+            if scene.timeOfDay.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                findings.append(ReviewFinding(id: "finding-scene-missing-time-\(scene.id)", severity: .warning, title: "Scene heading missing time of day", message: "\(scene.heading) does not include a time of day.", source: .formatting, linkedEntityType: .scene, linkedEntityID: scene.id, suggestedAction: "Add a time of day to the scene heading.", generatedAt: generatedAt))
             }
             return findings
         }
     }
 
     private static func duplicateSceneHeadingFindings(for document: ScreenplayDocument, generatedAt: Date) -> [ReviewFinding] {
-        var counts: [String: Int] = [:]
-        for scene in document.scenes {
-            counts[TextNormalization.key(for: scene.heading), default: 0] += 1
-        }
-
-        return document.scenes.enumerated().compactMap { index, scene in
-            let key = TextNormalization.key(for: scene.heading)
-            guard (counts[key] ?? 0) > 1 else { return nil }
-            return ReviewFinding(
-                id: "finding-duplicate-scene-heading-\(index + 1)",
-                severity: .info,
-                title: "Duplicate scene heading",
-                message: "\(scene.heading) appears more than once.",
-                source: .formatting,
-                linkedEntityType: .scene,
-                linkedEntityID: "scene-\(index + 1)",
-                suggestedAction: "Confirm the repeated heading is intentional.",
-                generatedAt: generatedAt
-            )
+        let grouped = Dictionary(grouping: document.scenes, by: { TextNormalization.key(for: $0.heading) })
+        return grouped.values.filter { $0.count > 1 }.compactMap { scenes in
+            guard let first = scenes.first else { return nil }
+            return ReviewFinding(id: "finding-duplicate-scene-heading-\(first.id)", severity: .info, title: "Duplicate scene heading", message: "\(first.heading) appears more than once.", source: .formatting, linkedEntityType: .scene, linkedEntityID: first.id, suggestedAction: "Confirm the duplicate heading is intentional.", generatedAt: generatedAt)
         }
     }
 
     private static func characterDialogueFindings(for document: ScreenplayDocument, generatedAt: Date) -> [ReviewFinding] {
         var findings: [ReviewFinding] = []
         for (index, element) in document.elements.enumerated() {
-            switch element.kind {
-            case .characterCue:
-                if !hasFollowingDialogue(after: index, in: document.elements) {
-                    findings.append(ReviewFinding(
-                        id: "finding-character-without-dialogue-\(index + 1)",
-                        severity: .warning,
-                        title: "Character cue without dialogue",
-                        message: "\(element.text) is not followed by dialogue.",
-                        source: .formatting,
-                        linkedEntityType: .screenplayElement,
-                        linkedEntityID: "element-\(index + 1)",
-                        suggestedAction: "Add dialogue or change the line type.",
-                        generatedAt: generatedAt
-                    ))
+            if element.kind == .character {
+                let next = document.elements.indices.contains(index + 1) ? document.elements[index + 1] : nil
+                if next?.kind != .dialogue && next?.kind != .parenthetical {
+                    findings.append(ReviewFinding(id: "finding-character-without-dialogue-\(element.id)", severity: .warning, title: "Character cue without dialogue", message: "\(element.text) is not followed by dialogue.", source: .formatting, linkedEntityType: .screenplayElement, linkedEntityID: element.id, suggestedAction: "Add dialogue or change the element type.", generatedAt: generatedAt))
                 }
-            case .dialogue:
-                if !hasPreviousCharacterCue(before: index, in: document.elements) {
-                    findings.append(ReviewFinding(
-                        id: "finding-dialogue-without-character-\(index + 1)",
-                        severity: .warning,
-                        title: "Dialogue without a character cue",
-                        message: "A dialogue line appears without a clear speaker.",
-                        source: .formatting,
-                        linkedEntityType: .screenplayElement,
-                        linkedEntityID: "element-\(index + 1)",
-                        suggestedAction: "Add a character cue before this dialogue.",
-                        generatedAt: generatedAt
-                    ))
+            } else if element.kind == .dialogue {
+                let previous = index > 0 ? document.elements[index - 1] : nil
+                if previous?.kind != .character && previous?.kind != .parenthetical && previous?.kind != .dialogue {
+                    findings.append(ReviewFinding(id: "finding-dialogue-without-character-\(element.id)", severity: .warning, title: "Dialogue without a character cue", message: "A dialogue line appears without a clear speaker.", source: .formatting, linkedEntityType: .screenplayElement, linkedEntityID: element.id, suggestedAction: "Add a character cue before the dialogue.", generatedAt: generatedAt))
                 }
-            default:
-                break
             }
         }
         return findings
     }
-
-    private static func hasFollowingDialogue(after index: Int, in elements: [ScriptElement]) -> Bool {
-        var nextIndex = index + 1
-        while nextIndex < elements.count {
-            let kind = elements[nextIndex].kind
-            if kind == .parenthetical {
-                nextIndex += 1
-                continue
-            }
-            return kind == .dialogue
-        }
-        return false
-    }
-
-    private static func hasPreviousCharacterCue(before index: Int, in elements: [ScriptElement]) -> Bool {
-        var previousIndex = index - 1
-        while previousIndex >= 0 {
-            let kind = elements[previousIndex].kind
-            if kind == .parenthetical || kind == .dialogue {
-                previousIndex -= 1
-                continue
-            }
-            return kind == .characterCue
-        }
-        return false
-    }
 }
 
-private extension NoteTargetKind {
+private extension NoteLinkTargetKind {
     var reviewLinkedEntityType: ReviewLinkedEntityType {
         switch self {
-        case .project:
-            return .project
-        case .scene:
-            return .scene
-        case .character:
-            return .character
-        case .location:
-            return .location
-        case .screenplayElement:
-            return .screenplayElement
+        case .project: .project
+        case .scene: .scene
+        case .character: .character
+        case .location: .location
+        case .screenplayElement: .screenplayElement
         }
     }
 }
