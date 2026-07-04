@@ -91,7 +91,7 @@ public enum CharacterCueEngine {
         var seen: Set<String> = []
 
         return characters.compactMap { rawName in
-            let displayName = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
+            let displayName = baseCharacterName(rawName)
             let key = normalizedKey(displayName)
             guard !displayName.isEmpty,
                   !excluded.contains(key),
@@ -142,11 +142,21 @@ public enum CharacterCueEngine {
     private static func normalizedNames(_ names: [String]) -> [String] {
         var seen: Set<String> = []
         return names.compactMap { value in
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmed = baseCharacterName(value)
             let key = normalizedKey(trimmed)
             guard !trimmed.isEmpty, seen.insert(key).inserted else { return nil }
             return trimmed
         }
+    }
+
+    private static func baseCharacterName(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let regex = try? NSRegularExpression(pattern: #"\s*\([^\n()]*\)\s*$"#) else {
+            return trimmed
+        }
+        let range = NSRange(location: 0, length: (trimmed as NSString).length)
+        return regex.stringByReplacingMatches(in: trimmed, range: range, withTemplate: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static func normalizedKey(_ value: String) -> String {
