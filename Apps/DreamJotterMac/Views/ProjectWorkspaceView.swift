@@ -100,27 +100,13 @@ struct ProjectWorkspaceView: View {
             }
         case .characters:
             ScrollView {
-                CharacterListView(
-                    characters: document.project.characters,
-                    unresolvedDetectedCharacters: document.unresolvedDetectedCharacters,
-                    createAction: { name, note in document.createCharacterProfile(name: name, note: note) },
-                    updateAction: { character, name, note in document.updateCharacterProfile(character, name: name, note: note) },
-                    deleteAction: { character in document.removeStoredProfile(id: character.id, kind: .character) },
-                    convertAction: { detection in document.convertDetectedCharacterToProfile(detection) },
-                    ignoreAction: { detection in document.ignoreDetectedCharacter(detection) }
-                ).padding()
+                OptimizedCharacterPane(document: $document)
+                    .padding()
             }
         case .locations:
             ScrollView {
-                LocationListView(
-                    locations: document.project.locations,
-                    unresolvedDetectedLocations: document.unresolvedDetectedLocations,
-                    createAction: { name, note in document.createLocationProfile(name: name, note: note) },
-                    updateAction: { location, name, note in document.updateLocationProfile(location, name: name, note: note) },
-                    deleteAction: { location in document.removeStoredProfile(id: location.id, kind: .location) },
-                    convertAction: { detection in document.convertDetectedLocationToProfile(detection) },
-                    ignoreAction: { detection in document.ignoreDetectedLocation(detection) }
-                ).padding()
+                OptimizedLocationPane(document: $document)
+                    .padding()
             }
         case .notes:
             ScrollView {
