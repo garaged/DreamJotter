@@ -19,7 +19,7 @@ public struct ScreenplayDocument: Codable, Equatable, Sendable {
     }
 }
 
-public enum ScreenplayParagraphType: String, Codable, Equatable, CaseIterable, Sendable {
+public enum ScreenplayParagraphType: String, Codable, Equatable, Hashable, CaseIterable, Sendable {
     case sceneHeading
     case action
     case characterCue
