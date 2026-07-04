@@ -205,7 +205,11 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
                 guard let self, let textView else { return }
                 let afterText = self.text.wrappedValue
                 guard beforeText != afterText else { return }
-                textView.undoManager?.registerUndo(withTarget: self) { target in target.restore(text: beforeText, selection: beforeSelection, actionName: name) }
+                textView.undoManager?.registerUndo(withTarget: self) { target in
+                    MainActor.assumeIsolated {
+                        target.restore(text: beforeText, selection: beforeSelection, actionName: name)
+                    }
+                }
                 textView.undoManager?.setActionName(name)
             }
             return true
@@ -214,7 +218,11 @@ struct TextKitScreenplayEditorView: NSViewRepresentable {
         private func restore(text restoredText: String, selection: NSRange, actionName: String) {
             let currentText = text.wrappedValue
             let currentSelection = selectedRange
-            textView?.undoManager?.registerUndo(withTarget: self) { target in target.restore(text: currentText, selection: currentSelection, actionName: actionName) }
+            textView?.undoManager?.registerUndo(withTarget: self) { target in
+                MainActor.assumeIsolated {
+                    target.restore(text: currentText, selection: currentSelection, actionName: actionName)
+                }
+            }
             textView?.undoManager?.setActionName(actionName)
             text.wrappedValue = restoredText
             selectedRange = TextKitScreenplayEditorView.graphemeSafeRange(selection, in: restoredText)
