@@ -4,7 +4,11 @@ struct DocumentPackageIdentity: Hashable, Sendable {
     let canonicalURL: URL
     let observedFileResourceIdentifier: String?
 
-    init(url: URL, fileManager: FileManager = .default) {
+    init(url: URL) {
+        self.init(url: url, fileManager: .default)
+    }
+
+    init(url: URL, fileManager: FileManager) {
         let fileURL = url.isFileURL ? url : URL(fileURLWithPath: url.path, isDirectory: true)
         let canonicalURL = fileURL
             .standardizedFileURL
