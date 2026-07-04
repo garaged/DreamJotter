@@ -36,7 +36,7 @@ struct ExportPresetPresentationTests {
         #expect(state.selectedFormat == .pdf)
     }
 
-    @Test("Initial Review export state prefers fully numbered Print Script PDF")
+    @Test("Initial Review export state prefers page and paragraph numbered Print Script PDF")
     func reviewStatePrefersNumberedPrintPreset() throws {
         let state = ExportUIState.initial(sourceContext: .reviewMode)
         let preset = try #require(state.selectedPreset(in: ExportPresetCatalog.builtInPresets()))
@@ -45,6 +45,6 @@ struct ExportPresetPresentationTests {
         #expect(state.selectedFormat == .pdf)
         #expect(settings.includePageNumbers)
         #expect(settings.includeParagraphNumbers)
-        #expect(settings.includeLineNumbers)
+        #expect(!settings.includeLineNumbers)
     }
 }
