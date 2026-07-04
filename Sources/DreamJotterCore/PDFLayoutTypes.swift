@@ -108,7 +108,7 @@ public struct PDFLayoutSettings: Codable, Equatable, Sendable {
                 includeTitlePage: true,
                 includePageNumbers: true,
                 includeParagraphNumbers: true,
-                includeLineNumbers: true,
+                includeLineNumbers: false,
                 suppressIdentifyingMetadata: false
             )
         case "contest-submission":
