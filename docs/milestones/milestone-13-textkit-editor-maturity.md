@@ -1,52 +1,60 @@
 # Milestone 13 — TextKit Editor Maturity
 
-Status: implemented pending build, automated, accessibility, and manual acceptance validation.
+Status: implementation complete. Manual editor, persistence, accessibility, appearance, compatibility, and stress validation passed on 2026-07-04. Automated build and test results are tracked separately.
 
 ## Goal
 
-Make the TextKit screenplay surface behave like a dependable native writing editor without moving canonical screenplay state into AppKit. Plain screenplay text and semantic project data remain authoritative; `NSTextView`, attributed styling, selection, and undo state remain adapter concerns.
+Make the TextKit screenplay editor behave like a dependable native writing surface while keeping plain screenplay text and semantic project data authoritative.
 
-## M13.1 Undo and command consistency
+## Implemented scope
 
-- Keep native typing undo and redo through `NSTextView`.
-- Treat Smart Enter and element-kind cycling as named, atomic undo commands.
-- Restore both text and grapheme-safe selection when undoing or redoing semantic editor commands.
-- Treat one invoked semantic command as one command boundary, even when parsing changes multiple screenplay elements.
-- Do not serialize undo history. Saving must not clear the live window's undo manager; reopening creates a fresh editor session with empty undo history.
+### Undo and commands
 
-## M13.2 Selection and formatting reliability
+Native typing undo/redo, Smart Enter, Tab type cycling, paste, cut, deletion, autocomplete, cursor restoration, and multi-element semantic edits use the expected undo boundaries. Saving preserves the current window's live undo history. Reopening starts a fresh session, and undo history is never serialized.
 
-- Clamp external and parser-driven selections to complete Unicode grapheme clusters.
-- Preserve multi-line ranges and expand partial composed-character ranges safely.
-- Normalize pasted CRLF, CR, Unicode line separators, paragraph separators, and non-breaking spaces to canonical screenplay text.
-- Copy and cut non-empty selections as complete paragraph-based screenplay blocks.
-- Style scene headings, cues, dialogue, parentheticals, transitions, and note references without changing canonical text.
-- Preserve the selection through parser refreshes and navigation requests.
-- Autocomplete acceptance must publish a navigation request so the TextKit adapter restores the intended cursor.
+### Selection and formatting
 
-## M13.3 Diagnostics and accessibility
+Selections remain grapheme-safe across accented text, emoji, parser refreshes, navigation, partial lines, full lines, multi-line ranges, large selections, and select-all. Paste normalization and paragraph-based copy/cut remain canonical.
 
-- Expose the editor as an accessibility text area.
-- Publish the current screenplay element type as accessibility custom content and help text.
-- Keep suggestion actions accessible by descriptive labels and native keyboard focus.
-- Scene headings, character cues, dialogue, parentheticals, transitions, and notes must have meaningful spoken element descriptions.
-- Use semantic system colors and system font sizing so increased contrast and system text settings remain usable.
-- Keep localized empty-script guidance visible without intercepting editor input.
+### Accessibility and appearance
 
-## M13.4 Consolidation decision
+The editor exposes a text-area role and meaningful element descriptions for scene headings, character cues, dialogue, parentheticals, transitions, and notes. Suggestions and warnings are keyboard reachable and VoiceOver readable. Increased Contrast, larger system text, light and dark appearance, and empty-script onboarding passed validation.
 
-Retain the SwiftUI `TextEditor` fallback as a documented recovery and compatibility mode for Milestone 13. It is not the default editor and must not receive screenplay-specific feature development. Remove it only after VoiceOver, input-method, large-document, undo/redo, and field-testing acceptance passes on supported macOS versions.
+### Compatibility
 
-See `docs/editor/m13-textkit-consolidation-decision.md`.
+The SwiftUI `TextEditor` remains a recovery-only fallback. Switching editors preserves canonical editable text. TextKit passed accented composition, marked-text/input-method behavior, large-screenplay use, prolonged sessions, large selections, repeated parser refreshes, and field testing on supported macOS versions used for M13 acceptance.
 
-## Acceptance gate
+### Paragraph type engine
 
-M13 is accepted when:
+Editor styling, semantic parsing, and PDF layout share deterministic paragraph boundaries and explicit-marker precedence. Ambiguous prose defaults to Action, completed dialogue cannot leak into later prose, and mixed newline forms remain stable.
 
-1. All M13 automated tests pass on macOS 14 and the current development macOS/Xcode toolchain.
-2. Manual undo/redo checks pass for typing, Smart Enter, Tab cycling, paste, cut, autocomplete, and multi-element edits.
-3. Unicode selection checks pass with accented Latin text and multi-scalar emoji.
-4. VoiceOver identifies the editor and current screenplay element type.
-5. Increased Contrast and larger system text checks remain legible.
-6. Save leaves current-session undo behavior intact, while reopen starts a fresh undo session.
-7. The compatibility editor decision is reflected in user-facing and architecture documentation.
+### Formatting guide
+
+The paragraph inspector provides syntax, examples, concise guidance, and selected-type “How to use this type” help, including novice distinctions such as Action versus Dialogue, Synopsis versus Action, and Shot or Page Break versus normal layout.
+
+### Character cues and autocomplete
+
+Unicode names, combined cues, active-segment replacement, case/accent-insensitive matching, deterministic ranking, keyboard acceptance, and accessible selection are implemented. Empty paragraphs do not trigger character suggestions, and exact completed matches are suppressed.
+
+## Manual acceptance record
+
+The project owner confirmed all of the following as tested and working:
+
+- typing undo/redo;
+- Smart Enter and Tab cycling as named undo steps;
+- paste, cut, delete, redo, and multi-element semantic edits;
+- partial-line, full-line, multi-line, large, and select-all behavior;
+- accented names and multi-scalar emoji;
+- autocomplete for headings, cues, transitions, and parentheticals;
+- cursor stability after parser refresh;
+- TextEditor recovery mode;
+- save/undo/redo/reopen lifecycle and nonserialized undo history;
+- VoiceOver roles, element announcements, suggestion navigation, and warning labels;
+- Increased Contrast, larger system text, light/dark appearance, and nonintercepting onboarding;
+- accented composition, input methods, large screenplays, prolonged editing, repeated refreshes, and supported-macOS field testing.
+
+Manual acceptance is closed. See `docs/acceptance/m13-manual-checklist.md` for the checked record.
+
+## Remaining release evidence
+
+Only automated build and test results remain to be recorded independently before final milestone closure.

@@ -30,12 +30,11 @@ public enum ScreenplayParagraphTypeControl {
     ]
 
     public static func selection(in text: String, cursorLocation: Int) -> ScreenplayParagraphSelection {
-        let range = paragraphRange(in: text, cursorLocation: cursorLocation)
-        let source = substring(in: text, range: range)
+        let paragraph = ScreenplayParagraphTypeEngine.paragraph(in: text, at: cursorLocation)
         return ScreenplayParagraphSelection(
-            type: paragraphType(for: source),
-            textRange: range,
-            sourceText: source
+            type: paragraph.type,
+            textRange: paragraph.textRange,
+            sourceText: paragraph.sourceText
         )
     }
 
@@ -59,58 +58,27 @@ public enum ScreenplayParagraphTypeControl {
     }
 
     public static func paragraphType(for sourceText: String) -> ScreenplayParagraphType {
-        let trimmed = sourceText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return .unknown }
-
-        if trimmed == "===" { return .pageBreak }
-        if trimmed.hasPrefix("[["), trimmed.hasSuffix("]]" ) { return .note }
-        if trimmed.hasPrefix("%%") { return .montage }
-        if trimmed.hasPrefix("!!") { return .shot }
-        if trimmed.hasPrefix("+") { return .characterIntroduction }
-        if trimmed.hasPrefix(":") { return .dialogue }
-        if trimmed.hasPrefix("@") { return .characterCue }
-        if trimmed.hasPrefix(">") { return .transition }
-        if trimmed.hasPrefix("#") { return .section }
-        if trimmed.hasPrefix("=") { return .synopsis }
-        if trimmed.hasPrefix("!") { return .action }
-        if trimmed.hasPrefix(".") { return .sceneHeading }
-        if trimmed.hasPrefix("("), trimmed.hasSuffix(")") { return .parenthetical }
-
-        let parsed = ScreenplayParser.parse(trimmed)
-        return parsed.elements.first?.paragraphType ?? .unknown
+        ScreenplayParagraphTypeEngine.type(for: sourceText)
     }
 
     public static func sourceText(_ sourceText: String, markedAs type: ScreenplayParagraphType) -> String {
         let plain = plainText(sourceText)
         switch type {
-        case .sceneHeading:
-            return ". \(plain)"
-        case .action:
-            return "! \(plain)"
-        case .characterIntroduction:
-            return "+ \(plain)"
-        case .characterCue:
-            return "@\(plain.uppercased())"
-        case .dialogue:
-            return ": \(plain)"
+        case .sceneHeading: return ". \(plain)"
+        case .action: return "! \(plain)"
+        case .characterIntroduction: return "+ \(plain)"
+        case .characterCue: return "@\(plain.uppercased())"
+        case .dialogue: return ": \(plain)"
         case .parenthetical:
             return "(\(plain.trimmingCharacters(in: CharacterSet(charactersIn: "()"))))"
-        case .transition:
-            return "> \(plain.uppercased())"
-        case .shot:
-            return "!! \(plain.uppercased())"
-        case .section:
-            return "# \(plain)"
-        case .synopsis:
-            return "= \(plain)"
-        case .montage:
-            return "%% \(plain)"
-        case .note:
-            return "[[\(plain)]]"
-        case .pageBreak:
-            return "==="
-        case .titlePage, .unknown:
-            return plain
+        case .transition: return "> \(plain.uppercased())"
+        case .shot: return "!! \(plain.uppercased())"
+        case .section: return "# \(plain)"
+        case .synopsis: return "= \(plain)"
+        case .montage: return "%% \(plain)"
+        case .note: return "[[\(plain)]]"
+        case .pageBreak: return "==="
+        case .titlePage, .unknown: return plain
         }
     }
 
@@ -139,9 +107,9 @@ public enum ScreenplayParagraphTypeControl {
         case .sceneHeading: "Starts a scene and uses slugline formatting."
         case .action: "Full-width visual action or description."
         case .characterIntroduction: "Full-width action that introduces a character."
-        case .characterCue: "Names the speaker for the following dialogue block."
-        case .dialogue: "Spoken text in the dialogue column."
-        case .parenthetical: "A brief performance direction inside dialogue."
+        case .characterCue: "Names the speaker for the following contiguous dialogue block."
+        case .dialogue: "Spoken text in the dialogue column. A blank line ends the dialogue block."
+        case .parenthetical: "A brief performance direction inside a dialogue block."
         case .transition: "A right-aligned editorial transition."
         case .shot: "A camera or shot instruction."
         case .section: "A structural script section heading."
@@ -152,42 +120,6 @@ public enum ScreenplayParagraphTypeControl {
         case .titlePage: "Title-page metadata."
         case .unknown: "Text whose semantic type is not yet known."
         }
-    }
-
-    private static func paragraphRange(in text: String, cursorLocation: Int) -> EditorTextRange {
-        let source = text as NSString
-        let safeLocation = min(max(0, cursorLocation), source.length)
-        var start = safeLocation
-        var end = safeLocation
-
-        while start > 0 {
-            let searchRange = NSRange(location: 0, length: start)
-            let separator = source.range(of: "\n\n", options: .backwards, range: searchRange)
-            if separator.location == NSNotFound {
-                start = 0
-            } else {
-                start = separator.location + separator.length
-            }
-            break
-        }
-
-        if end < source.length {
-            let separator = source.range(
-                of: "\n\n",
-                options: [],
-                range: NSRange(location: end, length: source.length - end)
-            )
-            end = separator.location == NSNotFound ? source.length : separator.location
-        }
-
-        return EditorTextRange(location: start, length: max(0, end - start))
-    }
-
-    private static func substring(in text: String, range: EditorTextRange) -> String {
-        let source = text as NSString
-        let safeLocation = min(range.location, source.length)
-        let safeLength = min(range.length, source.length - safeLocation)
-        return source.substring(with: NSRange(location: safeLocation, length: safeLength))
     }
 
     private static func plainText(_ sourceText: String) -> String {

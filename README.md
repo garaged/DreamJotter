@@ -31,23 +31,24 @@ For complete setup, architecture-specific builds, testing, localization validati
 
 ## Current Status
 
-Milestones 1 through 11 are implemented or accepted. All five Milestone 12 slices are implemented on the current development branch and remain pending local build, automated test, accessibility, native-speaker, and manual acceptance results before merge.
+Milestones 1 through 11 are implemented or accepted. Milestone 12 writer workflow and localization work is merged. Milestone 13 TextKit editor maturity is implemented and merged, with final local macOS, accessibility, input-method, large-script, save/reopen, and manual undo/redo validation still required before formal acceptance.
 
-Milestone 12 includes:
+Milestone 13 includes:
 
-- M12.1 character and location profile management
-- M12.2 notes and TODO workspace
-- M12.3 scene workflow polish
-- M12.4 English and Spanish screenplay-language support
-- M12.5 complete Mexican and Latin American Spanish UI localization
-- Unicode-aware search across Characters, Locations, Scenes, Notes, Script, and Review
-- Direct navigation between planning, findings, linked notes, and script locations
+- native undo/redo command grouping for Smart Enter and element-type changes
+- grapheme-safe cursor and selection restoration
+- normalized paste behavior and semantic paragraph copy/cut
+- stable cursor behavior across parser refresh and navigation
+- expanded screenplay line styling and explicit paragraph semantics
+- current screenplay element accessibility exposure
+- retained `TextEditor` recovery/compatibility mode pending full acceptance evidence
 
-Specifications:
+Specifications and acceptance records:
 
 ```text
-docs/specs/writer-workflow/m12-localization-spanish.spec.md
-docs/specs/writer-workflow/m12-full-ui-localization.spec.md
+docs/milestones/milestone-13-textkit-editor-maturity.md
+docs/acceptance/milestone-13-acceptance.md
+docs/editor/m13-textkit-consolidation-decision.md
 ```
 
 ## Architecture
@@ -127,7 +128,6 @@ arm64 x86_64
 ```sh
 python3 scripts/normalize-spanish-copy
 python3 scripts/localization-check
-
 CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache \
 swift test \
   --filter LocalizationResourceTests \
