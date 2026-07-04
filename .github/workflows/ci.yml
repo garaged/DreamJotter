@@ -17,7 +17,7 @@ permissions:
 jobs:
   specification:
     name: Specification integrity
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 10
     steps:
       - name: Check out source
@@ -46,16 +46,20 @@ jobs:
 
   test:
     name: Swift tests and package fixtures
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Record toolchain
+      - name: Require Swift 6 toolchain
         run: |
           swift --version | tee swift-version.log
           xcodebuild -version | tee xcode-version.log
+          swift --version | grep -Eq 'Swift version 6\.' || {
+            echo 'DreamJotter requires Swift 6.x.' >&2
+            exit 1
+          }
 
       - name: Run test suite
         run: |
@@ -78,11 +82,20 @@ jobs:
 
   release-build:
     name: DreamJotterMac release build
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+
+      - name: Require Swift 6 toolchain
+        run: |
+          swift --version | tee swift-version.log
+          xcodebuild -version | tee xcode-version.log
+          swift --version | grep -Eq 'Swift version 6\.' || {
+            echo 'DreamJotter requires Swift 6.x.' >&2
+            exit 1
+          }
 
       - name: Validate packaging scripts
         run: |
@@ -99,7 +112,7 @@ jobs:
         if: always()
         run: |
           mkdir -p ci-artifacts
-          cp release-build.log ci-artifacts/ 2>/dev/null || true
+          cp swift-version.log xcode-version.log release-build.log ci-artifacts/ 2>/dev/null || true
           swift package describe > ci-artifacts/package-description.txt 2>&1 || true
           find .build -maxdepth 4 -type f \( -name '*.dia' -o -name '*.json' \) -print > ci-artifacts/build-files.txt 2>&1 || true
 
