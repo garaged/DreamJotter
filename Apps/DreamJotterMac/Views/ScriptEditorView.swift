@@ -13,6 +13,8 @@ struct ScriptEditorView: View {
     @State private var editorAdapter: ScreenplayEditorAdapter = .textKit
     @State private var searchText = ""
     @State private var selectedMatchIndex = 0
+    @State private var suggestions: [EditorSuggestion] = []
+    @State private var selectedSuggestionIndex = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -29,16 +31,30 @@ struct ScriptEditorView: View {
                 }
 
             SuggestionsPanel(
-                suggestions: document.editorSuggestions,
-                acceptAction: { suggestion in
-                    document.acceptEditorSuggestionRespectingLanguage(suggestion)
-                },
-                ignoreAction: {
-                    document.ignoreEditorSuggestions()
-                }
+                suggestions: suggestions,
+                selectedIndex: selectedSuggestionIndex,
+                acceptAction: acceptSuggestion,
+                ignoreAction: clearSuggestions
             )
         }
         .padding()
+        .onKeyPress(.downArrow) {
+            moveSuggestionSelection(by: 1) ? .handled : .ignored
+        }
+        .onKeyPress(.upArrow) {
+            moveSuggestionSelection(by: -1) ? .handled : .ignored
+        }
+        .onKeyPress(.return) {
+            acceptSelectedSuggestion() ? .handled : .ignored
+        }
+        .onKeyPress(.tab) {
+            acceptSelectedSuggestion() ? .handled : .ignored
+        }
+        .onKeyPress(.escape) {
+            guard !suggestions.isEmpty else { return .ignored }
+            clearSuggestions()
+            return .handled
+        }
         .onChange(of: searchText) { _, _ in
             selectedMatchIndex = 0
             navigateToSelectedMatch()
@@ -117,19 +133,21 @@ struct ScriptEditorView: View {
             ), navigationState: document.editorNavigationState,
             styleRuns: ScreenplayParagraphTypeControl.styleRuns(in: document.scriptText),
             onSmartEnter: { location in
-                document.performSmartEnterRespectingLanguage(at: location)
-                document.refreshEditorSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)
+                if !acceptSelectedSuggestion() {
+                    document.performSmartEnterRespectingLanguage(at: location)
+                    refreshSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)
+                }
             },
             onTabCycle: { location in
-                document.performTabCycleRespectingLanguage(at: location)
-                document.refreshEditorSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)
+                if !acceptSelectedSuggestion() {
+                    document.performTabCycleRespectingLanguage(at: location)
+                    refreshSuggestions(cursorLocation: document.editorNavigationState.cursorTextRange?.location ?? location)
+                }
             },
-            onTextChanged: { location in
-                document.refreshEditorSuggestions(cursorLocation: location)
-            },
+            onTextChanged: refreshSuggestions,
             onSelectionChanged: { location in
                 document.updateSelectedSceneForCursor(location: location)
-                document.refreshEditorSuggestions(cursorLocation: location)
+                refreshSuggestions(cursorLocation: location)
             },
             onNavigationApplied: {
                 document.clearEditorNavigationRequest()
@@ -140,7 +158,7 @@ struct ScriptEditorView: View {
                 get: { document.scriptText },
                 set: {
                     document.updateScriptTextRespectingLanguage($0)
-                    document.refreshEditorSuggestions(cursorLocation: (document.scriptText as NSString).length)
+                    refreshSuggestions(cursorLocation: (document.scriptText as NSString).length)
                 }
             ))
             .font(.system(.body, design: .monospaced))
@@ -149,6 +167,77 @@ struct ScriptEditorView: View {
             .background(Color(nsColor: .textBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
+    }
+
+    private func refreshSuggestions(cursorLocation: Int) {
+        let currentLine = EditorUsabilityService.currentLine(
+            in: document.scriptText,
+            cursorLocation: cursorLocation
+        )
+        let lineStart = currentLine.range.location
+        let lineLength = (currentLine.text as NSString).length
+        let safeCursor = min(max(cursorLocation, lineStart), lineStart + lineLength)
+        let prefixLength = safeCursor - lineStart
+        let prefix = (currentLine.text as NSString).substring(
+            with: NSRange(location: 0, length: prefixLength)
+        )
+        let trimmed = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if isSceneHeadingDraft(trimmed) {
+            suggestions = document.sceneHeadingSuggestions(
+                prefix: prefix,
+                replacementRange: EditorTextRange(location: lineStart, length: prefixLength)
+            )
+        } else {
+            let context = CharacterCueEngine.suggestionContext(
+                in: currentLine.text,
+                lineStart: lineStart,
+                cursorLocation: safeCursor
+            )
+            suggestions = CharacterCueEngine.suggestions(
+                context: context,
+                characters: document.characters.map(\.displayName)
+            )
+        }
+        selectedSuggestionIndex = min(selectedSuggestionIndex, max(suggestions.count - 1, 0))
+    }
+
+    private func isSceneHeadingDraft(_ text: String) -> Bool {
+        let uppercased = text.uppercased()
+        return uppercased.hasPrefix("INT.")
+            || uppercased.hasPrefix("EXT.")
+            || uppercased.hasPrefix("INT./EXT.")
+            || uppercased.hasPrefix("EXT./INT.")
+            || uppercased.hasPrefix("I/E.")
+    }
+
+    private func moveSuggestionSelection(by offset: Int) -> Bool {
+        guard !suggestions.isEmpty else { return false }
+        selectedSuggestionIndex = (
+            selectedSuggestionIndex + offset + suggestions.count
+        ) % suggestions.count
+        return true
+    }
+
+    private func acceptSelectedSuggestion() -> Bool {
+        guard suggestions.indices.contains(selectedSuggestionIndex) else { return false }
+        acceptSuggestion(suggestions[selectedSuggestionIndex])
+        return true
+    }
+
+    private func acceptSuggestion(_ suggestion: EditorSuggestion) {
+        document.acceptEditorSuggestionRespectingLanguage(suggestion)
+        document.requestNavigation(toTextRange: EditorTextRange(
+            location: suggestion.textRange.location + (suggestion.replacementText as NSString).length,
+            length: 0
+        ))
+        clearSuggestions()
+    }
+
+    private func clearSuggestions() {
+        suggestions = []
+        selectedSuggestionIndex = 0
+        document.ignoreEditorSuggestions()
     }
 
     private var matches: [EditorTextRange] {
@@ -203,6 +292,7 @@ struct ScriptEditorView: View {
 
 private struct SuggestionsPanel: View {
     let suggestions: [EditorSuggestion]
+    let selectedIndex: Int
     let acceptAction: (EditorSuggestion) -> Void
     let ignoreAction: () -> Void
 
@@ -213,6 +303,9 @@ private struct SuggestionsPanel: View {
                     Text("Suggestions")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
+                    Text("↑↓ select • Return or Tab accept • Esc dismiss")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                     Spacer()
                     Button("Ignore") { ignoreAction() }
                         .buttonStyle(.borderless)
@@ -220,7 +313,7 @@ private struct SuggestionsPanel: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
-                        ForEach(suggestions, id: \.id) { suggestion in
+                        ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, suggestion in
                             Button { acceptAction(suggestion) } label: {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(suggestion.displayText)
@@ -231,8 +324,11 @@ private struct SuggestionsPanel: View {
                                 }
                                 .padding(.vertical, 4)
                                 .padding(.horizontal, 8)
+                                .background(index == selectedIndex ? Color.accentColor.opacity(0.16) : Color.clear)
+                                .clipShape(RoundedRectangle(cornerRadius: 5))
                             }
                             .accessibilityLabel(String(format: String(localized: "Accept suggestion: %@"), suggestion.displayText))
+                            .accessibilityValue(index == selectedIndex ? String(localized: "Selected") : "")
                         }
                     }
                 }
