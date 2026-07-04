@@ -19,7 +19,10 @@ extension ProjectDocumentViewModel {
             with: type
         )
         updateScriptTextRespectingLanguage(replacement.text)
-        requestEditorCursorNavigation(to: replacement.cursorLocation)
+        requestNavigation(toTextRange: EditorTextRange(
+            location: replacement.cursorLocation,
+            length: 0
+        ))
         refreshEditorSuggestions(cursorLocation: replacement.cursorLocation)
     }
 }
