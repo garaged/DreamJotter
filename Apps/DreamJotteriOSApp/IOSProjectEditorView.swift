@@ -5,6 +5,7 @@ import SwiftUI
 struct IOSProjectEditorView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @State private var project: DreamJotterProject
     @State private var generation: IOSPackageGeneration
@@ -28,7 +29,7 @@ struct IOSProjectEditorView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
+            ZStack(alignment: .bottom) {
                 IOSNativeTextKitEditor(
                     session: $session,
                     formattingRange: formattingWindow.range,
@@ -43,18 +44,35 @@ struct IOSProjectEditorView: View {
 
                 IOSAutocompletePanel(
                     state: autocomplete,
+                    compact: horizontalSizeClass == .compact,
                     accept: acceptSuggestion,
                     dismiss: { _ = dismissSuggestions() }
                 )
+                .padding(.horizontal, horizontalSizeClass == .compact ? 8 : 16)
+                .padding(.bottom, 8)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+            .animation(.snappy(duration: 0.2), value: autocomplete.isPresented)
             .navigationTitle(project.metadata.title)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Documents") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Label("Documents", systemImage: "chevron.backward")
+                    }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button("Smart Enter", action: performSmartEnter)
-                    Button("Format", action: performFormatCycle)
+                    Button(action: performSmartEnter) {
+                        Image(systemName: "return")
+                    }
+                    .accessibilityLabel("Smart Enter")
+
+                    Button(action: performFormatCycle) {
+                        Image(systemName: "textformat")
+                    }
+                    .accessibilityLabel("Change screenplay element format")
                 }
             }
         }
