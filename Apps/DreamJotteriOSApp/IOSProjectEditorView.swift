@@ -174,8 +174,11 @@ struct IOSProjectEditorView: View {
             Button {
                 dismiss()
             } label: {
-                Label("Documents", systemImage: "chevron.backward")
-                    .labelStyle(metrics.showsCommandLabels ? .titleAndIcon : .iconOnly)
+                adaptiveLabel(
+                    title: "Documents",
+                    systemImage: "chevron.backward",
+                    showsTitle: metrics.showsCommandLabels
+                )
             }
             .frame(minWidth: 44, minHeight: 44)
             .accessibilityHint("Returns to the document browser")
@@ -183,18 +186,38 @@ struct IOSProjectEditorView: View {
 
         ToolbarItemGroup(placement: .topBarTrailing) {
             Button(action: performSmartEnter) {
-                Label("Smart Enter", systemImage: "return")
-                    .labelStyle(metrics.showsCommandLabels ? .titleAndIcon : .iconOnly)
+                adaptiveLabel(
+                    title: "Smart Enter",
+                    systemImage: "return",
+                    showsTitle: metrics.showsCommandLabels
+                )
             }
             .frame(minWidth: 44, minHeight: 44)
             .accessibilityHint("Creates the next appropriate screenplay element")
 
             Button(action: performFormatCycle) {
-                Label("Format", systemImage: "textformat")
-                    .labelStyle(metrics.showsCommandLabels ? .titleAndIcon : .iconOnly)
+                adaptiveLabel(
+                    title: "Format",
+                    systemImage: "textformat",
+                    showsTitle: metrics.showsCommandLabels
+                )
             }
             .frame(minWidth: 44, minHeight: 44)
             .accessibilityHint("Changes the current screenplay element type")
+        }
+    }
+
+    @ViewBuilder
+    private func adaptiveLabel(
+        title: String,
+        systemImage: String,
+        showsTitle: Bool
+    ) -> some View {
+        if showsTitle {
+            Label(title, systemImage: systemImage)
+        } else {
+            Image(systemName: systemImage)
+                .accessibilityLabel(title)
         }
     }
 
