@@ -11,7 +11,7 @@ struct IOSEditorSessionTests {
 
         let revision = session.applyTextChange(
             replacementText: "INT. ROOM - DAY\n\nAction.",
-            selection: IOSEditorSelection(location: 25, length: 0),
+            selection: IOSEditorSelection(location: 24, length: 0),
             kind: .typing
         )
 
@@ -20,7 +20,7 @@ struct IOSEditorSessionTests {
         #expect(session.parseRevisionPending == revision)
         #expect(session.autosaveRevisionPending == revision)
         #expect(session.lastMutationKind == .typing)
-        #expect(session.selection.location == 25)
+        #expect(session.selection.location == 24)
     }
 
     @Test("stale parse completion cannot clear newer work")
