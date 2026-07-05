@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: org.garaged
   deploymentTarget:
     iOS: "26.0"
+    macOS: "14.0"
   createIntermediateGroups: true
   generateEmptyDirectories: true
 settings:
@@ -16,6 +17,26 @@ packages:
   DreamJotter:
     path: .
 targets:
+  DreamJotterMac:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Apps/DreamJotterMac
+    resources:
+      - path: Apps/DreamJotterMac/Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.garaged.DreamJotterMac
+        PRODUCT_NAME: DreamJotter
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: DreamJotter
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+    dependencies:
+      - package: DreamJotter
+        product: DreamJotterCore
+
   DreamJotteriOSApp:
     type: application
     platform: iOS
@@ -45,6 +66,7 @@ targets:
         product: DreamJotterCore
       - package: DreamJotter
         product: DreamJotteriOS
+
   DreamJotteriOSAppTests:
     type: bundle.unit-test
     platform: iOS
@@ -55,7 +77,18 @@ targets:
       - target: DreamJotteriOSApp
       - package: DreamJotter
         product: DreamJotteriOS
+
 schemes:
+  DreamJotterMac:
+    build:
+      targets:
+        DreamJotterMac: all
+    run:
+      config: Debug
+      executable: DreamJotterMac
+    archive:
+      config: Release
+
   DreamJotteriOSApp:
     build:
       targets:
