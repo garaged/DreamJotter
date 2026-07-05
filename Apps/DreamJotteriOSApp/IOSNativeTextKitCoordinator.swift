@@ -17,6 +17,9 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     var isApplyingViewChange = false
 
     private weak var currentTextView: UITextView?
+    private var lastStyledRevisionValue: Int?
+    private var lastStyledRange: EditorTextRange?
+    private var lastStyledRuns: [EditorLineStyleRun] = []
 
     init(
         session: Binding<IOSEditorSession>,
@@ -43,6 +46,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     func captureState(from textView: UITextView) {
         currentTextView = textView
         applyStyles(to: textView)
+        notifyVisibleRange(textView, force: true)
     }
 
     func textViewDidChange(_ textView: UITextView) {
@@ -59,7 +63,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
             kind: kind
         )
         isApplyingViewChange = false
-        notifyVisibleRange(textView)
+        notifyVisibleRange(textView, force: true)
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
@@ -77,6 +81,13 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     }
 
     func applyStyles(to textView: UITextView) {
+        let revisionValue = session.wrappedValue.revision.value
+        guard revisionValue != lastStyledRevisionValue
+                || formattingRange != lastStyledRange
+                || styleRuns != lastStyledRuns else {
+            return
+        }
+
         let storage = textView.textStorage
         let safeLocation = min(formattingRange.location, storage.length)
         let safeLength = min(formattingRange.length, storage.length - safeLocation)
@@ -96,6 +107,10 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
             storage.addAttributes(attributes(for: run.kind, baseFont: baseFont), range: range)
         }
         storage.endEditing()
+
+        lastStyledRevisionValue = revisionValue
+        lastStyledRange = formattingRange
+        lastStyledRuns = styleRuns
     }
 
     func screenplayTextViewHasSuggestions() -> Bool {
@@ -203,18 +218,31 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
         }
     }
 
-    private func notifyVisibleRange(_ textView: UITextView) {
+    private func notifyVisibleRange(
+        _ textView: UITextView,
+        force: Bool = false
+    ) {
         currentTextView = textView
         let glyphRange = textView.layoutManager.glyphRange(
             forBoundingRect: textView.bounds,
             in: textView.textContainer
         )
-        onVisibleRangeChanged(
-            textView.layoutManager.characterRange(
-                forGlyphRange: glyphRange,
-                actualGlyphRange: nil
-            )
+        let characterRange = textView.layoutManager.characterRange(
+            forGlyphRange: glyphRange,
+            actualGlyphRange: nil
         )
+
+        if !force, formattingRange.length > 0 {
+            let guardBand = min(1_024, max(128, formattingRange.length / 4))
+            let safeStart = formattingRange.location + guardBand
+            let safeEnd = formattingRange.location + formattingRange.length - guardBand
+            if characterRange.location >= safeStart,
+               NSMaxRange(characterRange) <= safeEnd {
+                return
+            }
+        }
+
+        onVisibleRangeChanged(characterRange)
     }
 
     private func announce(_ message: String) {
