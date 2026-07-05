@@ -142,6 +142,14 @@ swift test
 swift build --configuration release --product DreamJotterMac
 ```
 
+## License
+
+DreamJotter is licensed under the [Mozilla Public License 2.0](LICENSE).
+
+The MPL-2.0 keeps modifications to existing MPL-covered source files open while allowing separate files or modules to use different terms. That makes it suitable for an open core, optional paid distribution, voluntary contributions, and a possible future Pro edition implemented in separate proprietary modules.
+
+The DreamJotter name, logo, and app icon are not granted for unrestricted use by the software license unless explicitly stated otherwise.
+
 ## Project documentation
 
 - `docs/milestones/`
