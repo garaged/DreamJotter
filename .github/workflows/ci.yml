@@ -106,7 +106,7 @@ jobs:
           set -o pipefail
           xcodebuild \
             -project DreamJotter.xcodeproj \
-            -scheme DreamJotteriOS \
+            -scheme DreamJotteriOSApp \
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             IPHONEOS_DEPLOYMENT_TARGET=18.0 \
