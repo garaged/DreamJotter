@@ -64,6 +64,7 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
         ) {
             guard let packageURL = urls.first,
                   let browserController else { return }
+            controller.dismiss(animated: false)
             openProject(at: packageURL, from: browserController)
         }
 
