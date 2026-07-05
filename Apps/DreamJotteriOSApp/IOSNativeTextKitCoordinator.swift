@@ -17,7 +17,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     var isApplyingViewChange = false
 
     private weak var currentTextView: UITextView?
-    private var lastStyledRevisionValue: Int?
+    private var lastStyledRevisionValue: UInt64?
     private var lastStyledRange: EditorTextRange?
     private var lastStyledRuns: [EditorLineStyleRun] = []
 
