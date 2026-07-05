@@ -28,8 +28,6 @@ targets:
       - name: Generate iOS App Icon
         script: bash "$SRCROOT/scripts/generate-ios-app-icon"
         basedOnDependencyAnalysis: false
-    info:
-      path: Apps/DreamJotteriOSApp/Info.plist
     entitlements:
       path: config/DreamJotteriOS.entitlements
     settings:
@@ -39,8 +37,9 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_MACCATALYST: NO
+        INFOPLIST_FILE: Apps/DreamJotteriOSApp/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
-        INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
     dependencies:
       - package: DreamJotter
         product: DreamJotterCore
