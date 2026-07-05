@@ -7,13 +7,19 @@ struct IOSEditableScenesPane: View {
     @State private var selectedCard: SceneCard?
 
     var body: some View {
-        VStack {
-            IOSScenesPane(project: project)
-            if let firstCard = SceneWorkflow.cards(in: project).first {
-                Button("Edit First Scene") {
-                    selectedCard = firstCard
+        List(SceneWorkflow.cards(in: project), id: \.id) { card in
+            Button {
+                selectedCard = card
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(card.order + 1). \(card.title)")
+                        .font(.headline)
+                    if !card.summary.isEmpty {
+                        Text(card.summary).lineLimit(2)
+                    }
                 }
             }
+            .buttonStyle(.plain)
         }
         .sheet(item: $selectedCard) { card in
             IOSSceneCardEditorSheet(card: card)
