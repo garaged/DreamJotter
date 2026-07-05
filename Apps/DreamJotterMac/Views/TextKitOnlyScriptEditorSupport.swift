@@ -1,7 +1,7 @@
 import DreamJotterCore
 import SwiftUI
 
-struct SuggestionsPanel: View {
+struct TextKitOnlySuggestionsPanel: View {
     let suggestions: [EditorSuggestion]
     let selectedIndex: Int
     let acceptAction: (EditorSuggestion) -> Void
@@ -61,7 +61,7 @@ struct SuggestionsPanel: View {
     }
 }
 
-struct EmptyScriptGuidance: View {
+struct TextKitOnlyEmptyScriptGuidance: View {
     let language: ScreenplayLanguageProfile
 
     var body: some View {
@@ -81,7 +81,7 @@ struct EmptyScriptGuidance: View {
     }
 }
 
-struct ScreenplayLanguagePicker: View {
+struct TextKitOnlyScreenplayLanguagePicker: View {
     @Binding var document: ProjectDocumentViewModel
 
     var body: some View {
