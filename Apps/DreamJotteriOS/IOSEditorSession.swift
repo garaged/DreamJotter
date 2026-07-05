@@ -27,6 +27,7 @@ public struct IOSEditorSelection: Equatable, Codable, Sendable {
 public enum IOSEditorMutationKind: String, Codable, Sendable {
     case typing
     case paste
+    case cut
     case smartEnter
     case elementFormatting
     case suggestionAcceptance
