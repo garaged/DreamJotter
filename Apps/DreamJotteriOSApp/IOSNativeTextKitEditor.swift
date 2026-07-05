@@ -5,6 +5,7 @@ import UIKit
 
 struct IOSNativeTextKitEditor: UIViewRepresentable {
     @Binding var session: IOSEditorSession
+    let formattingRange: EditorTextRange
     let styleRuns: [EditorLineStyleRun]
     let onVisibleRangeChanged: (NSRange) -> Void
     let onMoveSuggestion: (Int) -> Bool
@@ -16,6 +17,7 @@ struct IOSNativeTextKitEditor: UIViewRepresentable {
     func makeCoordinator() -> IOSNativeTextKitCoordinator {
         IOSNativeTextKitCoordinator(
             session: $session,
+            formattingRange: formattingRange,
             styleRuns: styleRuns,
             onVisibleRangeChanged: onVisibleRangeChanged,
             onMoveSuggestion: onMoveSuggestion,
@@ -46,6 +48,7 @@ struct IOSNativeTextKitEditor: UIViewRepresentable {
 
     func updateUIView(_ textView: IOSScreenplayTextView, context: Context) {
         context.coordinator.session = $session
+        context.coordinator.formattingRange = formattingRange
         context.coordinator.styleRuns = styleRuns
         context.coordinator.onVisibleRangeChanged = onVisibleRangeChanged
         context.coordinator.onMoveSuggestion = onMoveSuggestion
