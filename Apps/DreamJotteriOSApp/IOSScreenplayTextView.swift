@@ -17,8 +17,8 @@ final class IOSScreenplayTextView: UITextView {
 
     override var keyCommands: [UIKeyCommand]? {
         [
-            UIKeyCommand(input: UIKeyCommand.inputUpArrow, modifierFlags: [], action: #selector(moveUp)),
-            UIKeyCommand(input: UIKeyCommand.inputDownArrow, modifierFlags: [], action: #selector(moveDown)),
+            UIKeyCommand(input: UIKeyCommand.inputUpArrow, modifierFlags: [], action: #selector(handleMoveUp)),
+            UIKeyCommand(input: UIKeyCommand.inputDownArrow, modifierFlags: [], action: #selector(handleMoveDown)),
             UIKeyCommand(input: "\r", modifierFlags: [], action: #selector(acceptOrReturn)),
             UIKeyCommand(input: "\t", modifierFlags: [], action: #selector(acceptOrFormat)),
             UIKeyCommand(input: UIKeyCommand.inputEscape, modifierFlags: [], action: #selector(dismissSuggestions)),
@@ -50,16 +50,16 @@ final class IOSScreenplayTextView: UITextView {
         commandDelegate?.screenplayTextViewPaste(text)
     }
 
-    @objc private func moveUp() {
+    @objc private func handleMoveUp() {
         guard commandDelegate?.screenplayTextViewMoveSuggestion(-1) == true else {
-            moveUp(nil)
+            super.moveUp(nil)
             return
         }
     }
 
-    @objc private func moveDown() {
+    @objc private func handleMoveDown() {
         guard commandDelegate?.screenplayTextViewMoveSuggestion(1) == true else {
-            moveDown(nil)
+            super.moveDown(nil)
             return
         }
     }
