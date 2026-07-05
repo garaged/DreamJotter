@@ -39,7 +39,7 @@ private struct IOSScenesPane: View {
                 HStack {
                     Text("Scene \(index + 1)")
                     if !scene.location.isEmpty { Text(scene.location) }
-                    if !scene.timeOfDay.isEmpty { Text(scene.timeOfDay) }
+                    if let timeOfDay = scene.timeOfDay, !timeOfDay.isEmpty { Text(timeOfDay) }
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
