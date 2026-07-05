@@ -7,6 +7,8 @@ protocol IOSScreenplayTextViewCommandDelegate: AnyObject {
     func screenplayTextViewDismissSuggestions() -> Bool
     func screenplayTextViewPerformSmartEnter()
     func screenplayTextViewPerformFormatCycle()
+    func screenplayTextViewCopy() -> String?
+    func screenplayTextViewCut() -> String?
     func screenplayTextViewPaste(_ text: String)
 }
 
@@ -22,6 +24,22 @@ final class IOSScreenplayTextView: UITextView {
             UIKeyCommand(input: UIKeyCommand.inputEscape, modifierFlags: [], action: #selector(dismissSuggestions)),
             UIKeyCommand(input: "\r", modifierFlags: [.command], action: #selector(smartEnter))
         ]
+    }
+
+    override func copy(_ sender: Any?) {
+        guard let text = commandDelegate?.screenplayTextViewCopy() else {
+            super.copy(sender)
+            return
+        }
+        UIPasteboard.general.string = text
+    }
+
+    override func cut(_ sender: Any?) {
+        guard let text = commandDelegate?.screenplayTextViewCut() else {
+            super.cut(sender)
+            return
+        }
+        UIPasteboard.general.string = text
     }
 
     override func paste(_ sender: Any?) {
