@@ -41,6 +41,22 @@ struct IOSEditableScenesPane: View {
         }
     }
 
+    private func applyPlanningOrder() {
+        let headings = SceneWorkflow.cards(in: project).compactMap(\.sourceSceneHeading)
+        let now = Date()
+        let request = SceneWorkflowRequest(
+            id: "ios-screenplay-reorder-\(UUID().uuidString)",
+            action: .reorderScreenplay,
+            orderedSceneHeadings: headings,
+            confirmed: true,
+            requestedAt: now
+        )
+        let execution = CommandEngine.execute(request, project: project, now: now)
+        guard execution.project != project else { return }
+        project = execution.project
+        commitProjectChange(execution.project)
+    }
+
     private func moveScenes(from source: IndexSet, to destination: Int) {
         var cards = SceneWorkflow.cards(in: project)
         cards.move(fromOffsets: source, toOffset: destination)
