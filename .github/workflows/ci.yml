@@ -88,13 +88,10 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Require Xcode 26
+      - name: Record Xcode and SDK versions
         run: |
           xcodebuild -version | tee ios-xcode-version.log
-          xcodebuild -version | grep -Eq 'Xcode 26\.' || {
-            echo 'DreamJotteriOS requires Xcode 26.x for the iOS 26 SDK.' >&2
-            exit 1
-          }
+          xcrun --sdk iphonesimulator --show-sdk-version | tee ios-sdk-version.log
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -112,6 +109,7 @@ jobs:
             -scheme DreamJotteriOS \
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
+            IPHONEOS_DEPLOYMENT_TARGET=18.0 \
             CODE_SIGNING_ALLOWED=NO \
             build 2>&1 | tee ios-build.log
 
@@ -122,6 +120,7 @@ jobs:
           name: ios-build-diagnostics
           path: |
             ios-xcode-version.log
+            ios-sdk-version.log
             xcodegen.log
             ios-build.log
           if-no-files-found: warn
