@@ -37,10 +37,10 @@
     },
     {
       "id": "M16-IOS-ADAPTIVE-UX-002",
-      "title": "Adaptive iPhone and iPad Workspace Redesign",
+      "title": "Four-Class iPhone and iPad Workspace Architecture",
       "milestone": "M16",
-      "status": "implemented-pending-visual-acceptance",
-      "spec": "docs/specs/m16-adaptive-ios-workspace-redesign.md",
+      "status": "implementation-in-progress",
+      "spec": "docs/specs/m16-four-class-workspace-architecture.md",
       "acceptance": "docs/acceptance/milestone-16-acceptance.md",
       "related_adrs": [
         "docs/adr/0001-apple-native-first-portable-core.md"
@@ -53,13 +53,14 @@
         "DreamJotteriOSAppTests"
       ],
       "guardrails": [
+        "The application shell swaps full-window child controllers instead of nesting the editor in a picker or modal sheet.",
+        "Compact phone, regular phone, compact iPad, and regular iPad use separate top-level workspace compositions.",
         "Layout classification is based on width, size class, and idiom rather than device model names.",
         "Autocomplete overlays the editor and must not permanently reduce the TextKit viewport.",
-        "Phone remains single-pane while regular iPad provides split navigation.",
-        "Readable editor width, toolbar density, touch targets, and accessibility are policy-driven.",
-        "Adaptive transitions must preserve editor selection, first responder state, and bounded hydration."
+        "Regular iPad includes persistent navigator, screenplay canvas, and inspector regions.",
+        "Adaptive transitions preserve editor selection, first responder state, undo history, and bounded hydration."
       ],
-      "notes": "Adds the testable adaptive layout policy, compact phone composition, split iPad workspace, bounded readable editor canvas, floating autocomplete, compact command chrome, and source regression guards."
+      "notes": "Defines and implements a full-window root shell plus four visibly distinct workspace architectures with shared screenplay state and TextKit behavior."
     }
   ]
 }
