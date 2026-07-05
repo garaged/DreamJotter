@@ -6,6 +6,7 @@ struct IOSEditableScenesPane: View {
     let commitProjectChange: (DreamJotterProject) -> Void
     var navigateToScene: (SceneCard) -> Void = { _ in }
     @State private var selectedCard: SceneCard?
+    @State private var confirmsScreenplayReorder = false
 
     var body: some View {
         List {
@@ -36,7 +37,7 @@ struct IOSEditableScenesPane: View {
         .toolbar {
             EditButton()
             Button {
-                applyPlanningOrder()
+                confirmsScreenplayReorder = true
             } label: {
                 Label("Apply Order", systemImage: "arrow.triangle.2.circlepath")
             }
@@ -45,6 +46,16 @@ struct IOSEditableScenesPane: View {
             IOSSceneCardEditorSheet(card: card) { summary, note, status in
                 saveCard(card, summary: summary, note: note, status: status)
             }
+        }
+        .confirmationDialog(
+            "Apply planning order to screenplay?",
+            isPresented: $confirmsScreenplayReorder,
+            titleVisibility: .visible
+        ) {
+            Button("Apply Order") { applyPlanningOrder() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("DreamJotter creates a recovery snapshot before reordering complete scene blocks.")
         }
     }
 
