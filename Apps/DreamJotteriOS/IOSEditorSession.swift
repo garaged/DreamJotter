@@ -64,7 +64,10 @@ public struct IOSEditorSession: Equatable, Sendable {
         self.text = text
         self.selection = selection.clamped(to: text)
         self.revision = revision
+        self.lastMutationKind = nil
         self.isDirty = isDirty
+        self.parseRevisionPending = nil
+        self.autosaveRevisionPending = nil
     }
 
     @discardableResult
