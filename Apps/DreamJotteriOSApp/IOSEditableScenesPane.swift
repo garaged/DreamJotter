@@ -8,33 +8,54 @@ struct IOSEditableScenesPane: View {
     @State private var selectedCard: SceneCard?
 
     var body: some View {
-        List(SceneWorkflow.cards(in: project), id: \.id) { card in
-            Button {
-                selectedCard = card
-            } label: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("\(card.order + 1). \(card.title)")
-                        .font(.headline)
-                    if !card.summary.isEmpty {
-                        Text(card.summary).lineLimit(2)
+        List {
+            ForEach(SceneWorkflow.cards(in: project), id: \.id) { card in
+                Button {
+                    selectedCard = card
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("\(card.order + 1). \(card.title)")
+                            .font(.headline)
+                        if !card.summary.isEmpty {
+                            Text(card.summary).lineLimit(2)
+                        }
                     }
                 }
-            }
-            .buttonStyle(.plain)
-            .swipeActions(edge: .leading) {
-                Button {
-                    navigateToScene(card)
-                } label: {
-                    Label("Open", systemImage: "text.cursor")
+                .buttonStyle(.plain)
+                .swipeActions(edge: .leading) {
+                    Button {
+                        navigateToScene(card)
+                    } label: {
+                        Label("Open", systemImage: "text.cursor")
+                    }
+                    .tint(.blue)
                 }
-                .tint(.blue)
             }
+            .onMove(perform: moveScenes)
         }
+        .toolbar { EditButton() }
         .sheet(item: $selectedCard) { card in
             IOSSceneCardEditorSheet(card: card) { summary, note, status in
                 saveCard(card, summary: summary, note: note, status: status)
             }
         }
+    }
+
+    private func moveScenes(from source: IndexSet, to destination: Int) {
+        var cards = SceneWorkflow.cards(in: project)
+        cards.move(fromOffsets: source, toOffset: destination)
+        let headings = cards.compactMap(\.sourceSceneHeading)
+        let now = Date()
+        let request = SceneWorkflowRequest(
+            id: "ios-planning-reorder-\(UUID().uuidString)",
+            action: .reorderPlanning,
+            orderedSceneHeadings: headings,
+            requestedAt: now
+        )
+        let execution = CommandEngine.execute(request, project: project, now: now)
+        guard execution.project != project else { return }
+        project = execution.project
+        commitProjectChange(execution.project)
     }
 
     private func saveCard(
