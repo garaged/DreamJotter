@@ -108,6 +108,7 @@ enum RuntimeLocalizationBundle {
     ) -> [String] {
         var result: [String] = []
         var seen = Set<String>()
+        let supportedLanguages: Set<String> = ["en", "es"]
 
         func append(_ identifier: String) {
             let canonical = canonicalIdentifier(identifier)
@@ -119,24 +120,36 @@ enum RuntimeLocalizationBundle {
 
         for identifier in requested {
             let canonical = canonicalIdentifier(identifier)
-            append(canonical)
-
             let language = Locale(identifier: canonical).language.languageCode?.identifier
                 ?? canonical.split(separator: "-").first.map(String.init)
 
-            if let language {
-                append(language)
+            guard let language, supportedLanguages.contains(language) else {
+                continue
+            }
 
-                if language == "es" {
-                    append("es-419")
-                    append("es-MX")
-                }
+            append(canonical)
+            append(language)
+
+            if language == "es" {
+                append("es-419")
+                append("es-MX")
             }
         }
 
+        let supportedAvailable = availableLocalizations.filter { localization in
+            let language = Locale(identifier: localization).language.languageCode?.identifier
+                ?? localization.split(separator: "-").first.map(String.init)
+            return language.map(supportedLanguages.contains) ?? false
+        }
+        let supportedRequested = requested.filter { identifier in
+            let canonical = canonicalIdentifier(identifier)
+            let language = Locale(identifier: canonical).language.languageCode?.identifier
+                ?? canonical.split(separator: "-").first.map(String.init)
+            return language.map(supportedLanguages.contains) ?? false
+        }
         let preferred = Bundle.preferredLocalizations(
-            from: availableLocalizations,
-            forPreferences: requested
+            from: supportedAvailable,
+            forPreferences: supportedRequested
         )
         preferred.forEach(append)
 
