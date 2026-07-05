@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "M16-IOS-PARITY-001",
+      "title": "iOS Full Feature Parity",
+      "milestone": "M16",
+      "status": "implementation-in-progress",
+      "spec": "docs/milestones/milestone-16-ios-full-feature-parity.md",
+      "acceptance": "docs/acceptance/milestone-16-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
+      ],
+      "planned_modules": [
+        "DreamJotterCore",
+        "DreamJotteriOS",
+        "DreamJotteriOSTests",
+        "IOSDocumentBrowser",
+        "IOSTextKitEditor",
+        "IOSWorkspace",
+        "IOSExportSharing"
+      ],
+      "guardrails": [
+        "iOS must preserve the full macOS 1.0 user-facing capability set.",
+        "DreamJotterCore remains the source of truth for semantics and package behavior.",
+        "Heavy parsing, review, export, and derived-data generation must not run synchronously on the main actor.",
+        "Editor hydration, previews, caches, and background work must remain bounded and cancellation-safe.",
+        "Files coordination, backgrounding, and conflicts must never silently overwrite user work.",
+        "Physical-device performance and accessibility evidence are release gates."
+      ],
+      "notes": "Defines the architecture, delivery slices, parity catalog, performance budgets, regression expectations, human-intervention gates, and acceptance criteria for the native iPhone and iPad application."
+    }
+  ]
+}
