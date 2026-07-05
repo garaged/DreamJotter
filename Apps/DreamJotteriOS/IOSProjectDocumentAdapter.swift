@@ -48,13 +48,13 @@ public enum IOSProjectDocumentError: Error, Equatable, LocalizedError, Sendable 
     }
 }
 
-public struct IOSSecurityScopedAccess: Sendable {
-    private let beginAccess: @Sendable (URL) -> Bool
-    private let endAccess: @Sendable (URL) -> Void
+public struct IOSSecurityScopedAccess: @unchecked Sendable {
+    private let beginAccess: (URL) -> Bool
+    private let endAccess: (URL) -> Void
 
     public init(
-        beginAccess: @escaping @Sendable (URL) -> Bool,
-        endAccess: @escaping @Sendable (URL) -> Void
+        beginAccess: @escaping (URL) -> Bool,
+        endAccess: @escaping (URL) -> Void
     ) {
         self.beginAccess = beginAccess
         self.endAccess = endAccess
@@ -79,13 +79,13 @@ public struct IOSSecurityScopedAccess: Sendable {
     }
 }
 
-public struct IOSFileCoordination: Sendable {
-    private let read: @Sendable (URL, @escaping @Sendable (URL) throws -> Void) throws -> Void
-    private let write: @Sendable (URL, @escaping @Sendable (URL) throws -> Void) throws -> Void
+public struct IOSFileCoordination: @unchecked Sendable {
+    private let read: (URL, @escaping (URL) throws -> Void) throws -> Void
+    private let write: (URL, @escaping (URL) throws -> Void) throws -> Void
 
     public init(
-        read: @escaping @Sendable (URL, @escaping @Sendable (URL) throws -> Void) throws -> Void,
-        write: @escaping @Sendable (URL, @escaping @Sendable (URL) throws -> Void) throws -> Void
+        read: @escaping (URL, @escaping (URL) throws -> Void) throws -> Void,
+        write: @escaping (URL, @escaping (URL) throws -> Void) throws -> Void
     ) {
         self.read = read
         self.write = write
@@ -119,11 +119,11 @@ public struct IOSFileCoordination: Sendable {
         write: { url, accessor in try accessor(url) }
     )
 
-    func coordinateRead(at url: URL, accessor: @escaping @Sendable (URL) throws -> Void) throws {
+    func coordinateRead(at url: URL, accessor: @escaping (URL) throws -> Void) throws {
         try read(url, accessor)
     }
 
-    func coordinateWrite(at url: URL, accessor: @escaping @Sendable (URL) throws -> Void) throws {
+    func coordinateWrite(at url: URL, accessor: @escaping (URL) throws -> Void) throws {
         try write(url, accessor)
     }
 }
@@ -148,8 +148,9 @@ public actor IOSProjectDocumentAdapter {
         at packageURL: URL,
         now: Date = Date()
     ) throws -> IOSProjectDocumentSnapshot {
+        let normalizedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let project = ProjectFactory.createBlankProject(
-            title: title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled" : title,
+            title: normalizedTitle.isEmpty ? "Untitled" : normalizedTitle,
             projectID: "project-\(UUID().uuidString)",
             screenplayID: "screenplay-\(UUID().uuidString)",
             createdAt: now
