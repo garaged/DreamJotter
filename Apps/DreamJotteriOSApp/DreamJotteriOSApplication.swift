@@ -25,7 +25,6 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
         controller.allowsDocumentCreation = true
         controller.allowsPickingMultipleItems = false
         controller.shouldShowFileExtensions = true
-        controller.browserUserInterfaceStyle = .automatic
         return controller
     }
 
