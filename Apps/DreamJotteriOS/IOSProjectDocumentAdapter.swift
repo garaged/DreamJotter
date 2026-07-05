@@ -128,6 +128,25 @@ public struct IOSFileCoordination: @unchecked Sendable {
     }
 }
 
+private final class IOSProjectLoadCapture: @unchecked Sendable {
+    private let lock = NSLock()
+    private var project: DreamJotterProject?
+    private var diagnosticMessage: String?
+
+    func store(project: DreamJotterProject?, diagnosticMessage: String?) {
+        lock.lock()
+        self.project = project
+        self.diagnosticMessage = diagnosticMessage
+        lock.unlock()
+    }
+
+    func snapshot() -> (project: DreamJotterProject?, diagnosticMessage: String?) {
+        lock.lock()
+        defer { lock.unlock() }
+        return (project, diagnosticMessage)
+    }
+}
+
 public actor IOSProjectDocumentAdapter {
     private let fileManager: FileManager
     private let securityScopedAccess: IOSSecurityScopedAccess
@@ -170,24 +189,26 @@ public actor IOSProjectDocumentAdapter {
     }
 
     public func openProject(at packageURL: URL) throws -> IOSProjectDocumentSnapshot {
-        var loadedProject: DreamJotterProject?
-        var diagnosticMessage: String?
+        let capture = IOSProjectLoadCapture()
 
         try securityScopedAccess.withAccess(to: packageURL) {
             do {
                 try coordination.coordinateRead(at: packageURL) { coordinatedURL in
                     let result = DreamJotterPackageStore.load(from: coordinatedURL)
-                    loadedProject = result.project
-                    diagnosticMessage = result.diagnostics.first?.message
+                    capture.store(
+                        project: result.project,
+                        diagnosticMessage: result.diagnostics.first?.message
+                    )
                 }
             } catch {
                 throw IOSProjectDocumentError.coordinatedReadFailed(error.localizedDescription)
             }
         }
 
-        guard let loadedProject else {
+        let result = capture.snapshot()
+        guard let loadedProject = result.project else {
             throw IOSProjectDocumentError.invalidPackage(
-                diagnosticMessage ?? "DreamJotter could not open this package."
+                result.diagnosticMessage ?? "DreamJotter could not open this package."
             )
         }
         return try snapshot(for: loadedProject, at: packageURL)
