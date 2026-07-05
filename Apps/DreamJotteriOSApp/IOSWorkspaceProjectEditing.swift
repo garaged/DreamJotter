@@ -188,3 +188,9 @@ enum IOSWorkspaceProjectEditing {
         )
     }
 }
+
+extension NotesIndex {
+    static func detectedScriptTodos(in project: DreamJotterProject) -> [ProjectNote] {
+        detectedScriptTodos(in: project, now: project.metadata.modifiedAt)
+    }
+}
