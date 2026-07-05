@@ -51,6 +51,8 @@ targets:
       - path: Tests/DreamJotteriOSAppTests
     dependencies:
       - target: DreamJotteriOSApp
+      - package: DreamJotter
+        product: DreamJotteriOS
 schemes:
   DreamJotteriOS:
     build:
