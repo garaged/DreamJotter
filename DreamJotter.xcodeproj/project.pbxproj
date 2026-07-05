@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		00BD41155907E529F7B08048 /* ReviewModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 144BBB99D2FFDC31D7679195 /* ReviewModeView.swift */; };
 		079269C9E569EFC0ACECB9B2 /* ReleaseInformationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CF393D3A98BD2083B0ECD /* ReleaseInformationViews.swift */; };
+		0B9F556438C54639F6E6992D /* IOSHealthAndEditorSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76ADB829355E48C9149EC12B /* IOSHealthAndEditorSheets.swift */; };
 		0EC9AA5334CBAAAFFF28D3EF /* ScreenplayLanguagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5AADEE675EBC568C998504B /* ScreenplayLanguagePicker.swift */; };
 		10DB46949B1ACB7BDB660F4C /* ProjectDocumentViewModel+SceneWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E04B8A134A3DA85020090C0 /* ProjectDocumentViewModel+SceneWorkflow.swift */; };
 		1455BD597179A931E760FF49 /* SpanishCorrections.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A713EBDAA5BF956CF5BCE9A /* SpanishCorrections.strings */; };
@@ -27,6 +28,7 @@
 		3E95E5C03BD0A50CDD8008F5 /* IOSNativeTextKitCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F25FEB79A7888B5274BCE75 /* IOSNativeTextKitCoordinator.swift */; };
 		444DA587AF02E36CC0809C9D /* PackageMigrationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB26C3905674D054EDEF1031 /* PackageMigrationPolicy.swift */; };
 		4594CF00E3EC729E61FAD978 /* SceneWorkflowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A23453D2E9AB0C5DDAD633 /* SceneWorkflowView.swift */; };
+		469154BD34329668E1919443 /* IOSCharacterLocationPanes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E0D49F699FB7892EB6C2D4 /* IOSCharacterLocationPanes.swift */; };
 		493B0B15FED7D94C29F86309 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFA8EDC2D23CDCC2430DDE4 /* AppRootView.swift */; };
 		4C05B344BCE60627931DDC31 /* ReleaseSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5F35F67EF0AC7DFF8E8A2A /* ReleaseSupport.swift */; };
 		4D0AEB1333917832F93FEE9C /* ProjectDocumentViewModel+LocalizedTodos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 900348EC06E3EDA8035B0829 /* ProjectDocumentViewModel+LocalizedTodos.swift */; };
@@ -35,6 +37,7 @@
 		5E4116CBB4B14C113A0B1296 /* IOSNativeEditorSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20AACCDE07CEFCB7475F44FF /* IOSNativeEditorSourceTests.swift */; };
 		642EA8D6A7E9F9C0030FC1DF /* OptimizedDashboardPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FB1041341E7FDE0FA974C7 /* OptimizedDashboardPane.swift */; };
 		660366EB6E40205C5F99FE2C /* Review.strings in Resources */ = {isa = PBXBuildFile; fileRef = A6CEF83BE48CC79F0F6F4924 /* Review.strings */; };
+		664E5FFC153007FAC2B93412 /* IOSNotesReviewPanes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91855BA5190493E69F7A43D5 /* IOSNotesReviewPanes.swift */; };
 		688D1AC9DB65F225AF4667E0 /* ScreenplayParagraphInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB39CEC3C13CE78CB06F02F5 /* ScreenplayParagraphInspectorView.swift */; };
 		6BBD0BB98F0AA275DC8B04D4 /* OptimizedLocationPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C76D2DC0F7C95845066F71D9 /* OptimizedLocationPane.swift */; };
 		727678CAEF0822B4BD9F2266 /* ExportUIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 341F0944BBB49A19FF391B15 /* ExportUIState.swift */; };
@@ -49,6 +52,7 @@
 		8B413E797A764C2B853C6673 /* IOSWorkspaceProjectEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7228764DF868C7B4634BDB42 /* IOSWorkspaceProjectEditing.swift */; };
 		900327475D91BB36C104CF12 /* IOSWorkspacePaneContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE3E3FC63C7DA4EEA959E92 /* IOSWorkspacePaneContent.swift */; };
 		9486599566E17D5931F91D0C /* Settings.strings in Resources */ = {isa = PBXBuildFile; fileRef = DE4FAD35C5B885E5B44284C5 /* Settings.strings */; };
+		98057BC4E1A9252E8CC9098B /* IOSDashboardAndScenesPanes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E3BADEDC57C3696212F567F /* IOSDashboardAndScenesPanes.swift */; };
 		9A80B6D24671116E9FFFCE5A /* TextKitOnlyScriptEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2361B7C2EFDC90D1E8DD82BD /* TextKitOnlyScriptEditorView.swift */; };
 		9B602CC62DD64CC9E2E0B052 /* LocalizationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72EE326C3B8D9E572E5821D7 /* LocalizationSettings.swift */; };
 		9F170D220B0062F3325CA3B4 /* MacAppViewModel+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = F318870EE9A434568A3689CD /* MacAppViewModel+Localization.swift */; };
@@ -79,7 +83,9 @@
 		DBF767A94E4F7D1FC2E17D3D /* HealthFindingAlias.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5732ECE3A75D4394DA6EA896 /* HealthFindingAlias.swift */; };
 		DD84DA050D177617F60382A8 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 10718D43EFE3F7A514EEC5FA /* Localizable.strings */; };
 		E6DB5CA0F0A7EDF30D70A565 /* RuntimeLocalizationBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7C5C745B12295F741C7266 /* RuntimeLocalizationBundle.swift */; };
+		E8D1D3FF6732538E544C4987 /* IOSReadOnlyScreenplayPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 936A343EFFCE6B167293DCAF /* IOSReadOnlyScreenplayPreview.swift */; };
 		EA92DCFE6E941B9FDAF60CCC /* OptimizedReviewModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8239B8B33E512F41560D1DE4 /* OptimizedReviewModeView.swift */; };
+		EC09F55BAC8F9E3A90E13B2F /* IOSReviewPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB865933B6E353A6095F9B17 /* IOSReviewPane.swift */; };
 		EFDB1F7EB27A17B4C4643EE5 /* Settings.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2A10D17E894E4889C60F76E9 /* Settings.strings */; };
 		F0EB8476A254AA348D4DF5A5 /* Errors.strings in Resources */ = {isa = PBXBuildFile; fileRef = CA2E088C92C75003459C178B /* Errors.strings */; };
 		F15D884E01B6536FA325EFAB /* DocumentPersistencePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D2C5EC124D4C4CD40642CF0 /* DocumentPersistencePolicy.swift */; };
@@ -124,6 +130,7 @@
 		2ADBA1BE381774E64E5B56C6 /* BoundSceneWorkflowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoundSceneWorkflowView.swift; sourceTree = "<group>"; };
 		2CD56906C03A35507A2DE88D /* ProjectDocumentViewModel+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProjectDocumentViewModel+Localization.swift"; sourceTree = "<group>"; };
 		2CFE89E12608530358E30568 /* ReviewLayoutNumberingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewLayoutNumberingView.swift; sourceTree = "<group>"; };
+		2E3BADEDC57C3696212F567F /* IOSDashboardAndScenesPanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSDashboardAndScenesPanes.swift; sourceTree = "<group>"; };
 		3218DB56DF0F00E630787B19 /* TextKitOnlyScriptEditorSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextKitOnlyScriptEditorSupport.swift; sourceTree = "<group>"; };
 		329961708585F77B7E799700 /* TextKitScreenplayEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextKitScreenplayEditorView.swift; sourceTree = "<group>"; };
 		341F0944BBB49A19FF391B15 /* ExportUIState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportUIState.swift; sourceTree = "<group>"; };
@@ -133,6 +140,7 @@
 		44F431D98E71B7CEBE3BA1ED /* LocationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationListView.swift; sourceTree = "<group>"; };
 		478BD4A32DBC8969027E6C7B /* DreamJotteriOSApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DreamJotteriOSApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B96CAF318DB5537E94D9E53 /* ProjectDocumentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDocumentViewModel.swift; sourceTree = "<group>"; };
+		53E0D49F699FB7892EB6C2D4 /* IOSCharacterLocationPanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSCharacterLocationPanes.swift; sourceTree = "<group>"; };
 		5732ECE3A75D4394DA6EA896 /* HealthFindingAlias.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthFindingAlias.swift; sourceTree = "<group>"; };
 		5E04B8A134A3DA85020090C0 /* ProjectDocumentViewModel+SceneWorkflow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProjectDocumentViewModel+SceneWorkflow.swift"; sourceTree = "<group>"; };
 		6079CB343124006BBD6E74CF /* ProjectDocumentViewModel+ParagraphTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProjectDocumentViewModel+ParagraphTypes.swift"; sourceTree = "<group>"; };
@@ -141,6 +149,7 @@
 		7228764DF868C7B4634BDB42 /* IOSWorkspaceProjectEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSWorkspaceProjectEditing.swift; sourceTree = "<group>"; };
 		72EE326C3B8D9E572E5821D7 /* LocalizationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationSettings.swift; sourceTree = "<group>"; };
 		755EBCA9FD4764E6AC638C33 /* ProjectDocumentViewModel+ReviewLayoutNumbering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProjectDocumentViewModel+ReviewLayoutNumbering.swift"; sourceTree = "<group>"; };
+		76ADB829355E48C9149EC12B /* IOSHealthAndEditorSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSHealthAndEditorSheets.swift; sourceTree = "<group>"; };
 		776CF393D3A98BD2083B0ECD /* ReleaseInformationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseInformationViews.swift; sourceTree = "<group>"; };
 		7B4352585960BAD7A135F6CC /* SimplifiedReviewLayoutNumberingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimplifiedReviewLayoutNumberingView.swift; sourceTree = "<group>"; };
 		7DA2E4E9FFEC2DF5B04A6C73 /* IOSNativeTextKitEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSNativeTextKitEditor.swift; sourceTree = "<group>"; };
@@ -151,6 +160,8 @@
 		88CF71334F14C47A016CFA35 /* HealthReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthReportView.swift; sourceTree = "<group>"; };
 		900348EC06E3EDA8035B0829 /* ProjectDocumentViewModel+LocalizedTodos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProjectDocumentViewModel+LocalizedTodos.swift"; sourceTree = "<group>"; };
 		909D2324AD8017A417B54FDC /* es-419 */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "es-419"; path = "es-419.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		91855BA5190493E69F7A43D5 /* IOSNotesReviewPanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSNotesReviewPanes.swift; sourceTree = "<group>"; };
+		936A343EFFCE6B167293DCAF /* IOSReadOnlyScreenplayPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSReadOnlyScreenplayPreview.swift; sourceTree = "<group>"; };
 		97F176125EB4CFD1B5D05760 /* ProjectDocumentViewModel+ProfileRemoval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProjectDocumentViewModel+ProfileRemoval.swift"; sourceTree = "<group>"; };
 		99BC60A2E3E85D1B50105653 /* IOSWorkspacePane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSWorkspacePane.swift; sourceTree = "<group>"; };
 		A1D2BD37F812A3641CDBC4AD /* ScriptEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptEditorView.swift; sourceTree = "<group>"; };
@@ -162,6 +173,7 @@
 		B5EDC5F09FBCC94222B7FBBB /* OptimizedSceneWorkflowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizedSceneWorkflowView.swift; sourceTree = "<group>"; };
 		B890EB8948B06E7495D5081D /* MacAppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAppViewModel.swift; sourceTree = "<group>"; };
 		BAE2090E7C61B322D0266678 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		BB865933B6E353A6095F9B17 /* IOSReviewPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSReviewPane.swift; sourceTree = "<group>"; };
 		BC5F35F67EF0AC7DFF8E8A2A /* ReleaseSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseSupport.swift; sourceTree = "<group>"; };
 		C4495591F97B7D89DB556C52 /* DocumentOwnership.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentOwnership.swift; sourceTree = "<group>"; };
 		C76D2DC0F7C95845066F71D9 /* OptimizedLocationPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizedLocationPane.swift; sourceTree = "<group>"; };
@@ -278,9 +290,15 @@
 				889BEBEE536B04B3E50BF39F /* DreamJotteriOSApplication.swift */,
 				82C31C8063A740965E690EEF /* Info.plist */,
 				1722816AF00FA024EC9E4D4E /* IOSAutocompletePanel.swift */,
+				53E0D49F699FB7892EB6C2D4 /* IOSCharacterLocationPanes.swift */,
+				2E3BADEDC57C3696212F567F /* IOSDashboardAndScenesPanes.swift */,
+				76ADB829355E48C9149EC12B /* IOSHealthAndEditorSheets.swift */,
 				1F25FEB79A7888B5274BCE75 /* IOSNativeTextKitCoordinator.swift */,
 				7DA2E4E9FFEC2DF5B04A6C73 /* IOSNativeTextKitEditor.swift */,
+				91855BA5190493E69F7A43D5 /* IOSNotesReviewPanes.swift */,
 				6DA6F5B3A778EDA01CC3C9EA /* IOSProjectEditorView.swift */,
+				936A343EFFCE6B167293DCAF /* IOSReadOnlyScreenplayPreview.swift */,
+				BB865933B6E353A6095F9B17 /* IOSReviewPane.swift */,
 				009352B34F06A1A71C3DF794 /* IOSScreenplayTextView.swift */,
 				99BC60A2E3E85D1B50105653 /* IOSWorkspacePane.swift */,
 				0CE3E3FC63C7DA4EEA959E92 /* IOSWorkspacePaneContent.swift */,
@@ -619,9 +637,15 @@
 			files = (
 				C4440A9E5132F60C6152D1CB /* DreamJotteriOSApplication.swift in Sources */,
 				81B61545092D70E0B0FC4BCC /* IOSAutocompletePanel.swift in Sources */,
+				469154BD34329668E1919443 /* IOSCharacterLocationPanes.swift in Sources */,
+				98057BC4E1A9252E8CC9098B /* IOSDashboardAndScenesPanes.swift in Sources */,
+				0B9F556438C54639F6E6992D /* IOSHealthAndEditorSheets.swift in Sources */,
 				3E95E5C03BD0A50CDD8008F5 /* IOSNativeTextKitCoordinator.swift in Sources */,
 				C1816870D7F037A03CFC36C2 /* IOSNativeTextKitEditor.swift in Sources */,
+				664E5FFC153007FAC2B93412 /* IOSNotesReviewPanes.swift in Sources */,
 				82A040B85833B84182E63AB9 /* IOSProjectEditorView.swift in Sources */,
+				E8D1D3FF6732538E544C4987 /* IOSReadOnlyScreenplayPreview.swift in Sources */,
+				EC09F55BAC8F9E3A90E13B2F /* IOSReviewPane.swift in Sources */,
 				DBF0B63B186174EB0B912F06 /* IOSScreenplayTextView.swift in Sources */,
 				1EE028630A66C65FE14BFA37 /* IOSWorkspacePane.swift in Sources */,
 				900327475D91BB36C104CF12 /* IOSWorkspacePaneContent.swift in Sources */,
