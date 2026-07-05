@@ -1,7 +1,7 @@
 import DreamJotterCore
 import SwiftUI
 
-struct IOSSceneCardEditorSheet: View {
+struct IOSPersistentSceneCardEditorSheet: View {
     let card: SceneCard
     let save: (String, String, SceneCardStatus) -> Void
     @State private var summary: String
