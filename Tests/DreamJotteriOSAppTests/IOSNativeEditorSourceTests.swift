@@ -21,6 +21,26 @@ struct IOSNativeEditorSourceTests {
         #expect(source.contains("Escape"))
     }
 
+    @Test("workspace uses adaptive split navigation and a floating suggestion overlay")
+    func adaptiveWorkspaceContract() throws {
+        let source = try appSource(named: "IOSProjectEditorView.swift")
+        #expect(source.contains("IOSAdaptiveLayoutMetrics.resolve"))
+        #expect(source.contains("NavigationSplitView"))
+        #expect(source.contains("ZStack(alignment: .bottom)"))
+        #expect(source.contains("maximumReadableEditorWidth"))
+        #expect(source.contains("navigationBarTitleDisplayMode(.inline)"))
+        #expect(!source.contains("VStack(spacing: 0)"))
+    }
+
+    @Test("compact autocomplete remains an overlay instead of consuming editor height")
+    func compactAutocompleteContract() throws {
+        let source = try appSource(named: "IOSAutocompletePanel.swift")
+        #expect(source.contains("compact"))
+        #expect(source.contains("ScrollView(.horizontal"))
+        #expect(source.contains("RoundedRectangle"))
+        #expect(source.contains("Dismiss suggestions"))
+    }
+
     private func appSource(named filename: String) throws -> String {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
