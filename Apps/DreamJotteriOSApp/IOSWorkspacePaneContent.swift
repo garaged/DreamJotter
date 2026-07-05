@@ -15,7 +15,7 @@ struct IOSWorkspacePaneContent: View {
             case .screenplay:
                 EmptyView()
             case .scenes:
-                IOSScenesPane(project: project)
+                IOSEditableScenesPane(project: $project, commitProjectChange: commitProjectChange)
             case .characters:
                 IOSCharactersPane(project: $project, commitProjectChange: commitProjectChange)
             case .locations:
