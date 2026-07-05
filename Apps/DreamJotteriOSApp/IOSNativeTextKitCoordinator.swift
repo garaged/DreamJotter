@@ -20,6 +20,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     private var lastStyledRevisionValue: UInt64?
     private var lastStyledRange: EditorTextRange?
     private var lastStyledRuns: [EditorLineStyleRun] = []
+    private var viewportRefreshWorkItem: DispatchWorkItem?
 
     init(
         session: Binding<IOSEditorSession>,
@@ -46,7 +47,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     func captureState(from textView: UITextView) {
         currentTextView = textView
         applyStyles(to: textView)
-        notifyVisibleRange(textView, force: true)
+        scheduleViewportRefresh(for: textView, delay: 0)
     }
 
     func textViewDidChange(_ textView: UITextView) {
@@ -63,7 +64,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
             kind: kind
         )
         isApplyingViewChange = false
-        notifyVisibleRange(textView, force: true)
+        scheduleViewportRefresh(for: textView)
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
@@ -72,15 +73,36 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
             location: textView.selectedRange.location,
             length: textView.selectedRange.length
         ))
-        notifyVisibleRange(textView)
+        scheduleViewportRefresh(for: textView)
+    }
+
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        viewportRefreshWorkItem?.cancel()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard let textView = scrollView as? UITextView,
+              !scrollView.isDragging,
+              !scrollView.isDecelerating else { return }
+        scheduleViewportRefresh(for: textView)
+    }
+
+    func scrollViewDidEndDragging(
+        _ scrollView: UIScrollView,
+        willDecelerate decelerate: Bool
+    ) {
+        guard !decelerate, let textView = scrollView as? UITextView else { return }
+        scheduleViewportRefresh(for: textView)
+    }
+
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         guard let textView = scrollView as? UITextView else { return }
-        notifyVisibleRange(textView)
+        scheduleViewportRefresh(for: textView)
     }
 
     func applyStyles(to textView: UITextView) {
+        guard !textView.isDragging, !textView.isDecelerating else { return }
+
         let revisionValue = session.wrappedValue.revision.value
         guard revisionValue != lastStyledRevisionValue
                 || formattingRange != lastStyledRange
@@ -216,6 +238,21 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
                 activeManager?.setActionName(actionName)
             }
         }
+    }
+
+    private func scheduleViewportRefresh(
+        for textView: UITextView,
+        delay: TimeInterval = 0.12
+    ) {
+        viewportRefreshWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self, weak textView] in
+            guard let self, let textView,
+                  !textView.isDragging,
+                  !textView.isDecelerating else { return }
+            self.notifyVisibleRange(textView, force: true)
+        }
+        viewportRefreshWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
 
     private func notifyVisibleRange(
