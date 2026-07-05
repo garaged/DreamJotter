@@ -98,6 +98,10 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
         storage.endEditing()
     }
 
+    func screenplayTextViewHasSuggestions() -> Bool {
+        onMoveSuggestion(0)
+    }
+
     func screenplayTextViewMoveSuggestion(_ offset: Int) -> Bool {
         onMoveSuggestion(offset)
     }
