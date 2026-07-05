@@ -56,7 +56,7 @@ targets:
       - package: DreamJotter
         product: DreamJotteriOS
 schemes:
-  DreamJotteriOS:
+  DreamJotteriOSApp:
     build:
       targets:
         DreamJotteriOSApp: all
@@ -67,5 +67,6 @@ schemes:
         - DreamJotteriOSAppTests
     run:
       config: Debug
+      executable: DreamJotteriOSApp
     archive:
       config: Release
