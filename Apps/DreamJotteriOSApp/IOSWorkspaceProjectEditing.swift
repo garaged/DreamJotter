@@ -2,6 +2,46 @@ import DreamJotterCore
 import Foundation
 
 enum IOSWorkspaceProjectEditing {
+    static func updatingDashboard(
+        _ project: DreamJotterProject,
+        title: String,
+        logline: String,
+        synopsis: String,
+        now: Date = Date()
+    ) -> DreamJotterProject {
+        let normalizedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanTitle = normalizedTitle.isEmpty ? "Untitled" : normalizedTitle
+        let cleanLogline = logline.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanSynopsis = synopsis.trimmingCharacters(in: .whitespacesAndNewlines)
+        let metadata = ProjectMetadata(
+            id: project.metadata.id,
+            title: cleanTitle,
+            createdAt: project.metadata.createdAt,
+            modifiedAt: now,
+            schemaVersion: project.metadata.schemaVersion,
+            primaryScreenplayID: project.metadata.primaryScreenplayID,
+            packageExtension: project.metadata.packageExtension
+        )
+        let story = StoryDevelopmentState(
+            setup: project.story.setup,
+            logline: cleanLogline.isEmpty ? nil : LoglineRecord(
+                id: project.story.logline?.id ?? "logline",
+                text: cleanLogline,
+                createdAt: project.story.logline?.createdAt ?? now,
+                updatedAt: now
+            ),
+            synopsis: cleanSynopsis.isEmpty ? nil : SynopsisRecord(
+                id: project.story.synopsis?.id ?? "synopsis",
+                text: cleanSynopsis,
+                createdAt: project.story.synopsis?.createdAt ?? now,
+                updatedAt: now
+            ),
+            beatSheets: project.story.beatSheets,
+            suggestions: project.story.suggestions
+        )
+        return replacing(project, metadata: metadata, story: story, modifiedAt: now)
+    }
+
     static func upsertingCharacter(
         _ project: DreamJotterProject,
         existing: CharacterRecord?,
@@ -113,12 +153,14 @@ enum IOSWorkspaceProjectEditing {
 
     private static func replacing(
         _ project: DreamJotterProject,
+        metadata: ProjectMetadata? = nil,
         characters: [CharacterRecord]? = nil,
         locations: [LocationRecord]? = nil,
         notes: [ProjectNote]? = nil,
+        story: StoryDevelopmentState? = nil,
         modifiedAt: Date
     ) -> DreamJotterProject {
-        let metadata = ProjectMetadata(
+        let updatedMetadata = metadata ?? ProjectMetadata(
             id: project.metadata.id,
             title: project.metadata.title,
             createdAt: project.metadata.createdAt,
@@ -128,7 +170,7 @@ enum IOSWorkspaceProjectEditing {
             packageExtension: project.metadata.packageExtension
         )
         return DreamJotterProject(
-            metadata: metadata,
+            metadata: updatedMetadata,
             screenplay: project.screenplay,
             mode: project.mode,
             template: project.template,
@@ -141,7 +183,7 @@ enum IOSWorkspaceProjectEditing {
             sceneCards: project.sceneCards,
             snapshots: project.snapshots,
             exportPresets: project.exportPresets,
-            story: project.story,
+            story: story ?? project.story,
             pro: project.pro
         )
     }
