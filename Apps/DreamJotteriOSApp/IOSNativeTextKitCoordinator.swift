@@ -104,9 +104,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
 
     func screenplayTextViewAcceptSuggestion() -> Bool {
         let handled = performSemanticCommand(kind: .suggestionAcceptance, action: onAcceptSuggestion)
-        if handled {
-            announce("Suggestion accepted")
-        }
+        if handled { announce("Suggestion accepted") }
         return handled
     }
 
@@ -119,9 +117,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
             onSmartEnter()
             return true
         }
-        if handled {
-            announce("Smart Enter applied")
-        }
+        if handled { announce("Smart Enter applied") }
     }
 
     func screenplayTextViewPerformFormatCycle() {
@@ -129,9 +125,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
             onFormatCycle()
             return true
         }
-        if handled {
-            announce("Element format changed")
-        }
+        if handled { announce("Element format changed") }
     }
 
     func screenplayTextViewCopy() -> String? {
@@ -144,9 +138,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
             payload = IOSEditorClipboardService.cut(session: &session.wrappedValue)
             return payload != nil
         }
-        if handled {
-            announce("Screenplay block cut")
-        }
+        if handled { announce("Screenplay block cut") }
         return payload?.plainText
     }
 
@@ -167,9 +159,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
             )
             return true
         }
-        if handled {
-            announce("Text pasted")
-        }
+        if handled { announce("Text pasted") }
     }
 
     private func performSemanticCommand(
@@ -195,14 +185,17 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
         manager: UndoManager?
     ) {
         manager?.registerUndo(withTarget: self) { coordinator in
-            let redoSnapshot = coordinator.session.wrappedValue
-            coordinator.session.wrappedValue = snapshot
-            coordinator.registerUndo(
-                restoring: redoSnapshot,
-                actionName: actionName,
-                manager: manager
-            )
-            manager?.setActionName(actionName)
+            MainActor.assumeIsolated {
+                let redoSnapshot = coordinator.session.wrappedValue
+                coordinator.session.wrappedValue = snapshot
+                let activeManager = coordinator.currentTextView?.undoManager
+                coordinator.registerUndo(
+                    restoring: redoSnapshot,
+                    actionName: actionName,
+                    manager: activeManager
+                )
+                activeManager?.setActionName(actionName)
+            }
         }
     }
 
