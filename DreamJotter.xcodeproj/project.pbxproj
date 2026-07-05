@@ -7,11 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1EE028630A66C65FE14BFA37 /* IOSWorkspacePane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BC60A2E3E85D1B50105653 /* IOSWorkspacePane.swift */; };
 		3E95E5C03BD0A50CDD8008F5 /* IOSNativeTextKitCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F25FEB79A7888B5274BCE75 /* IOSNativeTextKitCoordinator.swift */; };
 		5E4116CBB4B14C113A0B1296 /* IOSNativeEditorSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20AACCDE07CEFCB7475F44FF /* IOSNativeEditorSourceTests.swift */; };
+		758918DDE118D55DF0FBF27C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BAE2090E7C61B322D0266678 /* LaunchScreen.storyboard */; };
 		81B61545092D70E0B0FC4BCC /* IOSAutocompletePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1722816AF00FA024EC9E4D4E /* IOSAutocompletePanel.swift */; };
 		82A040B85833B84182E63AB9 /* IOSProjectEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DA6F5B3A778EDA01CC3C9EA /* IOSProjectEditorView.swift */; };
 		8738C8D13BAB4851BD44A918 /* DreamJotteriOS in Frameworks */ = {isa = PBXBuildFile; productRef = 805149B2B9F281CCC4F85BF0 /* DreamJotteriOS */; };
+		8B413E797A764C2B853C6673 /* IOSWorkspaceProjectEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7228764DF868C7B4634BDB42 /* IOSWorkspaceProjectEditing.swift */; };
+		900327475D91BB36C104CF12 /* IOSWorkspacePaneContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE3E3FC63C7DA4EEA959E92 /* IOSWorkspacePaneContent.swift */; };
 		ACEC92D94D9AFC323B9F1629 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E004CE7E1AAB7FCD9C28C1A3 /* Assets.xcassets */; };
 		BCB59D1FE7ECD92B61A51F8C /* DreamJotteriOS in Frameworks */ = {isa = PBXBuildFile; productRef = 72AA074D07B64E49C9A69775 /* DreamJotteriOS */; };
 		C1816870D7F037A03CFC36C2 /* IOSNativeTextKitEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DA2E4E9FFEC2DF5B04A6C73 /* IOSNativeTextKitEditor.swift */; };
@@ -35,15 +39,19 @@
 		009352B34F06A1A71C3DF794 /* IOSScreenplayTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSScreenplayTextView.swift; sourceTree = "<group>"; };
 		0684506927F67D51E9AC065B /* DreamJotteriOSAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DreamJotteriOSAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		078099021AC805DEC2676C2A /* DreamJotter */ = {isa = PBXFileReference; lastKnownFileType = folder; name = DreamJotter; path = .; sourceTree = SOURCE_ROOT; };
+		0CE3E3FC63C7DA4EEA959E92 /* IOSWorkspacePaneContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSWorkspacePaneContent.swift; sourceTree = "<group>"; };
 		1722816AF00FA024EC9E4D4E /* IOSAutocompletePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSAutocompletePanel.swift; sourceTree = "<group>"; };
 		1F25FEB79A7888B5274BCE75 /* IOSNativeTextKitCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSNativeTextKitCoordinator.swift; sourceTree = "<group>"; };
 		20AACCDE07CEFCB7475F44FF /* IOSNativeEditorSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSNativeEditorSourceTests.swift; sourceTree = "<group>"; };
 		2607756294AC045E5C137A74 /* IOSProductConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSProductConfigurationTests.swift; sourceTree = "<group>"; };
 		478BD4A32DBC8969027E6C7B /* DreamJotteriOSApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DreamJotteriOSApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6DA6F5B3A778EDA01CC3C9EA /* IOSProjectEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSProjectEditorView.swift; sourceTree = "<group>"; };
+		7228764DF868C7B4634BDB42 /* IOSWorkspaceProjectEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSWorkspaceProjectEditing.swift; sourceTree = "<group>"; };
 		7DA2E4E9FFEC2DF5B04A6C73 /* IOSNativeTextKitEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSNativeTextKitEditor.swift; sourceTree = "<group>"; };
 		82C31C8063A740965E690EEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		889BEBEE536B04B3E50BF39F /* DreamJotteriOSApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamJotteriOSApplication.swift; sourceTree = "<group>"; };
+		99BC60A2E3E85D1B50105653 /* IOSWorkspacePane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSWorkspacePane.swift; sourceTree = "<group>"; };
+		BAE2090E7C61B322D0266678 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E004CE7E1AAB7FCD9C28C1A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -86,6 +94,9 @@
 				7DA2E4E9FFEC2DF5B04A6C73 /* IOSNativeTextKitEditor.swift */,
 				6DA6F5B3A778EDA01CC3C9EA /* IOSProjectEditorView.swift */,
 				009352B34F06A1A71C3DF794 /* IOSScreenplayTextView.swift */,
+				99BC60A2E3E85D1B50105653 /* IOSWorkspacePane.swift */,
+				0CE3E3FC63C7DA4EEA959E92 /* IOSWorkspacePaneContent.swift */,
+				7228764DF868C7B4634BDB42 /* IOSWorkspaceProjectEditing.swift */,
 				E4B5ED5022535264455295F2 /* Resources */,
 			);
 			path = DreamJotteriOSApp;
@@ -139,6 +150,7 @@
 			isa = PBXGroup;
 			children = (
 				E004CE7E1AAB7FCD9C28C1A3 /* Assets.xcassets */,
+				BAE2090E7C61B322D0266678 /* LaunchScreen.storyboard */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -234,6 +246,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ACEC92D94D9AFC323B9F1629 /* Assets.xcassets in Resources */,
+				758918DDE118D55DF0FBF27C /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -281,6 +294,9 @@
 				C1816870D7F037A03CFC36C2 /* IOSNativeTextKitEditor.swift in Sources */,
 				82A040B85833B84182E63AB9 /* IOSProjectEditorView.swift in Sources */,
 				DBF0B63B186174EB0B912F06 /* IOSScreenplayTextView.swift in Sources */,
+				1EE028630A66C65FE14BFA37 /* IOSWorkspacePane.swift in Sources */,
+				900327475D91BB36C104CF12 /* IOSWorkspacePaneContent.swift in Sources */,
+				8B413E797A764C2B853C6673 /* IOSWorkspaceProjectEditing.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -301,6 +317,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = config/DreamJotteriOS.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Apps/DreamJotteriOSApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -466,6 +483,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = config/DreamJotteriOS.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Apps/DreamJotteriOSApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
