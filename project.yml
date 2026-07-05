@@ -1,0 +1,63 @@
+name: DreamJotter
+options:
+  bundleIdPrefix: org.garaged
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: 1.0.0
+    CURRENT_PROJECT_VERSION: 1
+packages:
+  DreamJotter:
+    path: .
+targets:
+  DreamJotteriOSApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Apps/DreamJotteriOSApp
+    resources:
+      - path: Apps/DreamJotteriOSApp/Resources
+    info:
+      path: Apps/DreamJotteriOSApp/Info.plist
+    entitlements:
+      path: config/DreamJotteriOS.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.garaged.DreamJotter
+        PRODUCT_NAME: DreamJotter
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+    dependencies:
+      - package: DreamJotter
+        product: DreamJotteriOS
+  DreamJotteriOSAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Tests/DreamJotteriOSAppTests
+    dependencies:
+      - target: DreamJotteriOSApp
+schemes:
+  DreamJotteriOS:
+    build:
+      targets:
+        DreamJotteriOSApp: all
+        DreamJotteriOSAppTests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - DreamJotteriOSAppTests
+    run:
+      config: Debug
+    archive:
+      config: Release
