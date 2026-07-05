@@ -36,22 +36,64 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
 
     @MainActor
     final class Coordinator: NSObject, UIDocumentBrowserViewControllerDelegate {
+        private let documentAdapter = IOSProjectDocumentAdapter()
+
         func documentBrowser(
             _ controller: UIDocumentBrowserViewController,
             didPickDocumentsAt documentURLs: [URL]
         ) {
             guard let packageURL = documentURLs.first else { return }
-            presentWorkspace(for: packageURL, from: controller)
+            Task {
+                do {
+                    let snapshot = try await documentAdapter.openProject(at: packageURL)
+                    presentWorkspace(snapshot: snapshot, from: controller)
+                } catch {
+                    presentError(error.localizedDescription, from: controller)
+                }
+            }
         }
 
         func documentBrowser(
             _ controller: UIDocumentBrowserViewController,
             didRequestDocumentCreationWithHandler importHandler: @escaping (URL?, UIDocumentBrowserViewController.ImportMode) -> Void
         ) {
-            // The browser and entitlements are operational. Creation is deliberately
-            // blocked until the package-creation adapter can produce a canonical,
-            // schema-valid DreamJotter package rather than an empty directory.
-            importHandler(nil, .none)
+            Task {
+                let temporaryRoot = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("DreamJotter-New-\(UUID().uuidString)", isDirectory: true)
+                let packageURL = temporaryRoot.appendingPathComponent("Untitled.dreamjotter", isDirectory: true)
+
+                do {
+                    try FileManager.default.createDirectory(at: temporaryRoot, withIntermediateDirectories: true)
+                    let creationAdapter = IOSProjectDocumentAdapter(
+                        securityScopedAccess: .unrestricted,
+                        coordination: .direct
+                    )
+                    _ = try await creationAdapter.createProject(
+                        title: "Untitled",
+                        at: packageURL
+                    )
+                    importHandler(packageURL, .move)
+                } catch {
+                    try? FileManager.default.removeItem(at: temporaryRoot)
+                    importHandler(nil, .none)
+                    presentError(error.localizedDescription, from: controller)
+                }
+            }
+        }
+
+        func documentBrowser(
+            _ controller: UIDocumentBrowserViewController,
+            didImportDocumentAt sourceURL: URL,
+            toDestinationURL destinationURL: URL
+        ) {
+            Task {
+                do {
+                    let snapshot = try await documentAdapter.openProject(at: destinationURL)
+                    presentWorkspace(snapshot: snapshot, from: controller)
+                } catch {
+                    presentError(error.localizedDescription, from: controller)
+                }
+            }
         }
 
         func documentBrowser(
@@ -63,10 +105,10 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
         }
 
         private func presentWorkspace(
-            for packageURL: URL,
+            snapshot: IOSProjectDocumentSnapshot,
             from controller: UIDocumentBrowserViewController
         ) {
-            let view = IOSWorkspacePlaceholderView(packageURL: packageURL)
+            let view = IOSProjectWorkspaceBootstrapView(snapshot: snapshot)
             let hostingController = UIHostingController(rootView: view)
             hostingController.modalPresentationStyle = .fullScreen
             controller.present(hostingController, animated: true)
@@ -87,18 +129,31 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
     }
 }
 
-private struct IOSWorkspacePlaceholderView: View {
-    let packageURL: URL
+private struct IOSProjectWorkspaceBootstrapView: View {
+    let snapshot: IOSProjectDocumentSnapshot
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            ContentUnavailableView(
-                "Project Selected",
-                systemImage: "doc.text",
-                description: Text(packageURL.lastPathComponent)
-            )
-            .navigationTitle("DreamJotter")
+            List {
+                Section("Project") {
+                    LabeledContent("Title", value: snapshot.project.metadata.title)
+                    LabeledContent(
+                        "Scenes",
+                        value: "\(snapshot.project.screenplay.scenes.count)"
+                    )
+                    LabeledContent(
+                        "Storage",
+                        value: snapshot.packageURL.lastPathComponent
+                    )
+                }
+
+                Section {
+                    Text("The canonical package is open. The TextKit editor and adaptive workspace are implemented in the next M16 slice.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle(snapshot.project.metadata.title)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Documents") { dismiss() }
