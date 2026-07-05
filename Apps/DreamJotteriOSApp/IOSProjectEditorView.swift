@@ -1,6 +1,7 @@
 import DreamJotterCore
 import DreamJotteriOS
 import SwiftUI
+import UIKit
 
 struct IOSProjectEditorView: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -13,10 +14,10 @@ struct IOSProjectEditorView: View {
     @State private var visibleRange = EditorTextRange(location: 0, length: 0)
     @State private var autocomplete = IOSAutocompleteState()
     @State private var errorMessage: String?
+    @State private var splitVisibility: NavigationSplitViewVisibility = .all
 
     private let packageURL: URL
     private let documentAdapter = IOSProjectDocumentAdapter()
-    private let workspacePolicy = IOSWorkspacePolicy.policy(for: .phoneRegular)
 
     init(snapshot: IOSProjectDocumentSnapshot) {
         packageURL = snapshot.packageURL
@@ -28,53 +29,13 @@ struct IOSProjectEditorView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .bottom) {
-                IOSNativeTextKitEditor(
-                    session: $session,
-                    formattingRange: formattingWindow.range,
-                    styleRuns: boundedStyleRuns,
-                    onVisibleRangeChanged: updateVisibleRange,
-                    onMoveSuggestion: moveSuggestion,
-                    onAcceptSuggestion: acceptSelectedSuggestion,
-                    onDismissSuggestions: dismissSuggestions,
-                    onSmartEnter: performSmartEnter,
-                    onFormatCycle: performFormatCycle
-                )
-
-                IOSAutocompletePanel(
-                    state: autocomplete,
-                    compact: horizontalSizeClass == .compact,
-                    accept: acceptSuggestion,
-                    dismiss: { _ = dismissSuggestions() }
-                )
-                .padding(.horizontal, horizontalSizeClass == .compact ? 8 : 16)
-                .padding(.bottom, 8)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-            .animation(.snappy(duration: 0.2), value: autocomplete.isPresented)
-            .navigationTitle(project.metadata.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Label("Documents", systemImage: "chevron.backward")
-                    }
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button(action: performSmartEnter) {
-                        Image(systemName: "return")
-                    }
-                    .accessibilityLabel("Smart Enter")
-
-                    Button(action: performFormatCycle) {
-                        Image(systemName: "textformat")
-                    }
-                    .accessibilityLabel("Change screenplay element format")
-                }
-            }
+        GeometryReader { proxy in
+            let metrics = IOSAdaptiveLayoutMetrics.resolve(
+                availableWidth: proxy.size.width,
+                horizontalSizeClassIsCompact: horizontalSizeClass == .compact,
+                idiomIsPad: UIDevice.current.userInterfaceIdiom == .pad
+            )
+            workspace(metrics: metrics)
         }
         .task(id: session.revision.value) {
             refreshAutocomplete()
@@ -100,6 +61,143 @@ struct IOSProjectEditorView: View {
         }
     }
 
+    @ViewBuilder
+    private func workspace(metrics: IOSAdaptiveLayoutMetrics) -> some View {
+        switch metrics.navigationMode {
+        case .singlePane:
+            NavigationStack {
+                editorSurface(metrics: metrics)
+                    .navigationTitle(project.metadata.title)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar { editorToolbar(metrics: metrics) }
+            }
+        case .collapsibleSplit, .persistentSplit:
+            NavigationSplitView(columnVisibility: $splitVisibility) {
+                projectSidebar(metrics: metrics)
+                    .navigationTitle("Project")
+                    .navigationSplitViewColumnWidth(
+                        min: 220,
+                        ideal: metrics.preferredSidebarWidth,
+                        max: 340
+                    )
+            } detail: {
+                NavigationStack {
+                    editorSurface(metrics: metrics)
+                        .navigationTitle(project.metadata.title)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar { editorToolbar(metrics: metrics) }
+                }
+            }
+            .navigationSplitViewStyle(.balanced)
+            .onAppear {
+                splitVisibility = metrics.navigationMode == .persistentSplit ? .all : .automatic
+            }
+        }
+    }
+
+    private func editorSurface(metrics: IOSAdaptiveLayoutMetrics) -> some View {
+        ZStack(alignment: .bottom) {
+            Color(uiColor: .secondarySystemBackground)
+                .ignoresSafeArea()
+
+            IOSNativeTextKitEditor(
+                session: $session,
+                formattingRange: formattingWindow.range,
+                styleRuns: boundedStyleRuns,
+                onVisibleRangeChanged: updateVisibleRange,
+                onMoveSuggestion: moveSuggestion,
+                onAcceptSuggestion: acceptSelectedSuggestion,
+                onDismissSuggestions: dismissSuggestions,
+                onSmartEnter: performSmartEnter,
+                onFormatCycle: performFormatCycle
+            )
+            .frame(maxWidth: metrics.maximumReadableEditorWidth)
+            .background(Color(uiColor: .systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: metrics.layoutClass == .regularPad ? 12 : 0))
+            .shadow(
+                color: metrics.layoutClass == .regularPad ? .black.opacity(0.08) : .clear,
+                radius: 10,
+                y: 2
+            )
+            .padding(.horizontal, metrics.horizontalEditorInset)
+
+            IOSAutocompletePanel(
+                state: autocomplete,
+                compact: metrics.autocompleteMode == .compactFloatingCard,
+                accept: acceptSuggestion,
+                dismiss: { _ = dismissSuggestions() }
+            )
+            .frame(maxWidth: metrics.autocompleteMaximumWidth)
+            .padding(.horizontal, max(8, metrics.horizontalEditorInset))
+            .padding(.bottom, 8)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+        .animation(.snappy(duration: 0.2), value: autocomplete.isPresented)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Screenplay editor for \(project.metadata.title)")
+    }
+
+    private func projectSidebar(metrics: IOSAdaptiveLayoutMetrics) -> some View {
+        List {
+            Section {
+                Label(project.metadata.title, systemImage: "doc.text")
+                    .font(.headline)
+                    .lineLimit(2)
+                    .accessibilityLabel("Current project: \(project.metadata.title)")
+            }
+
+            Section("Workspace") {
+                Label("Screenplay", systemImage: "text.alignleft")
+                    .foregroundStyle(.primary)
+                Label("Scenes", systemImage: "rectangle.stack")
+                    .foregroundStyle(.secondary)
+                Label("Characters", systemImage: "person.2")
+                    .foregroundStyle(.secondary)
+                Label("Notes", systemImage: "note.text")
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Button {
+                    dismiss()
+                } label: {
+                    Label("Documents", systemImage: "folder")
+                }
+            }
+        }
+        .listStyle(.sidebar)
+    }
+
+    @ToolbarContentBuilder
+    private func editorToolbar(metrics: IOSAdaptiveLayoutMetrics) -> some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                dismiss()
+            } label: {
+                Label("Documents", systemImage: "chevron.backward")
+                    .labelStyle(metrics.showsCommandLabels ? .titleAndIcon : .iconOnly)
+            }
+            .frame(minWidth: 44, minHeight: 44)
+            .accessibilityHint("Returns to the document browser")
+        }
+
+        ToolbarItemGroup(placement: .topBarTrailing) {
+            Button(action: performSmartEnter) {
+                Label("Smart Enter", systemImage: "return")
+                    .labelStyle(metrics.showsCommandLabels ? .titleAndIcon : .iconOnly)
+            }
+            .frame(minWidth: 44, minHeight: 44)
+            .accessibilityHint("Creates the next appropriate screenplay element")
+
+            Button(action: performFormatCycle) {
+                Label("Format", systemImage: "textformat")
+                    .labelStyle(metrics.showsCommandLabels ? .titleAndIcon : .iconOnly)
+            }
+            .frame(minWidth: 44, minHeight: 44)
+            .accessibilityHint("Changes the current screenplay element type")
+        }
+    }
+
     private var formattingWindow: IOSEditorFormattingWindow {
         IOSEditorFormattingPolicy.formattingWindow(
             visibleRange: visibleRange,
@@ -112,6 +210,16 @@ struct IOSProjectEditorView: View {
             text: session.text,
             visibleRange: visibleRange
         )
+    }
+
+    private var workspacePolicy: IOSWorkspacePolicy {
+        let deviceClass: IOSDeviceClass
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            deviceClass = horizontalSizeClass == .compact ? .padCompact : .padRegular
+        } else {
+            deviceClass = .phoneRegular
+        }
+        return IOSWorkspacePolicy.policy(for: deviceClass)
     }
 
     private func updateVisibleRange(_ range: NSRange) {
