@@ -31,6 +31,7 @@ struct IOSProjectEditorView: View {
             VStack(spacing: 0) {
                 IOSNativeTextKitEditor(
                     session: $session,
+                    formattingRange: formattingWindow.range,
                     styleRuns: boundedStyleRuns,
                     onVisibleRangeChanged: updateVisibleRange,
                     onMoveSuggestion: moveSuggestion,
@@ -79,6 +80,13 @@ struct IOSProjectEditorView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+    }
+
+    private var formattingWindow: IOSEditorFormattingWindow {
+        IOSEditorFormattingPolicy.formattingWindow(
+            visibleRange: visibleRange,
+            text: session.text
+        )
     }
 
     private var boundedStyleRuns: [EditorLineStyleRun] {
