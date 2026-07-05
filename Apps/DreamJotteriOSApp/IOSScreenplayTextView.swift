@@ -2,6 +2,7 @@ import UIKit
 
 @MainActor
 protocol IOSScreenplayTextViewCommandDelegate: AnyObject {
+    func screenplayTextViewHasSuggestions() -> Bool
     func screenplayTextViewMoveSuggestion(_ offset: Int) -> Bool
     func screenplayTextViewAcceptSuggestion() -> Bool
     func screenplayTextViewDismissSuggestions() -> Bool
@@ -16,14 +17,23 @@ final class IOSScreenplayTextView: UITextView {
     weak var commandDelegate: IOSScreenplayTextViewCommandDelegate?
 
     override var keyCommands: [UIKeyCommand]? {
-        [
-            UIKeyCommand(input: UIKeyCommand.inputUpArrow, modifierFlags: [], action: #selector(handleMoveUp)),
-            UIKeyCommand(input: UIKeyCommand.inputDownArrow, modifierFlags: [], action: #selector(handleMoveDown)),
+        var commands = [
             UIKeyCommand(input: "\r", modifierFlags: [], action: #selector(acceptOrReturn)),
             UIKeyCommand(input: "\t", modifierFlags: [], action: #selector(acceptOrFormat)),
             UIKeyCommand(input: UIKeyCommand.inputEscape, modifierFlags: [], action: #selector(dismissSuggestions)),
             UIKeyCommand(input: "\r", modifierFlags: [.command], action: #selector(smartEnter))
         ]
+        if commandDelegate?.screenplayTextViewHasSuggestions() == true {
+            commands.insert(
+                UIKeyCommand(input: UIKeyCommand.inputUpArrow, modifierFlags: [], action: #selector(handleMoveUp)),
+                at: 0
+            )
+            commands.insert(
+                UIKeyCommand(input: UIKeyCommand.inputDownArrow, modifierFlags: [], action: #selector(handleMoveDown)),
+                at: 1
+            )
+        }
+        return commands
     }
 
     override func copy(_ sender: Any?) {
@@ -51,17 +61,11 @@ final class IOSScreenplayTextView: UITextView {
     }
 
     @objc private func handleMoveUp() {
-        guard commandDelegate?.screenplayTextViewMoveSuggestion(-1) == true else {
-            super.moveUp(nil)
-            return
-        }
+        _ = commandDelegate?.screenplayTextViewMoveSuggestion(-1)
     }
 
     @objc private func handleMoveDown() {
-        guard commandDelegate?.screenplayTextViewMoveSuggestion(1) == true else {
-            super.moveDown(nil)
-            return
-        }
+        _ = commandDelegate?.screenplayTextViewMoveSuggestion(1)
     }
 
     @objc private func acceptOrReturn() {
