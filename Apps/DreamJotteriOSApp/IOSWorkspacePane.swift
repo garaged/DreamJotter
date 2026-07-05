@@ -1,7 +1,7 @@
 import Foundation
 
 @MainActor
-enum IOSWorkspacePane: String, CaseIterable, Identifiable {
+enum IOSWorkspacePane: String, CaseIterable, Identifiable, Hashable {
     case screenplay
     case scenes
     case characters
