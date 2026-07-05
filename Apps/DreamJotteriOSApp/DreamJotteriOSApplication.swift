@@ -19,8 +19,8 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
     }
 
     func makeUIViewController(context: Context) -> UIDocumentBrowserViewController {
-        let projectType = UTType(importedAs: IOSProductConfiguration.documentTypeIdentifier)
-        let controller = UIDocumentBrowserViewController(forOpening: [projectType])
+        let projectType = UTType(exportedAs: IOSProductConfiguration.documentTypeIdentifier)
+        let controller = UIDocumentBrowserViewController(forOpening: [projectType, .package])
         controller.delegate = context.coordinator
         controller.allowsDocumentCreation = true
         controller.allowsPickingMultipleItems = false
@@ -42,6 +42,10 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
             didPickDocumentsAt documentURLs: [URL]
         ) {
             guard let packageURL = documentURLs.first else { return }
+            guard packageURL.pathExtension.lowercased() == "dreamjotter" else {
+                presentError("Select a .dreamjotter project package.", from: controller)
+                return
+            }
             Task {
                 do {
                     let snapshot = try await documentAdapter.openProject(at: packageURL)
