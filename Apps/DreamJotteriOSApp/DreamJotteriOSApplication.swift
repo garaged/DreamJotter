@@ -108,8 +108,9 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
             snapshot: IOSProjectDocumentSnapshot,
             from controller: UIDocumentBrowserViewController
         ) {
-            let view = IOSProjectWorkspaceBootstrapView(snapshot: snapshot)
-            let hostingController = UIHostingController(rootView: view)
+            let hostingController = UIHostingController(
+                rootView: IOSProjectEditorView(snapshot: snapshot)
+            )
             hostingController.modalPresentationStyle = .fullScreen
             controller.present(hostingController, animated: true)
         }
@@ -125,40 +126,6 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
             )
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             controller.present(alert, animated: true)
-        }
-    }
-}
-
-private struct IOSProjectWorkspaceBootstrapView: View {
-    let snapshot: IOSProjectDocumentSnapshot
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("Project") {
-                    LabeledContent("Title", value: snapshot.project.metadata.title)
-                    LabeledContent(
-                        "Scenes",
-                        value: "\(snapshot.project.screenplay.scenes.count)"
-                    )
-                    LabeledContent(
-                        "Storage",
-                        value: snapshot.packageURL.lastPathComponent
-                    )
-                }
-
-                Section {
-                    Text("The canonical package is open. The TextKit editor and adaptive workspace are implemented in the next M16 slice.")
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .navigationTitle(snapshot.project.metadata.title)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Documents") { dismiss() }
-                }
-            }
         }
     }
 }
