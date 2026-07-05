@@ -1,5 +1,6 @@
 import DreamJotterCore
 import DreamJotteriOS
+import Foundation
 import Testing
 
 @Suite("iOS editor commands")
