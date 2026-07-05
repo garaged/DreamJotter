@@ -103,7 +103,11 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     }
 
     func screenplayTextViewAcceptSuggestion() -> Bool {
-        performSemanticCommand(kind: .suggestionAcceptance, action: onAcceptSuggestion)
+        let handled = performSemanticCommand(kind: .suggestionAcceptance, action: onAcceptSuggestion)
+        if handled {
+            announce("Suggestion accepted")
+        }
+        return handled
     }
 
     func screenplayTextViewDismissSuggestions() -> Bool {
@@ -111,22 +115,44 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     }
 
     func screenplayTextViewPerformSmartEnter() {
-        _ = performSemanticCommand(kind: .smartEnter) {
+        let handled = performSemanticCommand(kind: .smartEnter) {
             onSmartEnter()
             return true
+        }
+        if handled {
+            announce("Smart Enter applied")
         }
     }
 
     func screenplayTextViewPerformFormatCycle() {
-        _ = performSemanticCommand(kind: .elementFormatting) {
+        let handled = performSemanticCommand(kind: .elementFormatting) {
             onFormatCycle()
             return true
         }
+        if handled {
+            announce("Element format changed")
+        }
+    }
+
+    func screenplayTextViewCopy() -> String? {
+        IOSEditorClipboardService.copyPayload(from: session.wrappedValue)?.plainText
+    }
+
+    func screenplayTextViewCut() -> String? {
+        var payload: IOSEditorClipboardPayload?
+        let handled = performSemanticCommand(kind: .cut) {
+            payload = IOSEditorClipboardService.cut(session: &session.wrappedValue)
+            return payload != nil
+        }
+        if handled {
+            announce("Screenplay block cut")
+        }
+        return payload?.plainText
     }
 
     func screenplayTextViewPaste(_ text: String) {
         let normalized = IOSPasteNormalizer.normalize(text)
-        _ = performSemanticCommand(kind: .paste) {
+        let handled = performSemanticCommand(kind: .paste) {
             let range = session.wrappedValue.selection.textRange
             let nextText = EditorUsabilityService.replacing(
                 range: range,
@@ -140,6 +166,9 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
                 kind: .paste
             )
             return true
+        }
+        if handled {
+            announce("Text pasted")
         }
     }
 
@@ -189,6 +218,10 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
                 actualGlyphRange: nil
             )
         )
+    }
+
+    private func announce(_ message: String) {
+        UIAccessibility.post(notification: .announcement, argument: message)
     }
 
     private func attributes(
