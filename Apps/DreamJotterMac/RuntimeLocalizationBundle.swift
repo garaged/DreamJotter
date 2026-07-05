@@ -59,40 +59,31 @@ enum RuntimeLocalizationBundle {
     }
 
     private static func candidateResourceBundles() -> [Bundle] {
-        var bundles = [DreamJotterResourceBundle.bundle, Bundle.main]
-        var seenURLs = Set(
-            bundles.map { $0.bundleURL.standardizedFileURL }
-        )
+        var bundles: [Bundle] = [
+            DreamJotterResourceBundle.bundle,
+            Bundle(for: DreamJotterLanguageBundle.self),
+            Bundle.main
+        ]
+        bundles.append(contentsOf: Bundle.allBundles)
+        bundles.append(contentsOf: Bundle.allFrameworks)
 
-        func appendBundle(at url: URL) {
-            let standardizedURL = url.standardizedFileURL
-            guard seenURLs.insert(standardizedURL).inserted,
-                  let bundle = Bundle(url: standardizedURL) else {
-                return
-            }
-            bundles.append(bundle)
+        let sourceResourcesURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Resources", isDirectory: true)
+        if let sourceResourcesBundle = Bundle(url: sourceResourcesURL) {
+            bundles.append(sourceResourcesBundle)
         }
 
-        let searchRoots = [
-            Bundle.main.resourceURL,
-            Bundle.main.executableURL?.deletingLastPathComponent()
-        ].compactMap { $0 }
-
-        for root in searchRoots {
-            guard let children = try? FileManager.default.contentsOfDirectory(
-                at: root,
-                includingPropertiesForKeys: [.isDirectoryKey],
-                options: [.skipsHiddenFiles]
-            ) else {
-                continue
-            }
-
-            for child in children where child.pathExtension == "bundle" {
-                appendBundle(at: child)
+        var unique: [Bundle] = []
+        var seenURLs = Set<URL>()
+        for bundle in bundles {
+            let url = bundle.bundleURL.standardizedFileURL
+            if seenURLs.insert(url).inserted {
+                unique.append(bundle)
             }
         }
 
-        return bundles
+        return unique
     }
 
     private static func availableLocalizations(in bundles: [Bundle]) -> [String] {
