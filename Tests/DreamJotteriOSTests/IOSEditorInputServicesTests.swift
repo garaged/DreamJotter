@@ -31,9 +31,11 @@ struct IOSEditorInputServicesTests {
         var state = IOSAutocompleteState(suggestions: [first, second])
 
         #expect(state.selectedSuggestion == first)
-        #expect(state.moveSelection(by: -1))
+        let movedBackward = state.moveSelection(by: -1)
+        #expect(movedBackward)
         #expect(state.selectedSuggestion == second)
-        #expect(state.moveSelection(by: 1))
+        let movedForward = state.moveSelection(by: 1)
+        #expect(movedForward)
         #expect(state.selectedSuggestion == first)
         state.dismiss()
         #expect(!state.isPresented)
