@@ -10,6 +10,7 @@ public enum IOSDeliveryPhase: String, CaseIterable, Codable, Sendable {
 }
 
 public enum IOSCapability: String, CaseIterable, Codable, Sendable {
+    case applicationFoundation
     case localPackageCreateOpenSave
     case autosaveAndConflictRecovery
     case semanticScreenplayEditing
@@ -53,6 +54,7 @@ public struct IOSFeatureParityItem: Equatable, Codable, Sendable {
 
 public enum IOSFeatureParityCatalog {
     public static let fullDesktopParity: [IOSFeatureParityItem] = [
+        .init(capability: .applicationFoundation, phase: .foundation),
         .init(capability: .localPackageCreateOpenSave, phase: .documentExperience, requiresDeviceValidation: true),
         .init(capability: .autosaveAndConflictRecovery, phase: .documentExperience, requiresDeviceValidation: true),
         .init(capability: .semanticScreenplayEditing, phase: .editor, requiresDeviceValidation: true),
