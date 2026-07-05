@@ -24,6 +24,10 @@ targets:
       - path: Apps/DreamJotteriOSApp
     resources:
       - path: Apps/DreamJotteriOSApp/Resources
+    preBuildScripts:
+      - name: Generate iOS App Icon
+        script: bash "$SRCROOT/scripts/generate-ios-app-icon"
+        basedOnDependencyAnalysis: false
     info:
       path: Apps/DreamJotteriOSApp/Info.plist
     entitlements:
