@@ -15,5 +15,29 @@ struct IOSEditableScenesPane: View {
                 Text(card.title)
             }
         }
+        .sheet(item: $selectedCard) { card in
+            IOSPersistentSceneCardEditorSheet(card: card) { summary, note, status in
+                saveCard(card, summary: summary, note: note, status: status)
+            }
+        }
+    }
+
+    private func saveCard(
+        _ card: SceneCard,
+        summary: String,
+        note: String,
+        status: SceneCardStatus
+    ) {
+        let updated = IOSSceneCardEditing.update(
+            project: project,
+            card: card,
+            summary: summary,
+            note: note,
+            status: status,
+            plotlineTags: card.plotlineTags
+        )
+        guard updated != project else { return }
+        project = updated
+        commitProjectChange(updated)
     }
 }
