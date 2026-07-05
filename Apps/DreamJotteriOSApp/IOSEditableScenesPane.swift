@@ -33,7 +33,14 @@ struct IOSEditableScenesPane: View {
             }
             .onMove(perform: moveScenes)
         }
-        .toolbar { EditButton() }
+        .toolbar {
+            EditButton()
+            Button {
+                applyPlanningOrder()
+            } label: {
+                Label("Apply Order", systemImage: "arrow.triangle.2.circlepath")
+            }
+        }
         .sheet(item: $selectedCard) { card in
             IOSSceneCardEditorSheet(card: card) { summary, note, status in
                 saveCard(card, summary: summary, note: note, status: status)
