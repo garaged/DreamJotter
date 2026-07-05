@@ -87,12 +87,17 @@ struct ProjectWorkspaceView: View {
         case .dashboard:
             ScrollView { OptimizedDashboardPane(document: $document).padding() }
         case .script:
-            HSplitView {
+            HStack(spacing: 0) {
                 ScriptEditorView(document: $document)
                     .frame(minWidth: 520, maxWidth: .infinity, maxHeight: .infinity)
+                    .layoutPriority(1)
+
+                Divider()
+
                 ScreenplayParagraphInspectorView(document: $document)
-                    .frame(minWidth: 260, idealWidth: 300, maxWidth: 360, maxHeight: .infinity)
+                    .frame(width: 300, maxHeight: .infinity)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .scenes:
             ScrollView {
                 OptimizedSceneWorkflowView(document: $document, openScriptAction: { selectedSection = .script })
