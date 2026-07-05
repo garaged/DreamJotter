@@ -8,6 +8,21 @@ Deliver a native iPhone and iPad version of DreamJotter with the complete user-f
 
 The iOS application is not a reduced companion. Layout and interaction may adapt to touch, compact width, keyboard availability, and lifecycle constraints, but project semantics and supported workflows must remain compatible with macOS.
 
+## Resolved product configuration
+
+- Application bundle identifier: `org.garaged.DreamJotter`.
+- DreamJotter project type identifier: `org.garaged.dreamjotter.project`.
+- iCloud Documents container: `iCloud.org.garaged.DreamJotter`.
+- Minimum application deployment target: iOS/iPadOS 26.0.
+- Primary current-device design target: iPhone 17 family plus adaptive iPad layouts.
+- Physical performance acceptance baseline: iPhone 14 Plus.
+- Distribution: Apple App Store and TestFlight.
+- Signing: Xcode automatic signing; no personal or organization development-team identifier is committed. A valid Apple Developer team remains required when archiving or uploading an App Store build.
+- Storage: open-in-place Files documents, local storage, iCloud Drive, and compatible third-party Files providers.
+- Branding: adapt the existing desktop icon into an opaque 1024-by-1024 iOS AppIcon master without baking an iOS corner mask into the asset.
+
+Apple did not release an iOS 24 line. The requested “iOS 24.x” target is therefore normalized to the current iOS 26 generation rather than inventing an unsupported deployment target.
+
 ## Architecture decisions
 
 - `DreamJotterCore` remains the single source of truth for screenplay semantics, package storage, commands, validation, review, backup, import, and export behavior.
@@ -21,17 +36,17 @@ The iOS application is not a reduced companion. Layout and interaction may adapt
 
 ### M16.1 Foundation and measurable budgets
 
-- Add iOS 17 package support and a dedicated `DreamJotteriOS` module.
+- Add reusable iOS package support and a dedicated `DreamJotteriOS` module.
 - Define the complete desktop-parity capability inventory.
 - Define adaptive workspace, editor hydration, cache, debounce, and lifecycle save policies.
-- Add policy tests and CI compilation/test coverage.
+- Add stable product identifiers, iCloud/Files entitlements, an iOS 26 app target definition, icon generation, policy tests, and CI compilation/test coverage.
 - Record device performance budgets before building heavy views.
 
 ### M16.2 Native document experience
 
 - Create the iOS application target and app lifecycle.
-- Integrate `UIDocumentBrowserViewController` or an equivalent document-browser flow for create, open, duplicate, move, rename, delete, and recent packages.
-- Register `.dreamjotter` package UTType and document roles.
+- Integrate `UIDocumentBrowserViewController` for create, open, duplicate, move, rename, delete, and recent packages.
+- Register `.dreamjotter` as an exported package UTType and support opening documents in place.
 - Implement coordinated package reads/writes, security-scoped access where required, autosave, background save, external-generation conflict handling, corruption recovery, and restoration.
 - Prove macOS-created packages open and round-trip without semantic changes on iOS and vice versa.
 
@@ -70,14 +85,14 @@ Initial budgets are regression thresholds, not aspirational averages:
 
 - Editor input handling p95: at most 16 ms excluding OS text-service latency.
 - Navigation to an already-derived pane p95: at most 100 ms.
-- Initial usable document presentation: at most 750 ms for the standard fixture on the baseline device.
-- Background save completion: at most 2 seconds for the standard fixture.
+- Initial usable document presentation: at most 750 ms for the standard fixture on the iPhone 14 Plus baseline.
+- Background save completion: at most 2 seconds for the standard fixture on the iPhone 14 Plus baseline.
 - Editor hydration must remain visible-window bounded for all device classes.
 - Compact iPhone derived-view cache: at most two heavy views.
 - Memory warning must evict heavy caches down to one retained current view.
 - No synchronous PDF, FDX, health-report, dashboard, or full-project parse work on the main actor.
 
-Budgets must be measured on a declared baseline physical device and separately guarded with deterministic structural/performance tests where timing is stable enough for CI.
+Simulator measurements are diagnostic. Final timing gates require an iPhone 14 Plus with the tested iOS version, release build, fixture revision, measurement method, sample count, median, p95, and maximum recorded.
 
 ## Required regression coverage
 
@@ -90,25 +105,25 @@ Budgets must be measured on a declared baseline physical device and separately g
 - Bounded derived data, cancellation of stale work, and cache eviction under memory pressure.
 - Every desktop capability appears exactly once in the iOS parity catalog.
 - Every export format has structural equivalence tests shared with macOS/core.
+- Product identifiers, deployment target, Files behavior, iCloud container, and non-committed team policy remain stable.
 
 ## Human-intervention gates
 
 Implementation should continue without design approval until one of these gates is reached:
 
-1. Selecting and provisioning the final Xcode iOS app target, bundle identifier, signing team, and App Store capabilities.
-2. Choosing the minimum supported device set if iOS 17 proves incompatible with product goals.
-3. Physical-device TextKit, dictation, hardware-keyboard, Files provider, memory-pressure, and accessibility validation.
-4. Visual approval of compact iPhone and regular iPad navigation/toolbar composition.
-5. App Store Connect privacy, entitlement, distribution, and TestFlight submission actions.
+1. Selecting the Apple Developer team in Xcode and creating the App ID, iCloud container, provisioning records, and App Store Connect application.
+2. Physical-device TextKit, dictation, hardware-keyboard, Files provider, memory-pressure, and accessibility validation on the iPhone 14 Plus baseline.
+3. Visual approval of compact iPhone, iPhone 17-family, and regular iPad navigation/toolbar composition.
+4. App Store Connect privacy, entitlement, distribution, and TestFlight submission actions.
 
 ## Acceptance gates
 
 M16 is accepted only when:
 
 1. All macOS 1.0 user-facing capabilities are represented and implemented on iOS, with documented platform adaptations.
-2. macOS and iOS packages round-trip without semantic loss.
-3. Automated tests and CI pass for core, macOS, iOS support modules, and the iOS simulator target.
-4. Long-script editing remains responsive within the accepted device budgets.
+2. macOS and iOS packages round-trip without semantic loss through local Files, iCloud Drive, and a third-party provider.
+3. Automated tests and CI pass for core, macOS, iOS support modules, and the iOS 26 simulator target.
+4. Long-script editing remains responsive within the accepted iPhone 14 Plus budgets.
 5. Backgrounding, Files coordination, conflicts, recovery, and migrations never silently discard or overwrite user work.
 6. VoiceOver, Dynamic Type, hardware keyboard, and touch workflows have completed evidence.
 7. Every import/export format passes shared regression fixtures.
@@ -116,7 +131,7 @@ M16 is accepted only when:
 
 ## Out of scope
 
-- Cloud synchronization or collaboration.
+- Cloud synchronization or collaboration beyond user-controlled iCloud Drive document storage.
 - An iOS-only alternate project format.
 - Feature removal solely to simplify compact-width design.
 - Rewriting core screenplay behavior in UIKit or SwiftUI.
