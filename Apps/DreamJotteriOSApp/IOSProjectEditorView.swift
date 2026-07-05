@@ -14,6 +14,8 @@ struct IOSProjectEditorView: View {
     @State private var autocomplete = IOSAutocompleteState()
     @State private var errorMessage: String?
     @State private var splitVisibility: NavigationSplitViewVisibility = .all
+    @State private var showsNavigator = true
+    @State private var showsInspector = true
 
     private let packageURL: URL
     private let onClose: () -> Void
@@ -39,8 +41,9 @@ struct IOSProjectEditorView: View {
                 horizontalSizeClassIsCompact: horizontalSizeClass == .compact,
                 idiomIsPad: UIDevice.current.userInterfaceIdiom == .pad
             )
+            let isLandscape = proxy.size.width > proxy.size.height
 
-            layout(for: metrics)
+            layout(for: metrics, isLandscape: isLandscape)
                 .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .background(Color(uiColor: .systemBackground))
@@ -69,52 +72,27 @@ struct IOSProjectEditorView: View {
     }
 
     @ViewBuilder
-    private func layout(for metrics: IOSAdaptiveLayoutMetrics) -> some View {
+    private func layout(
+        for metrics: IOSAdaptiveLayoutMetrics,
+        isLandscape: Bool
+    ) -> some View {
         switch metrics.layoutClass {
         case .compactPhone:
             compactPhoneWorkspace(metrics: metrics)
         case .regularPhone:
-            regularPhoneWorkspace(metrics: metrics)
+            regularPhoneWorkspace(metrics: metrics, isLandscape: isLandscape)
         case .compactPad:
             compactPadWorkspace(metrics: metrics)
         case .regularPad:
-            regularPadWorkspace(metrics: metrics)
+            regularPadWorkspace(metrics: metrics, isLandscape: isLandscape)
         }
     }
 
     private func compactPhoneWorkspace(metrics: IOSAdaptiveLayoutMetrics) -> some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Button(action: onClose) {
-                    Image(systemName: "chevron.backward")
-                        .font(.headline)
-                        .frame(width: 44, height: 44)
-                }
-                .accessibilityLabel("Documents")
-
-                Text(project.metadata.title)
-                    .font(.headline)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityLabel("Project: \(project.metadata.title)")
-
-                Menu {
-                    Button("Smart Enter", systemImage: "return", action: performSmartEnter)
-                    Button("Change Format", systemImage: "textformat", action: performFormatCycle)
-                    Button("Dismiss Suggestions", systemImage: "xmark") {
-                        _ = dismissSuggestions()
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.title3)
-                        .frame(width: 44, height: 44)
-                }
-                .accessibilityLabel("Editing commands")
-            }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
-            .background(.bar)
+            compactEditorHeader
+                .frame(height: 44)
+                .background(.bar)
 
             editorCanvas(
                 metrics: metrics,
@@ -127,77 +105,135 @@ struct IOSProjectEditorView: View {
         .background(Color(uiColor: .systemBackground))
     }
 
-    private func regularPhoneWorkspace(metrics: IOSAdaptiveLayoutMetrics) -> some View {
-        NavigationStack {
-            editorCanvas(
-                metrics: metrics,
-                cornerRadius: 12,
-                horizontalPadding: 12,
-                verticalPadding: 10,
-                shadowRadius: 4
-            )
-            .navigationTitle(project.metadata.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: onClose) {
-                        Label("Documents", systemImage: "chevron.backward")
-                            .labelStyle(.iconOnly)
-                    }
-                    .frame(minWidth: 44, minHeight: 44)
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button(action: performSmartEnter) {
-                        Image(systemName: "return")
-                    }
-                    .accessibilityLabel("Smart Enter")
+    private func regularPhoneWorkspace(
+        metrics: IOSAdaptiveLayoutMetrics,
+        isLandscape: Bool
+    ) -> some View {
+        Group {
+            if isLandscape {
+                VStack(spacing: 0) {
+                    compactEditorHeader
+                        .frame(height: 40)
+                        .background(.bar)
 
-                    Button(action: performFormatCycle) {
-                        Image(systemName: "textformat")
+                    editorCanvas(
+                        metrics: metrics,
+                        cornerRadius: 0,
+                        horizontalPadding: 0,
+                        verticalPadding: 0,
+                        shadowRadius: 0
+                    )
+                }
+            } else {
+                NavigationStack {
+                    editorCanvas(
+                        metrics: metrics,
+                        cornerRadius: 10,
+                        horizontalPadding: 8,
+                        verticalPadding: 6,
+                        shadowRadius: 3
+                    )
+                    .navigationTitle(project.metadata.title)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button(action: onClose) {
+                                Label("Documents", systemImage: "chevron.backward")
+                                    .labelStyle(.iconOnly)
+                            }
+                            .frame(minWidth: 44, minHeight: 44)
+                        }
+                        ToolbarItemGroup(placement: .topBarTrailing) {
+                            Button(action: performSmartEnter) {
+                                Image(systemName: "return")
+                            }
+                            .accessibilityLabel("Smart Enter")
+
+                            Button(action: performFormatCycle) {
+                                Image(systemName: "textformat")
+                            }
+                            .accessibilityLabel("Change screenplay element format")
+                        }
                     }
-                    .accessibilityLabel("Change screenplay element format")
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 14) {
-                    Label("Writing", systemImage: "square.and.pencil")
-                        .font(.caption.weight(.semibold))
-                    Spacer()
-                    Button("Smart Enter", action: performSmartEnter)
-                        .buttonStyle(.borderless)
-                    Button("Format", action: performFormatCycle)
-                        .buttonStyle(.borderless)
-                }
-                .padding(.horizontal, 16)
-                .frame(height: 44)
-                .background(.bar)
             }
         }
+    }
+
+    private var compactEditorHeader: some View {
+        HStack(spacing: 4) {
+            Button(action: onClose) {
+                Image(systemName: "chevron.backward")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(width: 40, height: 40)
+            }
+            .accessibilityLabel("Documents")
+
+            Text(project.metadata.title)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityLabel("Project: \(project.metadata.title)")
+
+            Button(action: performSmartEnter) {
+                Image(systemName: "return")
+                    .frame(width: 40, height: 40)
+            }
+            .accessibilityLabel("Smart Enter")
+
+            Menu {
+                Button("Change Format", systemImage: "textformat", action: performFormatCycle)
+                Button("Dismiss Suggestions", systemImage: "xmark") {
+                    _ = dismissSuggestions()
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .frame(width: 40, height: 40)
+            }
+            .accessibilityLabel("Editing commands")
+        }
+        .padding(.horizontal, 2)
     }
 
     private func compactPadWorkspace(metrics: IOSAdaptiveLayoutMetrics) -> some View {
         NavigationSplitView(columnVisibility: $splitVisibility) {
             projectNavigator(showInspectorSummary: false)
                 .navigationTitle("Project")
-                .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 300)
+                .navigationSplitViewColumnWidth(min: 180, ideal: 210, max: 240)
         } detail: {
             NavigationStack {
                 editorCanvas(
                     metrics: metrics,
-                    cornerRadius: 14,
-                    horizontalPadding: 24,
-                    verticalPadding: 18,
-                    shadowRadius: 8
+                    cornerRadius: 12,
+                    horizontalPadding: 14,
+                    verticalPadding: 10,
+                    shadowRadius: 6
                 )
                 .navigationTitle(project.metadata.title)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
-                        Button("Documents", systemImage: "folder", action: onClose)
+                        Button {
+                            splitVisibility = splitVisibility == .detailOnly ? .all : .detailOnly
+                        } label: {
+                            Image(systemName: "sidebar.left")
+                        }
+                        .accessibilityLabel("Toggle project navigator")
                     }
                     ToolbarItemGroup(placement: .topBarTrailing) {
-                        Button("Smart Enter", systemImage: "return", action: performSmartEnter)
-                        Button("Format", systemImage: "textformat", action: performFormatCycle)
+                        Button(action: performSmartEnter) {
+                            Image(systemName: "return")
+                        }
+                        .accessibilityLabel("Smart Enter")
+                        Button(action: performFormatCycle) {
+                            Image(systemName: "textformat")
+                        }
+                        .accessibilityLabel("Change format")
+                        Button(action: onClose) {
+                            Image(systemName: "folder")
+                        }
+                        .accessibilityLabel("Documents")
                     }
                 }
             }
@@ -206,50 +242,87 @@ struct IOSProjectEditorView: View {
         .onAppear { splitVisibility = .automatic }
     }
 
-    private func regularPadWorkspace(metrics: IOSAdaptiveLayoutMetrics) -> some View {
+    private func regularPadWorkspace(
+        metrics: IOSAdaptiveLayoutMetrics,
+        isLandscape: Bool
+    ) -> some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                Button("Documents", systemImage: "folder", action: onClose)
-                Divider().frame(height: 24)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(project.metadata.title)
-                        .font(.headline)
-                        .lineLimit(1)
-                    Text("Screenplay Studio")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                Button(action: onClose) {
+                    Image(systemName: "folder")
+                        .frame(width: 38, height: 38)
                 }
+                .accessibilityLabel("Documents")
+
+                Button {
+                    withAnimation(.snappy(duration: 0.18)) {
+                        showsNavigator.toggle()
+                    }
+                } label: {
+                    Image(systemName: "sidebar.left")
+                        .frame(width: 38, height: 38)
+                }
+                .accessibilityLabel(showsNavigator ? "Hide project navigator" : "Show project navigator")
+
+                Text(project.metadata.title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+
                 Spacer()
-                Button("Smart Enter", systemImage: "return", action: performSmartEnter)
-                    .buttonStyle(.bordered)
-                Button("Format", systemImage: "textformat", action: performFormatCycle)
-                    .buttonStyle(.borderedProminent)
+
+                Button(action: performSmartEnter) {
+                    Image(systemName: "return")
+                        .frame(width: 38, height: 38)
+                }
+                .accessibilityLabel("Smart Enter")
+
+                Button(action: performFormatCycle) {
+                    Image(systemName: "textformat")
+                        .frame(width: 38, height: 38)
+                }
+                .accessibilityLabel("Change format")
+
+                Button {
+                    withAnimation(.snappy(duration: 0.18)) {
+                        showsInspector.toggle()
+                    }
+                } label: {
+                    Image(systemName: "sidebar.right")
+                        .frame(width: 38, height: 38)
+                }
+                .accessibilityLabel(showsInspector ? "Hide inspector" : "Show inspector")
             }
-            .padding(.horizontal, 18)
-            .frame(height: 58)
+            .padding(.horizontal, 6)
+            .frame(height: isLandscape ? 42 : 46)
             .background(.bar)
 
             HStack(spacing: 0) {
-                projectNavigator(showInspectorSummary: true)
-                    .frame(width: 270)
-                    .background(Color(uiColor: .secondarySystemBackground))
+                if showsNavigator {
+                    projectNavigator(showInspectorSummary: true)
+                        .frame(width: isLandscape ? 200 : 220)
+                        .background(Color(uiColor: .secondarySystemBackground))
+                        .transition(.move(edge: .leading).combined(with: .opacity))
 
-                Divider()
+                    Divider()
+                }
 
                 editorCanvas(
                     metrics: metrics,
-                    cornerRadius: 16,
-                    horizontalPadding: 36,
-                    verticalPadding: 24,
-                    shadowRadius: 12
+                    cornerRadius: 12,
+                    horizontalPadding: isLandscape ? 12 : 18,
+                    verticalPadding: isLandscape ? 8 : 14,
+                    shadowRadius: 8
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                Divider()
+                if showsInspector {
+                    Divider()
 
-                projectInspector
-                    .frame(width: 290)
-                    .background(Color(uiColor: .secondarySystemBackground))
+                    projectInspector
+                        .frame(width: isLandscape ? 220 : 240)
+                        .background(Color(uiColor: .secondarySystemBackground))
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
             }
         }
         .background(Color(uiColor: .secondarySystemBackground))
@@ -330,12 +403,12 @@ struct IOSProjectEditorView: View {
 
     private var projectInspector: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 14) {
                 Text("Inspector")
-                    .font(.title3.weight(.semibold))
+                    .font(.headline)
 
                 GroupBox("Current document") {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 6) {
                         LabeledContent("Title", value: project.metadata.title)
                         LabeledContent("Scenes", value: "\(project.screenplay.scenes.count)")
                         LabeledContent("Characters", value: "\(project.characters.count)")
@@ -344,7 +417,7 @@ struct IOSProjectEditorView: View {
                 }
 
                 GroupBox("Editing") {
-                    VStack(spacing: 10) {
+                    VStack(spacing: 8) {
                         Button("Smart Enter", systemImage: "return", action: performSmartEnter)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Button("Change Format", systemImage: "textformat", action: performFormatCycle)
@@ -352,7 +425,7 @@ struct IOSProjectEditorView: View {
                     }
                 }
             }
-            .padding(18)
+            .padding(12)
         }
     }
 
