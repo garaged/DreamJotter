@@ -12,11 +12,12 @@ struct IOSProjectEditorView: View {
     @State private var session: IOSEditorSession
     @State private var visibleRange = EditorTextRange(location: 0, length: 0)
     @State private var autocomplete = IOSAutocompleteState()
-    @State private var errorMessage: String?
+    @State private var selectedPane: IOSWorkspacePane = .screenplay
     @State private var splitVisibility: NavigationSplitViewVisibility = .all
     @State private var showsNavigator = true
     @State private var showsInspector = true
-    @State private var selectedPane: IOSWorkspacePane = .screenplay
+    @State private var projectMutationRevision: UInt64 = 0
+    @State private var errorMessage: String?
 
     private let packageURL: URL
     private let onClose: () -> Void
@@ -39,9 +40,7 @@ struct IOSProjectEditorView: View {
                 horizontalSizeClassIsCompact: horizontalSizeClass == .compact,
                 idiomIsPad: UIDevice.current.userInterfaceIdiom == .pad
             )
-            let isLandscape = proxy.size.width > proxy.size.height
-
-            layout(for: metrics, isLandscape: isLandscape)
+            layout(for: metrics, isLandscape: proxy.size.width > proxy.size.height)
                 .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .background(Color(uiColor: .systemBackground))
@@ -51,6 +50,12 @@ struct IOSProjectEditorView: View {
         }
         .task(id: session.autosaveRevisionPending?.value) {
             await autosaveCurrentRevision()
+        }
+        .task(id: projectMutationRevision) {
+            guard projectMutationRevision > 0 else { return }
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            await saveWorkspaceProjectMutation()
         }
         .onChange(of: session.selection) { _, _ in refreshAutocomplete() }
         .onChange(of: scenePhase) { _, phase in
@@ -83,10 +88,8 @@ struct IOSProjectEditorView: View {
 
     private func compactPhoneWorkspace(metrics: IOSAdaptiveLayoutMetrics) -> some View {
         VStack(spacing: 0) {
-            compactEditorHeader
-                .frame(height: 44)
-                .background(.bar)
-            workspaceSurface(metrics: metrics, cornerRadius: 0, horizontalPadding: 0, verticalPadding: 0, shadowRadius: 0)
+            compactHeader.frame(height: 44).background(.bar)
+            workspaceSurface(metrics: metrics, inset: 0, radius: 0, shadow: 0)
         }
     }
 
@@ -94,94 +97,31 @@ struct IOSProjectEditorView: View {
         Group {
             if isLandscape {
                 VStack(spacing: 0) {
-                    compactEditorHeader
-                        .frame(height: 40)
-                        .background(.bar)
-                    workspaceSurface(metrics: metrics, cornerRadius: 0, horizontalPadding: 0, verticalPadding: 0, shadowRadius: 0)
+                    compactHeader.frame(height: 40).background(.bar)
+                    workspaceSurface(metrics: metrics, inset: 0, radius: 0, shadow: 0)
                 }
             } else {
                 NavigationStack {
-                    workspaceSurface(metrics: metrics, cornerRadius: 10, horizontalPadding: 8, verticalPadding: 6, shadowRadius: 3)
+                    workspaceSurface(metrics: metrics, inset: 8, radius: 10, shadow: 3)
                         .navigationTitle(selectedPane == .screenplay ? project.metadata.title : selectedPane.title)
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .topBarLeading) {
                                 HStack(spacing: 2) {
                                     Button(action: onClose) { Image(systemName: "chevron.backward") }
-                                        .accessibilityLabel("Documents")
                                     workspaceMenu
                                 }
                             }
                             if selectedPane == .screenplay {
                                 ToolbarItemGroup(placement: .topBarTrailing) {
                                     Button(action: performSmartEnter) { Image(systemName: "return") }
-                                        .accessibilityLabel("Smart Enter")
                                     Button(action: performFormatCycle) { Image(systemName: "textformat") }
-                                        .accessibilityLabel("Change screenplay element format")
                                 }
                             }
                         }
                 }
             }
         }
-    }
-
-    private var compactEditorHeader: some View {
-        HStack(spacing: 4) {
-            Button(action: onClose) {
-                Image(systemName: "chevron.backward")
-                    .font(.subheadline.weight(.semibold))
-                    .frame(width: 40, height: 40)
-            }
-            .accessibilityLabel("Documents")
-
-            workspaceMenu.frame(width: 40, height: 40)
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text(selectedPane.title)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-                if selectedPane == .screenplay {
-                    Text(project.metadata.title)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            if selectedPane == .screenplay {
-                Button(action: performSmartEnter) {
-                    Image(systemName: "return").frame(width: 40, height: 40)
-                }
-                .accessibilityLabel("Smart Enter")
-
-                Menu {
-                    Button("Change Format", systemImage: "textformat", action: performFormatCycle)
-                    Button("Dismiss Suggestions", systemImage: "xmark") { _ = dismissSuggestions() }
-                } label: {
-                    Image(systemName: "ellipsis.circle").frame(width: 40, height: 40)
-                }
-                .accessibilityLabel("Editing commands")
-            }
-        }
-        .padding(.horizontal, 2)
-    }
-
-    private var workspaceMenu: some View {
-        Menu {
-            ForEach(IOSWorkspacePane.allCases) { pane in
-                Button {
-                    selectPane(pane)
-                } label: {
-                    Label(pane.title, systemImage: pane.systemImage)
-                }
-            }
-        } label: {
-            Image(systemName: selectedPane.systemImage)
-                .frame(width: 38, height: 38)
-        }
-        .accessibilityLabel("Workspace: \(selectedPane.title)")
     }
 
     private func compactPadWorkspace(metrics: IOSAdaptiveLayoutMetrics) -> some View {
@@ -191,7 +131,7 @@ struct IOSProjectEditorView: View {
                 .navigationSplitViewColumnWidth(min: 180, ideal: 210, max: 240)
         } detail: {
             NavigationStack {
-                workspaceSurface(metrics: metrics, cornerRadius: 12, horizontalPadding: 14, verticalPadding: 10, shadowRadius: 6)
+                workspaceSurface(metrics: metrics, inset: 12, radius: 12, shadow: 6)
                     .navigationTitle(selectedPane == .screenplay ? project.metadata.title : selectedPane.title)
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -201,17 +141,13 @@ struct IOSProjectEditorView: View {
                             } label: {
                                 Image(systemName: "sidebar.left")
                             }
-                            .accessibilityLabel("Toggle project navigator")
                         }
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             if selectedPane == .screenplay {
                                 Button(action: performSmartEnter) { Image(systemName: "return") }
-                                    .accessibilityLabel("Smart Enter")
                                 Button(action: performFormatCycle) { Image(systemName: "textformat") }
-                                    .accessibilityLabel("Change format")
                             }
                             Button(action: onClose) { Image(systemName: "folder") }
-                                .accessibilityLabel("Documents")
                         }
                     }
             }
@@ -224,34 +160,20 @@ struct IOSProjectEditorView: View {
         VStack(spacing: 0) {
             HStack(spacing: 6) {
                 Button(action: onClose) { Image(systemName: "folder").frame(width: 38, height: 38) }
-                    .accessibilityLabel("Documents")
-
-                Button {
-                    withAnimation(.snappy(duration: 0.18)) { showsNavigator.toggle() }
-                } label: {
+                Button { withAnimation { showsNavigator.toggle() } } label: {
                     Image(systemName: "sidebar.left").frame(width: 38, height: 38)
                 }
-                .accessibilityLabel(showsNavigator ? "Hide project navigator" : "Show project navigator")
-
                 workspaceMenu
-
                 Text(selectedPane == .screenplay ? project.metadata.title : selectedPane.title)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
-
                 Spacer()
-
                 if selectedPane == .screenplay {
                     Button(action: performSmartEnter) { Image(systemName: "return").frame(width: 38, height: 38) }
-                        .accessibilityLabel("Smart Enter")
                     Button(action: performFormatCycle) { Image(systemName: "textformat").frame(width: 38, height: 38) }
-                        .accessibilityLabel("Change format")
-                    Button {
-                        withAnimation(.snappy(duration: 0.18)) { showsInspector.toggle() }
-                    } label: {
+                    Button { withAnimation { showsInspector.toggle() } } label: {
                         Image(systemName: "sidebar.right").frame(width: 38, height: 38)
                     }
-                    .accessibilityLabel(showsInspector ? "Hide inspector" : "Show inspector")
                 }
             }
             .padding(.horizontal, 6)
@@ -262,61 +184,84 @@ struct IOSProjectEditorView: View {
                 if showsNavigator {
                     projectNavigator(showInspectorSummary: true)
                         .frame(width: isLandscape ? 200 : 220)
-                        .background(Color(uiColor: .secondarySystemBackground))
                     Divider()
                 }
-
-                workspaceSurface(
-                    metrics: metrics,
-                    cornerRadius: 12,
-                    horizontalPadding: isLandscape ? 12 : 18,
-                    verticalPadding: isLandscape ? 8 : 14,
-                    shadowRadius: 8
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+                workspaceSurface(metrics: metrics, inset: isLandscape ? 10 : 16, radius: 12, shadow: 8)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if selectedPane == .screenplay, showsInspector {
                     Divider()
-                    projectInspector
-                        .frame(width: isLandscape ? 220 : 240)
-                        .background(Color(uiColor: .secondarySystemBackground))
+                    projectInspector.frame(width: isLandscape ? 220 : 240)
                 }
             }
         }
         .background(Color(uiColor: .secondarySystemBackground))
     }
 
+    private var compactHeader: some View {
+        HStack(spacing: 4) {
+            Button(action: onClose) {
+                Image(systemName: "chevron.backward").frame(width: 40, height: 40)
+            }
+            workspaceMenu.frame(width: 40, height: 40)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(selectedPane.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                if selectedPane == .screenplay {
+                    Text(project.metadata.title).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if selectedPane == .screenplay {
+                Button(action: performSmartEnter) { Image(systemName: "return").frame(width: 40, height: 40) }
+                Menu {
+                    Button("Change Format", systemImage: "textformat", action: performFormatCycle)
+                    Button("Dismiss Suggestions", systemImage: "xmark") { _ = dismissSuggestions() }
+                } label: {
+                    Image(systemName: "ellipsis.circle").frame(width: 40, height: 40)
+                }
+            }
+        }
+        .padding(.horizontal, 2)
+    }
+
+    private var workspaceMenu: some View {
+        Menu {
+            ForEach(IOSWorkspacePane.allCases) { pane in
+                Button { selectPane(pane) } label: {
+                    Label(pane.title, systemImage: pane.systemImage)
+                }
+            }
+        } label: {
+            Image(systemName: selectedPane.systemImage).frame(width: 38, height: 38)
+        }
+    }
+
     @ViewBuilder
     private func workspaceSurface(
         metrics: IOSAdaptiveLayoutMetrics,
-        cornerRadius: CGFloat,
-        horizontalPadding: CGFloat,
-        verticalPadding: CGFloat,
-        shadowRadius: CGFloat
+        inset: CGFloat,
+        radius: CGFloat,
+        shadow: CGFloat
     ) -> some View {
         if selectedPane == .screenplay {
-            editorCanvas(
-                metrics: metrics,
-                cornerRadius: cornerRadius,
-                horizontalPadding: horizontalPadding,
-                verticalPadding: verticalPadding,
-                shadowRadius: shadowRadius
-            )
+            editorCanvas(metrics: metrics, inset: inset, radius: radius, shadow: shadow)
         } else {
-            IOSWorkspacePaneContent(pane: selectedPane, project: project)
+            IOSWorkspacePaneContent(
+                pane: selectedPane,
+                project: $project,
+                commitProjectChange: commitWorkspaceProjectChange,
+                openReviewFinding: openReviewFinding
+            )
         }
     }
 
     private func editorCanvas(
         metrics: IOSAdaptiveLayoutMetrics,
-        cornerRadius: CGFloat,
-        horizontalPadding: CGFloat,
-        verticalPadding: CGFloat,
-        shadowRadius: CGFloat
+        inset: CGFloat,
+        radius: CGFloat,
+        shadow: CGFloat
     ) -> some View {
         ZStack(alignment: .bottom) {
             Color(uiColor: .secondarySystemBackground)
-
             IOSNativeTextKitEditor(
                 session: $session,
                 formattingRange: formattingWindow.range,
@@ -330,10 +275,9 @@ struct IOSProjectEditorView: View {
             )
             .frame(maxWidth: metrics.maximumReadableEditorWidth, maxHeight: .infinity)
             .background(Color(uiColor: .systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            .shadow(color: .black.opacity(shadowRadius > 0 ? 0.10 : 0), radius: shadowRadius, y: 2)
-            .padding(.horizontal, horizontalPadding)
-            .padding(.vertical, verticalPadding)
+            .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .shadow(color: .black.opacity(shadow > 0 ? 0.10 : 0), radius: shadow, y: 2)
+            .padding(inset)
 
             IOSAutocompletePanel(
                 state: autocomplete,
@@ -342,41 +286,27 @@ struct IOSProjectEditorView: View {
                 dismiss: { _ = dismissSuggestions() }
             )
             .frame(maxWidth: metrics.autocompleteMaximumWidth)
-            .padding(.horizontal, max(8, horizontalPadding))
-            .padding(.bottom, max(8, verticalPadding))
+            .padding(.horizontal, max(8, inset))
+            .padding(.bottom, max(8, inset))
             .transition(.opacity.combined(with: .move(edge: .bottom)))
         }
         .animation(.snappy(duration: 0.2), value: autocomplete.isPresented)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Screenplay editor for \(project.metadata.title)")
     }
 
     private func projectNavigator(showInspectorSummary: Bool) -> some View {
         List {
-            Section {
-                Label(project.metadata.title, systemImage: "doc.text")
-                    .font(.headline)
-                    .lineLimit(2)
-            }
-
             Section("Workspace") {
                 ForEach(IOSWorkspacePane.allCases) { pane in
-                    Button {
-                        selectPane(pane)
-                    } label: {
+                    Button { selectPane(pane) } label: {
                         HStack {
                             Label(pane.title, systemImage: pane.systemImage)
                             Spacer()
-                            if selectedPane == pane {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.tint)
-                            }
+                            if selectedPane == pane { Image(systemName: "checkmark") }
                         }
                     }
                     .buttonStyle(.plain)
                 }
             }
-
             if showInspectorSummary {
                 Section("Project") {
                     LabeledContent("Scenes", value: "\(project.screenplay.scenes.count)")
@@ -389,24 +319,13 @@ struct IOSProjectEditorView: View {
 
     private var projectInspector: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Inspector").font(.headline)
-                GroupBox("Current document") {
-                    VStack(alignment: .leading, spacing: 6) {
-                        LabeledContent("Title", value: project.metadata.title)
-                        LabeledContent("Scenes", value: "\(project.screenplay.scenes.count)")
-                        LabeledContent("Characters", value: "\(project.characters.count)")
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                GroupBox("Editing") {
-                    VStack(spacing: 8) {
-                        Button("Smart Enter", systemImage: "return", action: performSmartEnter)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        Button("Change Format", systemImage: "textformat", action: performFormatCycle)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
+                LabeledContent("Title", value: project.metadata.title)
+                LabeledContent("Scenes", value: "\(project.screenplay.scenes.count)")
+                LabeledContent("Characters", value: "\(project.characters.count)")
+                Button("Smart Enter", action: performSmartEnter)
+                Button("Change Format", action: performFormatCycle)
             }
             .padding(12)
         }
@@ -430,6 +349,21 @@ struct IOSProjectEditorView: View {
     private func selectPane(_ pane: IOSWorkspacePane) {
         selectedPane = pane
         if pane != .screenplay { autocomplete.dismiss() }
+    }
+
+    private func commitWorkspaceProjectChange(_ updated: DreamJotterProject) {
+        guard updated != project else { return }
+        project = updated
+        projectMutationRevision &+= 1
+    }
+
+    private func openReviewFinding(_ finding: ReviewFinding) {
+        selectedPane = .screenplay
+        autocomplete.dismiss()
+        if let range = finding.scriptRange {
+            session.updateSelection(IOSEditorSelection(location: range.location, length: range.length))
+            visibleRange = EditorTextRange(location: range.location, length: max(range.length, 1))
+        }
     }
 
     private func updateVisibleRange(_ range: NSRange) {
@@ -490,9 +424,27 @@ struct IOSProjectEditorView: View {
         await save(revision: revision)
     }
 
+    private func saveWorkspaceProjectMutation() async {
+        do {
+            let projected = IOSEditorProjectProjection.applying(text: session.text, to: project)
+            let snapshot = try await documentAdapter.saveProject(
+                projected,
+                at: packageURL,
+                expectedGeneration: generation
+            )
+            project = snapshot.project
+            generation = snapshot.generation
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     private func saveImmediatelyForLifecycleTransition() async {
-        guard let revision = session.autosaveRevisionPending else { return }
-        await save(revision: revision)
+        if let revision = session.autosaveRevisionPending {
+            await save(revision: revision)
+        } else if projectMutationRevision > 0 {
+            await saveWorkspaceProjectMutation()
+        }
     }
 
     private func save(revision: IOSEditorRevision) async {
