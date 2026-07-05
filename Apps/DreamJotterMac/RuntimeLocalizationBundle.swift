@@ -59,7 +59,7 @@ enum RuntimeLocalizationBundle {
     }
 
     private static func candidateResourceBundles() -> [Bundle] {
-        var bundles = [Bundle.module, Bundle.main]
+        var bundles = [DreamJotterResourceBundle.bundle, Bundle.main]
         var seenURLs = Set(
             bundles.map { $0.bundleURL.standardizedFileURL }
         )
@@ -149,7 +149,7 @@ enum RuntimeLocalizationBundle {
         )
         preferred.forEach(append)
 
-        if let developmentRegion = Bundle.module.developmentLocalization {
+        if let developmentRegion = DreamJotterResourceBundle.bundle.developmentLocalization {
             append(developmentRegion)
         }
         append("en")
