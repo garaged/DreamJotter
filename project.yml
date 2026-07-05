@@ -42,6 +42,8 @@ targets:
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
     dependencies:
       - package: DreamJotter
+        product: DreamJotterCore
+      - package: DreamJotter
         product: DreamJotteriOS
   DreamJotteriOSAppTests:
     type: bundle.unit-test
