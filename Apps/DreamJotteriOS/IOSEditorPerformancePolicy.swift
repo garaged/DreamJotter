@@ -40,8 +40,8 @@ public enum IOSEditorFormattingPolicy {
         )
         let windowEnd = window.range.location + window.range.length
         return EditorUsabilityService.styleRuns(in: text).filter { run in
-            let runEnd = run.range.location + run.range.length
-            return runEnd >= window.range.location && run.range.location <= windowEnd
+            let runEnd = run.textRange.location + run.textRange.length
+            return runEnd >= window.range.location && run.textRange.location <= windowEnd
         }
     }
 }
