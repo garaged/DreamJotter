@@ -34,6 +34,32 @@
         "Physical-device performance and accessibility evidence are release gates."
       ],
       "notes": "Defines the architecture, delivery slices, parity catalog, performance budgets, regression expectations, human-intervention gates, and acceptance criteria for the native iPhone and iPad application."
+    },
+    {
+      "id": "M16-IOS-ADAPTIVE-UX-002",
+      "title": "Adaptive iPhone and iPad Workspace Redesign",
+      "milestone": "M16",
+      "status": "implemented-pending-visual-acceptance",
+      "spec": "docs/specs/m16-adaptive-ios-workspace-redesign.md",
+      "acceptance": "docs/acceptance/milestone-16-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md"
+      ],
+      "related_data_contracts": [],
+      "planned_modules": [
+        "DreamJotteriOS",
+        "DreamJotteriOSApp",
+        "DreamJotteriOSTests",
+        "DreamJotteriOSAppTests"
+      ],
+      "guardrails": [
+        "Layout classification is based on width, size class, and idiom rather than device model names.",
+        "Autocomplete overlays the editor and must not permanently reduce the TextKit viewport.",
+        "Phone remains single-pane while regular iPad provides split navigation.",
+        "Readable editor width, toolbar density, touch targets, and accessibility are policy-driven.",
+        "Adaptive transitions must preserve editor selection, first responder state, and bounded hydration."
+      ],
+      "notes": "Adds the testable adaptive layout policy, compact phone composition, split iPad workspace, bounded readable editor canvas, floating autocomplete, compact command chrome, and source regression guards."
     }
   ]
 }
