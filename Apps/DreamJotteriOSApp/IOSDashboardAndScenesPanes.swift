@@ -59,9 +59,13 @@ struct IOSDashboardPane: View {
 }
 
 struct IOSScenesPane: View {
-    let project: DreamJotterProject
+    @Binding var project: DreamJotterProject
+    let commitProjectChange: (DreamJotterProject) -> Void
+    let openScene: (SceneCard) -> Void
+
     @State private var searchText = ""
     @State private var selectedStatus: SceneCardStatus?
+    @State private var editingCard: SceneCard?
 
     private var cards: [SceneCard] {
         SceneWorkflow.cards(in: project).filter { card in
@@ -89,25 +93,58 @@ struct IOSScenesPane: View {
             }
 
             ForEach(cards, id: \.id) { card in
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("\(card.order + 1). \(card.title)").font(.headline)
-                    HStack {
-                        if let location = card.location { Text(location) }
-                        if let time = card.timeOfDay { Text(time) }
+                Button {
+                    editingCard = card
+                } label: {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("\(card.order + 1). \(card.title)").font(.headline)
+                        HStack {
+                            if let location = card.location { Text(location) }
+                            if let time = card.timeOfDay { Text(time) }
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        if !card.summary.isEmpty { Text(card.summary).lineLimit(3) }
+                        if !card.note.isEmpty {
+                            Label(card.note, systemImage: "note.text")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        if !card.plotlineTags.isEmpty {
+                            Text(card.plotlineTags.joined(separator: " • "))
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    if !card.summary.isEmpty { Text(card.summary).lineLimit(3) }
-                    if !card.note.isEmpty {
-                        Label(card.note, systemImage: "note.text")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    .padding(.vertical, 3)
                 }
-                .padding(.vertical, 3)
+                .buttonStyle(.plain)
+                .swipeActions(edge: .leading) {
+                    Button {
+                        openScene(card)
+                    } label: {
+                        Label("Open", systemImage: "text.cursor")
+                    }
+                    .tint(.blue)
+                }
             }
         }
         .searchable(text: $searchText, prompt: "Search scenes")
+        .sheet(item: $editingCard) { card in
+            IOSSceneCardEditorSheet(card: card) { summary, note, status, tags in
+                let updated = IOSSceneCardEditing.update(
+                    project: project,
+                    card: card,
+                    summary: summary,
+                    note: note,
+                    status: status,
+                    plotlineTags: tags
+                )
+                guard updated != project else { return }
+                project = updated
+                commitProjectChange(updated)
+            }
+        }
     }
 
     private func statusTitle(_ status: SceneCardStatus) -> String {
@@ -119,6 +156,71 @@ struct IOSScenesPane: View {
         case .reviewed: "Reviewed"
         case .locked: "Locked"
         case .ready: "Ready"
+        }
+    }
+}
+
+private struct IOSSceneCardEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let card: SceneCard
+    let save: (String, String, SceneCardStatus, [String]) -> Void
+
+    @State private var summary: String
+    @State private var note: String
+    @State private var status: SceneCardStatus
+    @State private var tagsText: String
+
+    init(
+        card: SceneCard,
+        save: @escaping (String, String, SceneCardStatus, [String]) -> Void
+    ) {
+        self.card = card
+        self.save = save
+        _summary = State(initialValue: card.summary)
+        _note = State(initialValue: card.note)
+        _status = State(initialValue: card.status)
+        _tagsText = State(initialValue: card.plotlineTags.joined(separator: ", "))
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Scene") {
+                    Text(card.title).font(.headline)
+                    if let location = card.location { LabeledContent("Location", value: location) }
+                    if let timeOfDay = card.timeOfDay { LabeledContent("Time", value: timeOfDay) }
+                }
+
+                Section("Planning") {
+                    Picker("Status", selection: $status) {
+                        ForEach(SceneCardStatus.allCases, id: \.self) { value in
+                            Text(value.rawValue).tag(value)
+                        }
+                    }
+                    TextField("Summary", text: $summary, axis: .vertical)
+                        .lineLimit(4...10)
+                    TextField("Scene note", text: $note, axis: .vertical)
+                        .lineLimit(4...10)
+                    TextField("Plotline tags, comma separated", text: $tagsText)
+                }
+            }
+            .navigationTitle("Edit Scene Card")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        save(
+                            summary,
+                            note,
+                            status,
+                            tagsText.split(separator: ",").map(String.init)
+                        )
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }
