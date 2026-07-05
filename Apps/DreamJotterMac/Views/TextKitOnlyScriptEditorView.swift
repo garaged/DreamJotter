@@ -16,7 +16,7 @@ struct TextKitOnlyScriptEditorView: View {
                 .truncationMode(.tail)
 
             HStack(spacing: 10) {
-                ScreenplayLanguagePicker(document: $document)
+                TextKitOnlyScreenplayLanguagePicker(document: $document)
                 Button("Refresh Parse") { document.refreshParseRespectingLanguage() }
                 Spacer(minLength: 0)
             }
@@ -51,13 +51,13 @@ struct TextKitOnlyScriptEditorView: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .overlay(alignment: .topLeading) {
                 if document.isEmptyEditorGuidanceVisible {
-                    EmptyScriptGuidance(language: document.screenplayLanguage)
+                    TextKitOnlyEmptyScriptGuidance(language: document.screenplayLanguage)
                         .padding(20)
                         .allowsHitTesting(false)
                 }
             }
 
-            SuggestionsPanel(
+            TextKitOnlySuggestionsPanel(
                 suggestions: suggestions,
                 selectedIndex: selectedSuggestionIndex,
                 acceptAction: acceptSuggestion,
