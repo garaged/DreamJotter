@@ -3,11 +3,13 @@ import SwiftUI
 
 struct IOSSceneCardEditorSheet: View {
     let card: SceneCard
+    let save: (String, String) -> Void
     @State private var summary: String
     @State private var note: String
 
-    init(card: SceneCard) {
+    init(card: SceneCard, save: @escaping (String, String) -> Void) {
         self.card = card
+        self.save = save
         _summary = State(initialValue: card.summary)
         _note = State(initialValue: card.note)
     }
@@ -17,6 +19,9 @@ struct IOSSceneCardEditorSheet: View {
             Text(card.title).font(.headline)
             TextField("Summary", text: $summary, axis: .vertical)
             TextField("Scene note", text: $note, axis: .vertical)
+            Button("Save Scene Card") {
+                save(summary, note)
+            }
         }
     }
 }
