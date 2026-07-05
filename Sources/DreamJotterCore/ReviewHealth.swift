@@ -177,6 +177,11 @@ public struct ReviewModeState: Codable, Equatable, Sendable {
 }
 
 public enum ScriptHealthReportBuilder {
+    private struct SceneAnalysis {
+        var summary: SceneHealthSummary
+        var hasDialogue: Bool
+    }
+
     public static func report(for project: DreamJotterProject, generatedAt: Date = Date(), lastSavedAt: Date? = nil) -> ScriptHealthReport {
         let unresolvedCharacters = CharacterManager.unresolvedDetectedCharacters(for: project)
         let unresolvedLocations = LocationManager.unresolvedDetectedLocations(for: project)
@@ -191,6 +196,7 @@ public enum ScriptHealthReportBuilder {
             formattingWarnings: formattingWarnings,
             generatedAt: generatedAt
         )
+        let analysis = analyze(project.screenplay)
 
         return ScriptHealthReport(
             id: "script-health-\(project.metadata.id)-\(Int(generatedAt.timeIntervalSince1970))",
@@ -204,57 +210,65 @@ public enum ScriptHealthReportBuilder {
             unresolvedDetectedLocationCount: unresolvedLocations.count,
             openNotesCount: openNotes.count,
             todoCount: todos.count,
-            dialogueActionRatio: dialogueActionRatio(in: project.screenplay),
-            longestScenes: Array(sceneSummaries(in: project.screenplay).sorted { $0.elementCount > $1.elementCount }.prefix(5)),
-            scenesWithoutDialogue: sceneSummariesWithoutDialogue(in: project.screenplay),
+            dialogueActionRatio: analysis.dialogueActionRatio,
+            longestScenes: Array(analysis.scenes.map(\.summary).sorted { $0.elementCount > $1.elementCount }.prefix(5)),
+            scenesWithoutDialogue: analysis.scenes.compactMap { $0.hasDialogue ? nil : $0.summary },
             formattingWarnings: formattingWarnings,
             findings: findings,
             lastSavedAt: lastSavedAt
         )
     }
 
-    private static func dialogueActionRatio(in document: ScreenplayDocument) -> Double {
-        let dialogueCount = document.elements.filter { $0.kind == .dialogue }.count
-        let actionCount = document.elements.filter { $0.kind == .action }.count
-        guard dialogueCount > 0 || actionCount > 0 else { return 0 }
-        return Double(dialogueCount) / Double(max(actionCount, 1))
-    }
-
-    private static func sceneSummariesWithoutDialogue(in document: ScreenplayDocument) -> [SceneHealthSummary] {
-        sceneRuns(in: document).compactMap { run in
-            run.elements.contains(where: { $0.kind == .dialogue }) ? nil : run.summary
-        }
-    }
-
-    private static func sceneSummaries(in document: ScreenplayDocument) -> [SceneHealthSummary] {
-        sceneRuns(in: document).map(\.summary)
-    }
-
-    private static func sceneRuns(in document: ScreenplayDocument) -> [(summary: SceneHealthSummary, elements: [ScriptElement])] {
-        var runs: [(summary: SceneHealthSummary, elements: [ScriptElement])] = []
-        var currentIndex = -1
+    private static func analyze(_ document: ScreenplayDocument) -> (dialogueActionRatio: Double, scenes: [SceneAnalysis]) {
+        var dialogueCount = 0
+        var actionCount = 0
+        var scenes: [SceneAnalysis] = []
+        scenes.reserveCapacity(document.scenes.count)
+        var currentSceneIndex: Int?
 
         for element in document.elements {
-            if element.kind == .sceneHeading {
-                currentIndex += 1
-                let heading = element.text.trimmingCharacters(in: .whitespacesAndNewlines)
-                runs.append((
-                    SceneHealthSummary(sceneID: "scene-\(currentIndex + 1)", heading: heading, elementCount: 0),
-                    []
-                ))
-            } else if currentIndex >= 0 {
-                var run = runs[currentIndex]
-                run.elements.append(element)
-                run.summary = SceneHealthSummary(
-                    sceneID: run.summary.sceneID,
-                    heading: run.summary.heading,
-                    elementCount: run.elements.count
-                )
-                runs[currentIndex] = run
+            switch element.kind {
+            case .dialogue:
+                dialogueCount += 1
+            case .action:
+                actionCount += 1
+            default:
+                break
             }
+
+            if element.kind == .sceneHeading {
+                let sceneIndex = scenes.count
+                scenes.append(SceneAnalysis(
+                    summary: SceneHealthSummary(
+                        sceneID: "scene-\(sceneIndex + 1)",
+                        heading: element.text.trimmingCharacters(in: .whitespacesAndNewlines),
+                        elementCount: 0
+                    ),
+                    hasDialogue: false
+                ))
+                currentSceneIndex = sceneIndex
+                continue
+            }
+
+            guard let currentSceneIndex else { continue }
+            let current = scenes[currentSceneIndex]
+            scenes[currentSceneIndex] = SceneAnalysis(
+                summary: SceneHealthSummary(
+                    sceneID: current.summary.sceneID,
+                    heading: current.summary.heading,
+                    elementCount: current.summary.elementCount + 1
+                ),
+                hasDialogue: current.hasDialogue || element.kind == .dialogue
+            )
         }
 
-        return runs
+        let ratio: Double
+        if dialogueCount == 0, actionCount == 0 {
+            ratio = 0
+        } else {
+            ratio = Double(dialogueCount) / Double(max(actionCount, 1))
+        }
+        return (ratio, scenes)
     }
 }
 

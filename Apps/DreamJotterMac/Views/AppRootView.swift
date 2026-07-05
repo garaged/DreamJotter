@@ -1,6 +1,7 @@
 import AppKit
 import DreamJotterCore
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct AppRootView: View {
     @State private var appModel = MacAppViewModel()
@@ -163,7 +164,7 @@ struct AppRootView: View {
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.treatsFilePackagesAsDirectories = false
-        panel.allowedFileTypes = ["dreamjotter"]
+        panel.allowedContentTypes = [UTType(importedAs: "com.garaged.dreamjotter.project")]
         panel.allowsMultipleSelection = false
         guard panel.runModal() == .OK, let url = panel.url else { return }
         openRecentProject(url)

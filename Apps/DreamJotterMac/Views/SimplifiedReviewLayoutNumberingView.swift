@@ -9,11 +9,11 @@ struct SimplifiedReviewLayoutNumberingView: View {
     @State private var showLine = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        LazyVStack(alignment: .leading, spacing: 12) {
             numberingControls
 
             ForEach(plan.contentPages, id: \.pageIndex) { page in
-                VStack(alignment: .leading, spacing: 12) {
+                LazyVStack(alignment: .leading, spacing: 12) {
                     if showPage {
                         HStack(spacing: 4) {
                             Text(String(localized: "Page", table: "Review"))
@@ -27,14 +27,15 @@ struct SimplifiedReviewLayoutNumberingView: View {
                         blockView(block)
                     }
                 }
+                .id(page.pageIndex)
             }
         }
         .font(.system(.body, design: .monospaced))
-        .textSelection(.enabled)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(Color(nsColor: .textBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 6))
+        .accessibilityElement(children: .contain)
     }
 
     private var numberingControls: some View {
@@ -67,15 +68,15 @@ struct SimplifiedReviewLayoutNumberingView: View {
     }
 
     private func numberedLines(_ block: PDFBlockPlan) -> some View {
-        Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 8, verticalSpacing: 2) {
+        LazyVStack(alignment: .leading, spacing: 2) {
             ForEach(Array(block.lines.enumerated()), id: \.element.lineNumber) { index, line in
-                GridRow(alignment: .firstTextBaseline) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
                     lineLabel(
                         paragraphNumber: block.paragraphNumber,
                         lineNumber: line.lineNumber,
                         isFirstLine: index == 0
                     )
-                    .gridColumnAlignment(.trailing)
+                    .frame(width: 92, alignment: .trailing)
 
                     Text(line.text.isEmpty ? " " : line.text)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -113,7 +114,7 @@ struct SimplifiedReviewLayoutNumberingView: View {
     }
 
     private func paragraphText(_ block: PDFBlockPlan) -> some View {
-        Text(block.lines.map(\.text).joined(separator: " "))
+        Text(block.lines.lazy.map(\.text).joined(separator: " "))
             .frame(maxWidth: .infinity, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
     }

@@ -117,4 +117,21 @@ struct DocumentPersistencePolicyTests {
             DocumentPackageIdentity(url: existing).canonicalURL
         ])
     }
+
+    @Test("Restoration state is consumed once and cannot repeatedly override explicit opens")
+    func restorationStateIsOneShot() {
+        let package = URL(fileURLWithPath: "/tmp/LargeScript.dreamjotter", isDirectory: true)
+        let record = DocumentRestorationRecord(packageURL: package)
+        let store = DocumentRestorationStore.memory(initialRecords: [record])
+
+        #expect(store.load() == [record])
+        #expect(store.load().isEmpty)
+
+        let replacement = DocumentRestorationRecord(
+            packageURL: URL(fileURLWithPath: "/tmp/OtherScript.dreamjotter", isDirectory: true)
+        )
+        store.save([replacement])
+        #expect(store.load() == [replacement])
+        #expect(store.load().isEmpty)
+    }
 }

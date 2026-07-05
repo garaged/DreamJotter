@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+ICON_SIZES = (16, 32, 128, 256, 512)
+
+
+def run(command: list[str]) -> None:
+    subprocess.run(command, check=True)
+
+
+def main() -> int:
+    if len(sys.argv) not in (2, 3):
+        print("Usage: generate-app-icon OUTPUT.icns [SOURCE.png]", file=sys.stderr)
+        return 64
+
+    repository_root = Path(__file__).resolve().parent.parent
+    output = Path(sys.argv[1]).resolve()
+    source = (
+        Path(sys.argv[2]).resolve()
+        if len(sys.argv) == 3
+        else repository_root / "docs" / "icon-v1.png"
+    )
+
+    if not source.is_file():
+        print(f"Error: icon source does not exist: {source}", file=sys.stderr)
+        return 66
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(prefix="DreamJotterIcon-") as temporary:
+        root = Path(temporary)
+        normalized = root / "AppIcon-1024.png"
+        iconset = root / "AppIcon.iconset"
+        iconset.mkdir()
+
+        run([
+            "sips",
+            "-z", "1024", "1024",
+            "-s", "format", "png",
+            str(source),
+            "--out", str(normalized),
+        ])
+
+        for points in ICON_SIZES:
+            run([
+                "sips",
+                "-z", str(points), str(points),
+                str(normalized),
+                "--out", str(iconset / f"icon_{points}x{points}.png"),
+            ])
+            doubled = points * 2
+            run([
+                "sips",
+                "-z", str(doubled), str(doubled),
+                str(normalized),
+                "--out", str(iconset / f"icon_{points}x{points}@2x.png"),
+            ])
+
+        run(["iconutil", "-c", "icns", str(iconset), "-o", str(output)])
+
+    print(output)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

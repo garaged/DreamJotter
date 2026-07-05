@@ -1,0 +1,126 @@
+name: DreamJotter CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "feature/**"
+
+concurrency:
+  group: dreamjotter-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  specification:
+    name: Specification integrity
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate specification registry
+        run: python3 scripts/spec-check | tee spec-check.log
+
+      - name: Render specification trace
+        run: python3 scripts/spec-trace | tee spec-trace.log
+
+      - name: Validate localization resources
+        run: python3 scripts/localization-check | tee localization-check.log
+
+      - name: Upload specification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: specification-logs
+          path: |
+            spec-check.log
+            spec-trace.log
+            localization-check.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  test:
+    name: Swift tests and package fixtures
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Require Swift 6 toolchain
+        run: |
+          swift --version | tee swift-version.log
+          xcodebuild -version | tee xcode-version.log
+          swift --version | grep -Eq 'Swift version 6\.' || {
+            echo 'DreamJotter requires Swift 6.x.' >&2
+            exit 1
+          }
+
+      - name: Run test suite
+        run: |
+          set -o pipefail
+          swift test 2>&1 | tee swift-test.log
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-test-artifacts
+          path: |
+            swift-version.log
+            xcode-version.log
+            swift-test.log
+            .build/**/test-results/**/*.xml
+            .build/**/*.xcresult
+          if-no-files-found: warn
+          retention-days: 14
+
+  release-build:
+    name: DreamJotterMac release build
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Require Swift 6 toolchain
+        run: |
+          swift --version | tee swift-version.log
+          xcodebuild -version | tee xcode-version.log
+          swift --version | grep -Eq 'Swift version 6\.' || {
+            echo 'DreamJotter requires Swift 6.x.' >&2
+            exit 1
+          }
+
+      - name: Validate packaging scripts
+        run: |
+          bash -n scripts/build-universal-macos
+          bash -n scripts/package-first-tester-macos
+          bash -n scripts/package-release.sh
+
+      - name: Build release executable
+        run: |
+          set -o pipefail
+          swift build --configuration release --product DreamJotterMac 2>&1 | tee release-build.log
+
+      - name: Archive release diagnostics
+        if: always()
+        run: |
+          mkdir -p ci-artifacts
+          cp swift-version.log xcode-version.log release-build.log ci-artifacts/ 2>/dev/null || true
+          swift package describe > ci-artifacts/package-description.txt 2>&1 || true
+          find .build -maxdepth 4 -type f \( -name '*.dia' -o -name '*.json' \) -print > ci-artifacts/build-files.txt 2>&1 || true
+
+      - name: Upload release build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-build-diagnostics
+          path: ci-artifacts
+          if-no-files-found: warn
+          retention-days: 14

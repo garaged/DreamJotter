@@ -4,6 +4,7 @@ import SwiftUI
 enum WorkspaceSection: String, CaseIterable, Identifiable {
     case dashboard, script, scenes, characters, locations, notes, review, healthReport
     var id: String { rawValue }
+
     var localizedTitle: LocalizedStringKey {
         switch self {
         case .dashboard: "Dashboard"
@@ -16,11 +17,24 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
         case .healthReport: "Health Report"
         }
     }
+
+    var systemImage: String {
+        switch self {
+        case .dashboard: "rectangle.grid.2x2"
+        case .script: "doc.text"
+        case .scenes: "rectangle.stack"
+        case .characters: "person.2"
+        case .locations: "mappin.and.ellipse"
+        case .notes: "note.text"
+        case .review: "checkmark.bubble"
+        case .healthReport: "waveform.path.ecg"
+        }
+    }
 }
 
 struct ProjectWorkspaceView: View {
     @Binding var document: ProjectDocumentViewModel
-    @State private var selectedSection: WorkspaceSection? = .dashboard
+    @State private var selectedSection: WorkspaceSection = .dashboard
     let saveAction: () -> Void
     let saveAsAction: () -> Void
     let openAction: () -> Void
@@ -33,15 +47,20 @@ struct ProjectWorkspaceView: View {
             List(selection: $selectedSection) {
                 Section("Project") {
                     ForEach(WorkspaceSection.allCases) { section in
-                        Text(section.localizedTitle).tag(section)
+                        Label(section.localizedTitle, systemImage: section.systemImage)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                            .tag(section)
                     }
                 }
             }
-            .navigationSplitViewColumnWidth(min: 220, ideal: 260)
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(220)
         } detail: {
             contentView
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .navigationSplitViewStyle(.balanced)
         .toolbar {
             ToolbarItemGroup {
                 Text(documentStatus)
@@ -65,53 +84,34 @@ struct ProjectWorkspaceView: View {
 
     @ViewBuilder
     private var contentView: some View {
-        switch selectedSection ?? .dashboard {
+        switch selectedSection {
         case .dashboard:
-            ScrollView { ProjectDashboardView(document: $document).padding() }
+            ScrollView { OptimizedDashboardPane(document: $document).padding() }
         case .script:
-            HSplitView {
-                ScriptEditorView(document: $document)
-                    .frame(minWidth: 520, maxWidth: .infinity, maxHeight: .infinity)
-                ScreenplayParagraphInspectorView(document: $document)
-                    .frame(minWidth: 260, idealWidth: 300, maxWidth: 360, maxHeight: .infinity)
-            }
+            ResizableScriptWorkspaceView(document: $document)
         case .scenes:
             ScrollView {
-                BoundSceneWorkflowView(document: $document, openScriptAction: { selectedSection = .script })
+                OptimizedSceneWorkflowView(document: $document, openScriptAction: { selectedSection = .script })
                     .padding()
             }
         case .characters:
             ScrollView {
-                CharacterListView(
-                    characters: document.project.characters,
-                    unresolvedDetectedCharacters: document.unresolvedDetectedCharacters,
-                    createAction: { name, note in document.createCharacterProfile(name: name, note: note) },
-                    updateAction: { character, name, note in document.updateCharacterProfile(character, name: name, note: note) },
-                    deleteAction: { character in document.removeStoredProfile(id: character.id, kind: .character) },
-                    convertAction: { detection in document.convertDetectedCharacterToProfile(detection) },
-                    ignoreAction: { detection in document.ignoreDetectedCharacter(detection) }
-                ).padding()
+                OptimizedCharacterPane(document: $document)
+                    .padding()
             }
         case .locations:
             ScrollView {
-                LocationListView(
-                    locations: document.project.locations,
-                    unresolvedDetectedLocations: document.unresolvedDetectedLocations,
-                    createAction: { name, note in document.createLocationProfile(name: name, note: note) },
-                    updateAction: { location, name, note in document.updateLocationProfile(location, name: name, note: note) },
-                    deleteAction: { location in document.removeStoredProfile(id: location.id, kind: .location) },
-                    convertAction: { detection in document.convertDetectedLocationToProfile(detection) },
-                    ignoreAction: { detection in document.ignoreDetectedLocation(detection) }
-                ).padding()
+                OptimizedLocationPane(document: $document)
+                    .padding()
             }
         case .notes:
             ScrollView {
                 NotesView(document: $document, navigateAction: navigateToNoteTarget).padding()
             }
         case .review:
-            ReviewModeView(document: $document, exportAction: reviewExportAction, openScriptAction: { selectedSection = .script })
+            OptimizedReviewModeView(document: $document, exportAction: reviewExportAction, openScriptAction: { selectedSection = .script })
         case .healthReport:
-            ScrollView { HealthReportView(findings: document.healthFindings).padding() }
+            ScrollView { OptimizedHealthReportPane(document: $document).padding() }
         }
     }
 

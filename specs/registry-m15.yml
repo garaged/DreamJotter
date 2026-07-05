@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "M15-RELEASE-READINESS-001",
+      "title": "Mac 1.0 Release Readiness",
+      "milestone": "M15",
+      "status": "implementation-ready",
+      "spec": "docs/milestones/milestone-15-mac-1.0-release-readiness.md",
+      "acceptance": "docs/acceptance/milestone-15-acceptance.md",
+      "related_adrs": [
+        "docs/adr/0001-apple-native-first-portable-core.md",
+        "docs/adr/0002-local-first-dreamjotter-package.md"
+      ],
+      "related_data_contracts": [
+        "docs/storage/dreamjotter-package-format.md",
+        "docs/storage/storage-errors.md"
+      ],
+      "planned_modules": [
+        "DreamJotterMac",
+        "ReleaseSupport",
+        "SupportDiagnostics",
+        "PackageRecovery",
+        "GitHubActions"
+      ],
+      "guardrails": [
+        "Release readiness must add little or no new screenplay-domain functionality.",
+        "Diagnostics must exclude screenplay content by default.",
+        "Corruption recovery must not modify the source package implicitly.",
+        "Signing and notarization credentials must never be committed."
+      ],
+      "notes": "Defines branding, help, privacy, recovery, diagnostics, migration, performance, QA, CI, signing, notarization, distribution, and release process gates for Mac 1.0."
+    }
+  ]
+}

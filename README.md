@@ -2,9 +2,22 @@
 
 DreamJotter is a local-first macOS screenplay-writing app built with Swift, SwiftUI, AppKit, and a portable semantic core.
 
+## DreamJotter 1.0.0
+
+DreamJotter 1.0.0 is the first public macOS release. It supports Apple Silicon and Intel Macs running macOS 14 Sonoma or later.
+
+The app provides semantic screenplay editing, project organization, review tools, local package storage, production export, English and Spanish interfaces, recovery workflows, and privacy-preserving diagnostics. DreamJotter works offline and does not require an account or cloud service.
+
+Release information:
+
+- [`RELEASE_NOTES.md`](RELEASE_NOTES.md)
+- [`CHANGELOG.md`](CHANGELOG.md)
+- [`PRIVACY.md`](PRIVACY.md)
+- [`RELEASING.md`](RELEASING.md)
+
 ## Build and run locally
 
-DreamJotter is available as source code and can be compiled locally on Apple Silicon or Intel Macs. A prebuilt macOS binary is not required.
+Clone the repository and open the Swift package:
 
 ```sh
 git clone https://github.com/garaged/DreamJotter.git
@@ -29,26 +42,21 @@ For complete setup, architecture-specific builds, testing, localization validati
 - Swift 6 through Xcode or Swift Package Manager
 - Apple Silicon or Intel Mac
 
-## Current Status
+## Current status
 
-Milestones 1 through 11 are implemented or accepted. Milestone 12 writer workflow and localization work is merged. Milestone 13 TextKit editor maturity is implemented and merged, with final local macOS, accessibility, input-method, large-script, save/reopen, and manual undo/redo validation still required before formal acceptance.
+Version 1.0.0 is accepted for public release under Milestone 15. The release-readiness work includes:
 
-Milestone 13 includes:
+- native macOS menus, shortcuts, About, Help, onboarding, privacy, and diagnostics surfaces
+- universal Apple Silicon and Intel packaging
+- Developer ID signing and notarization workflow
+- guarded save, recovery, external-change handling, and package-version compatibility policies
+- large-project performance improvements using asynchronous derived-data generation, revision-based caching, bounded previews, and lazy rendering
+- Swift 6 CI for specification checks, localization validation, tests, and release compilation
 
-- native undo/redo command grouping for Smart Enter and element-type changes
-- grapheme-safe cursor and selection restoration
-- normalized paste behavior and semantic paragraph copy/cut
-- stable cursor behavior across parser refresh and navigation
-- expanded screenplay line styling and explicit paragraph semantics
-- current screenplay element accessibility exposure
-- retained `TextEditor` recovery/compatibility mode pending full acceptance evidence
-
-Specifications and acceptance records:
+Acceptance record:
 
 ```text
-docs/milestones/milestone-13-textkit-editor-maturity.md
-docs/acceptance/milestone-13-acceptance.md
-docs/editor/m13-textkit-consolidation-decision.md
+docs/acceptance/milestone-15-acceptance.md
 ```
 
 ## Architecture
@@ -62,28 +70,29 @@ docs/editor/m13-textkit-consolidation-decision.md
 - Localization never translates or rewrites screenplay content.
 - FDX and Fountain are interchange formats rather than canonical storage.
 
-## Current Capabilities
+## Capabilities
 
-- Semantic screenplay editing with TextKit and TextEditor adapters
+- Semantic screenplay editing with the native TextKit editor
+- Native undo and redo for typing, Smart Enter, and element-type changes
+- Grapheme-safe selection and cursor restoration
+- Normalized paste and semantic screenplay block copy/cut
 - Script find with previous and next match navigation
 - Character and location profile workflows
 - Targeted notes, localized TODO projection, filters, and linked navigation
 - Scene summaries, notes, statuses, plotline tags, and planning order
 - Optional application of planning order to complete screenplay scene blocks
 - Review findings with filters and direct script navigation
+- Asynchronous, cached large-project panes for Review, Scenes, Dashboard, Characters, Locations, and Health Report
 - Complete `es-MX` and `es-419` resources for the macOS interface
-- Localized menus, panels, alerts, errors, accessibility labels, export, backup, and restore workflows
 - Automatic, English, and Spanish screenplay-language profiles
 - Unicode character cues such as `SOFÍA`, `ÍÑIGO`, and `DOÑA ÁNGELES`
 - Spanish scene headings such as `INT. CASA - NOCHE` and `I/E. AUTO - CONTINUO`
 - Spanish transitions such as `CORTE A:` and `FUNDIDO A NEGRO.`
-- Spanish shots, title-page aliases, TODO tokens, parentheticals, and cue extensions
-- Localized diagnostic message lookup using stable codes
-- Screenplay-language preference persisted in project metadata
 - Fountain, text, Markdown, JSON backup, FDX, and production PDF export
-- Local package save, reopen, backup, and restore
+- Local package save, reopen, backup, restore, and external-change conflict handling
+- Privacy-filtered support diagnostics that exclude screenplay content by default
 
-## Architecture Builds
+## Architecture builds
 
 DreamJotter supports both Apple Silicon (`arm64`) and Intel (`x86_64`) on macOS 14 or later.
 
@@ -111,7 +120,7 @@ The universal output is written to:
 dist/DreamJotterMac-universal/
 ```
 
-The directory contains the universal `DreamJotterMac` executable and the SwiftPM resource bundle required for localization and other packaged resources. Verify the binary with:
+Verify the binary with:
 
 ```sh
 lipo -archs dist/DreamJotterMac-universal/DreamJotterMac
@@ -123,21 +132,25 @@ Expected output includes:
 arm64 x86_64
 ```
 
-## Localization Validation
+## Validation
 
 ```sh
-python3 scripts/normalize-spanish-copy
+python3 scripts/spec-check
+python3 scripts/spec-trace
 python3 scripts/localization-check
-CLANG_MODULE_CACHE_PATH=/private/tmp/DreamJotterClangModuleCache \
-swift test \
-  --filter LocalizationResourceTests \
-  --disable-sandbox \
-  --scratch-path /private/tmp/DreamJotterSwiftPM
+swift test
+swift build --configuration release --product DreamJotterMac
 ```
 
-The localization audit checks SwiftUI literals, missing translations, locale parity, duplicate keys, empty values, and `.strings` syntax across `es-MX` and `es-419`.
+## License
 
-## Specifications
+DreamJotter is licensed under the [Mozilla Public License 2.0](LICENSE).
+
+The MPL-2.0 keeps modifications to existing MPL-covered source files open while allowing separate files or modules to use different terms. That makes it suitable for an open core, optional paid distribution, voluntary contributions, and a possible future Pro edition implemented in separate proprietary modules.
+
+The DreamJotter name, logo, and app icon are not granted for unrestricted use by the software license unless explicitly stated otherwise.
+
+## Project documentation
 
 - `docs/milestones/`
 - `docs/acceptance/`
