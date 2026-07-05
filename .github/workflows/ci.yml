@@ -154,11 +154,26 @@ jobs:
           set -o pipefail
           swift build --configuration release --product DreamJotterMac 2>&1 | tee release-build.log
 
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Build generated macOS app scheme
+        run: |
+          set -o pipefail
+          xcodegen generate 2>&1 | tee mac-xcodegen.log
+          xcodebuild \
+            -project DreamJotter.xcodeproj \
+            -scheme DreamJotterMac \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee mac-xcode-build.log
+
       - name: Archive release diagnostics
         if: always()
         run: |
           mkdir -p ci-artifacts
-          cp swift-version.log xcode-version.log release-build.log ci-artifacts/ 2>/dev/null || true
+          cp swift-version.log xcode-version.log release-build.log mac-xcodegen.log mac-xcode-build.log ci-artifacts/ 2>/dev/null || true
           swift package describe > ci-artifacts/package-description.txt 2>&1 || true
           find .build -maxdepth 4 -type f \( -name '*.dia' -o -name '*.json' \) -print > ci-artifacts/build-files.txt 2>&1 || true
 
