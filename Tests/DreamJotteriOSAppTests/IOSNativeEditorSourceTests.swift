@@ -33,6 +33,24 @@ struct IOSNativeEditorSourceTests {
         #expect(source.contains("maximumReadableEditorWidth"))
     }
 
+    @Test("workspace exposes Mac-equivalent project destinations")
+    func workspaceParityContract() throws {
+        let paneModel = try appSource(named: "IOSWorkspacePane.swift")
+        let content = try appSource(named: "IOSWorkspacePaneContent.swift")
+        for destination in [
+            "dashboard", "screenplay", "scenes", "characters",
+            "locations", "notes", "review", "healthReport"
+        ] {
+            #expect(paneModel.contains("case \(destination)"))
+        }
+        #expect(content.contains("Create Character"))
+        #expect(content.contains("Create Location"))
+        #expect(content.contains("Create Note"))
+        #expect(content.contains("Read-only Screenplay"))
+        #expect(content.contains("IOSHealthReportPane"))
+        #expect(content.contains("Save Project Details"))
+    }
+
     @Test("autocomplete remains a floating editor overlay")
     func compactAutocompleteContract() throws {
         let source = try appSource(named: "IOSProjectEditorView.swift")
@@ -50,6 +68,14 @@ struct IOSNativeEditorSourceTests {
         #expect(!source.contains("modalPresentationStyle"))
     }
 
+    @Test("AppKit-only relaunch code is guarded from non-macOS compilation")
+    func appKitIsolationContract() throws {
+        let source = try repositorySource(named: "Apps/DreamJotterMac/ApplicationLanguageRelaunch.swift")
+        #expect(source.hasPrefix("#if canImport(AppKit)"))
+        #expect(source.contains("import AppKit"))
+        #expect(source.hasSuffix("#endif\n"))
+    }
+
     @Test("app metadata opts into a modern full-screen viewport and document packages")
     func applicationMetadataContract() throws {
         let source = try appSource(named: "Info.plist")
@@ -60,12 +86,16 @@ struct IOSNativeEditorSourceTests {
     }
 
     private func appSource(named filename: String) throws -> String {
+        try repositorySource(named: "Apps/DreamJotteriOSApp/\(filename)")
+    }
+
+    private func repositorySource(named path: String) throws -> String {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         return try String(
-            contentsOf: root.appendingPathComponent("Apps/DreamJotteriOSApp/\(filename)"),
+            contentsOf: root.appendingPathComponent(path),
             encoding: .utf8
         )
     }
