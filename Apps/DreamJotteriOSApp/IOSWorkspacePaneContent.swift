@@ -1,4 +1,5 @@
 import DreamJotterCore
+import Foundation
 import SwiftUI
 
 struct IOSWorkspacePaneContent: View {
@@ -15,7 +16,11 @@ struct IOSWorkspacePaneContent: View {
             case .screenplay:
                 EmptyView()
             case .scenes:
-                IOSEditableScenesPane(project: $project, commitProjectChange: commitProjectChange)
+                IOSEditableScenesPane(
+                    project: $project,
+                    commitProjectChange: commitProjectChange,
+                    navigateToScene: navigateToScene
+                )
             case .characters:
                 IOSCharactersPane(project: $project, commitProjectChange: commitProjectChange)
             case .locations:
@@ -29,5 +34,24 @@ struct IOSWorkspacePaneContent: View {
             }
         }
         .background(Color(uiColor: .systemBackground))
+    }
+
+    private func navigateToScene(_ card: SceneCard) {
+        guard let heading = card.sourceSceneHeading else { return }
+        let text = FountainIO.exportScreenplay(project.screenplay)
+        let range = (text as NSString).range(of: heading)
+        guard range.location != NSNotFound else { return }
+
+        openReviewFinding(ReviewFinding(
+            id: "scene-navigation-\(card.id)",
+            severity: .info,
+            title: card.title,
+            message: "Open scene in screenplay",
+            source: .formatting,
+            linkedEntityType: .scene,
+            linkedEntityID: heading,
+            scriptRange: ScriptTextRange(location: range.location, length: range.length),
+            generatedAt: project.metadata.modifiedAt
+        ))
     }
 }
