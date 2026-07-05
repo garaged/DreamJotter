@@ -38,10 +38,40 @@ public enum IOSEditorFormattingPolicy {
             text: text,
             overscanUTF16Length: overscanUTF16Length
         )
+        guard window.range.length > 0 else { return [] }
+
+        let nsText = text as NSString
+        let requestedRange = NSRange(
+            location: window.range.location,
+            length: min(window.range.length, nsText.length - window.range.location)
+        )
+        let lineAlignedRange = nsText.lineRange(for: requestedRange)
+        let contextStart: Int
+        if lineAlignedRange.location > 0 {
+            let previousCharacter = NSRange(location: lineAlignedRange.location - 1, length: 0)
+            contextStart = nsText.lineRange(for: previousCharacter).location
+        } else {
+            contextStart = 0
+        }
+        let contextEnd = min(nsText.length, NSMaxRange(lineAlignedRange))
+        let contextRange = NSRange(
+            location: contextStart,
+            length: max(0, contextEnd - contextStart)
+        )
+        let slice = nsText.substring(with: contextRange)
         let windowEnd = window.range.location + window.range.length
-        return EditorUsabilityService.styleRuns(in: text).filter { run in
-            let runEnd = run.textRange.location + run.textRange.length
-            return runEnd >= window.range.location && run.textRange.location <= windowEnd
+
+        return EditorUsabilityService.styleRuns(in: slice).compactMap { run in
+            let globalRange = EditorTextRange(
+                location: contextRange.location + run.textRange.location,
+                length: run.textRange.length
+            )
+            let globalEnd = globalRange.location + globalRange.length
+            guard globalEnd >= window.range.location,
+                  globalRange.location <= windowEnd else {
+                return nil
+            }
+            return EditorLineStyleRun(kind: run.kind, textRange: globalRange)
         }
     }
 }
