@@ -6,6 +6,7 @@ import UIKit
 @MainActor
 final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreenplayTextViewCommandDelegate {
     var session: Binding<IOSEditorSession>
+    var formattingRange: EditorTextRange
     var styleRuns: [EditorLineStyleRun]
     var onVisibleRangeChanged: (NSRange) -> Void
     var onMoveSuggestion: (Int) -> Bool
@@ -15,8 +16,11 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     var onFormatCycle: () -> Void
     var isApplyingViewChange = false
 
+    private weak var currentTextView: UITextView?
+
     init(
         session: Binding<IOSEditorSession>,
+        formattingRange: EditorTextRange,
         styleRuns: [EditorLineStyleRun],
         onVisibleRangeChanged: @escaping (NSRange) -> Void,
         onMoveSuggestion: @escaping (Int) -> Bool,
@@ -26,6 +30,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
         onFormatCycle: @escaping () -> Void
     ) {
         self.session = session
+        self.formattingRange = formattingRange
         self.styleRuns = styleRuns
         self.onVisibleRangeChanged = onVisibleRangeChanged
         self.onMoveSuggestion = onMoveSuggestion
@@ -36,6 +41,7 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
     }
 
     func captureState(from textView: UITextView) {
+        currentTextView = textView
         applyStyles(to: textView)
     }
 
@@ -72,16 +78,21 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
 
     func applyStyles(to textView: UITextView) {
         let storage = textView.textStorage
-        let fullRange = NSRange(location: 0, length: storage.length)
+        let safeLocation = min(formattingRange.location, storage.length)
+        let safeLength = min(formattingRange.length, storage.length - safeLocation)
+        guard safeLength > 0 else { return }
+
+        let boundedRange = NSRange(location: safeLocation, length: safeLength)
         let baseFont = UIFont.preferredFont(forTextStyle: .body)
         storage.beginEditing()
         storage.addAttributes([
             .font: baseFont,
             .foregroundColor: UIColor.label
-        ], range: fullRange)
+        ], range: boundedRange)
         for run in styleRuns {
             let range = NSRange(location: run.textRange.location, length: run.textRange.length)
-            guard NSMaxRange(range) <= storage.length else { continue }
+            guard NSMaxRange(range) <= storage.length,
+                  NSIntersectionRange(range, boundedRange).length > 0 else { continue }
             storage.addAttributes(attributes(for: run.kind, baseFont: baseFont), range: range)
         }
         storage.endEditing()
@@ -115,41 +126,55 @@ final class IOSNativeTextKitCoordinator: NSObject, UITextViewDelegate, IOSScreen
 
     func screenplayTextViewPaste(_ text: String) {
         let normalized = IOSPasteNormalizer.normalize(text)
-        let range = session.wrappedValue.selection.textRange
-        let nextText = EditorUsabilityService.replacing(
-            range: range,
-            in: session.wrappedValue.text,
-            with: normalized
-        )
-        let cursor = range.location + (normalized as NSString).length
-        let transaction = IOSEditorTransactionPolicy.transaction(for: .paste)
-        let manager = currentUndoManager
-        manager?.beginUndoGrouping()
-        session.wrappedValue.applyTextChange(
-            replacementText: nextText,
-            selection: IOSEditorSelection(location: cursor, length: 0),
-            kind: .paste
-        )
-        manager?.setActionName(transaction.actionName)
-        manager?.endUndoGrouping()
+        _ = performSemanticCommand(kind: .paste) {
+            let range = session.wrappedValue.selection.textRange
+            let nextText = EditorUsabilityService.replacing(
+                range: range,
+                in: session.wrappedValue.text,
+                with: normalized
+            )
+            let cursor = range.location + (normalized as NSString).length
+            session.wrappedValue.applyTextChange(
+                replacementText: nextText,
+                selection: IOSEditorSelection(location: cursor, length: 0),
+                kind: .paste
+            )
+            return true
+        }
     }
-
-    private weak var currentTextView: UITextView?
-    private var currentUndoManager: UndoManager? { currentTextView?.undoManager }
 
     private func performSemanticCommand(
         kind: IOSEditorMutationKind,
         action: () -> Bool
     ) -> Bool {
-        let transaction = IOSEditorTransactionPolicy.transaction(for: kind)
-        let manager = currentUndoManager
-        manager?.beginUndoGrouping()
+        let before = session.wrappedValue
         let handled = action()
-        if handled {
-            manager?.setActionName(transaction.actionName)
-        }
+        guard handled, before != session.wrappedValue else { return handled }
+
+        let transaction = IOSEditorTransactionPolicy.transaction(for: kind)
+        let manager = currentTextView?.undoManager
+        manager?.beginUndoGrouping()
+        registerUndo(restoring: before, actionName: transaction.actionName, manager: manager)
+        manager?.setActionName(transaction.actionName)
         manager?.endUndoGrouping()
-        return handled
+        return true
+    }
+
+    private func registerUndo(
+        restoring snapshot: IOSEditorSession,
+        actionName: String,
+        manager: UndoManager?
+    ) {
+        manager?.registerUndo(withTarget: self) { coordinator in
+            let redoSnapshot = coordinator.session.wrappedValue
+            coordinator.session.wrappedValue = snapshot
+            coordinator.registerUndo(
+                restoring: redoSnapshot,
+                actionName: actionName,
+                manager: manager
+            )
+            manager?.setActionName(actionName)
+        }
     }
 
     private func notifyVisibleRange(_ textView: UITextView) {
