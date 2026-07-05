@@ -25,6 +25,15 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
         controller.allowsDocumentCreation = true
         controller.allowsPickingMultipleItems = false
         controller.shouldShowFileExtensions = true
+        controller.additionalLeadingNavigationBarButtonItems = [
+            UIBarButtonItem(
+                title: "Open Project Folder",
+                style: .plain,
+                target: context.coordinator,
+                action: #selector(Coordinator.openProjectFolder)
+            )
+        ]
+        context.coordinator.browserController = controller
         return controller
     }
 
@@ -34,26 +43,36 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
     ) {}
 
     @MainActor
-    final class Coordinator: NSObject, @preconcurrency UIDocumentBrowserViewControllerDelegate {
+    final class Coordinator: NSObject, @preconcurrency UIDocumentBrowserViewControllerDelegate, UIDocumentPickerDelegate {
         private let documentAdapter = IOSProjectDocumentAdapter()
+        weak var browserController: UIDocumentBrowserViewController?
+
+        @objc func openProjectFolder() {
+            guard let browserController else { return }
+            let picker = UIDocumentPickerViewController(
+                forOpeningContentTypes: [.folder],
+                asCopy: false
+            )
+            picker.delegate = self
+            picker.allowsMultipleSelection = false
+            browserController.present(picker, animated: true)
+        }
+
+        func documentPicker(
+            _ controller: UIDocumentPickerViewController,
+            didPickDocumentsAt urls: [URL]
+        ) {
+            guard let packageURL = urls.first,
+                  let browserController else { return }
+            openProject(at: packageURL, from: browserController)
+        }
 
         func documentBrowser(
             _ controller: UIDocumentBrowserViewController,
             didPickDocumentsAt documentURLs: [URL]
         ) {
             guard let packageURL = documentURLs.first else { return }
-            guard packageURL.pathExtension.lowercased() == "dreamjotter" else {
-                presentError("Select a .dreamjotter project package.", from: controller)
-                return
-            }
-            Task {
-                do {
-                    let snapshot = try await documentAdapter.openProject(at: packageURL)
-                    presentWorkspace(snapshot: snapshot, from: controller)
-                } catch {
-                    presentError(error.localizedDescription, from: controller)
-                }
-            }
+            openProject(at: packageURL, from: controller)
         }
 
         func documentBrowser(
@@ -89,14 +108,7 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
             didImportDocumentAt sourceURL: URL,
             toDestinationURL destinationURL: URL
         ) {
-            Task {
-                do {
-                    let snapshot = try await documentAdapter.openProject(at: destinationURL)
-                    presentWorkspace(snapshot: snapshot, from: controller)
-                } catch {
-                    presentError(error.localizedDescription, from: controller)
-                }
-            }
+            openProject(at: destinationURL, from: controller)
         }
 
         func documentBrowser(
@@ -107,9 +119,28 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
             presentError(error?.localizedDescription ?? "The document could not be imported.", from: controller)
         }
 
+        private func openProject(
+            at packageURL: URL,
+            from controller: UIViewController
+        ) {
+            guard packageURL.pathExtension.lowercased() == "dreamjotter" else {
+                presentError("Select a .dreamjotter project package or folder.", from: controller)
+                return
+            }
+
+            Task {
+                do {
+                    let snapshot = try await documentAdapter.openProject(at: packageURL)
+                    presentWorkspace(snapshot: snapshot, from: controller)
+                } catch {
+                    presentError(error.localizedDescription, from: controller)
+                }
+            }
+        }
+
         private func presentWorkspace(
             snapshot: IOSProjectDocumentSnapshot,
-            from controller: UIDocumentBrowserViewController
+            from controller: UIViewController
         ) {
             let hostingController = UIHostingController(
                 rootView: IOSProjectEditorView(snapshot: snapshot)
