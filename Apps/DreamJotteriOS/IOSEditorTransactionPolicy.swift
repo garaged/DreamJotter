@@ -17,6 +17,8 @@ public enum IOSEditorTransactionPolicy {
             return IOSEditorTransaction(actionName: "Typing", groupsWithTyping: true)
         case .paste:
             return IOSEditorTransaction(actionName: "Paste", groupsWithTyping: false)
+        case .cut:
+            return IOSEditorTransaction(actionName: "Cut", groupsWithTyping: false)
         case .smartEnter:
             return IOSEditorTransaction(actionName: "Smart Enter", groupsWithTyping: false)
         case .elementFormatting:
