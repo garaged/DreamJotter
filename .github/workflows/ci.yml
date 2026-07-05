@@ -80,6 +80,53 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  ios-build:
+    name: DreamJotteriOS app build
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Require Xcode 26
+        run: |
+          xcodebuild -version | tee ios-xcode-version.log
+          xcodebuild -version | grep -Eq 'Xcode 26\.' || {
+            echo 'DreamJotteriOS requires Xcode 26.x for the iOS 26 SDK.' >&2
+            exit 1
+          }
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          set -o pipefail
+          xcodegen generate 2>&1 | tee xcodegen.log
+
+      - name: Build iOS application
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project DreamJotter.xcodeproj \
+            -scheme DreamJotteriOS \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee ios-build.log
+
+      - name: Upload iOS build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-diagnostics
+          path: |
+            ios-xcode-version.log
+            xcodegen.log
+            ios-build.log
+          if-no-files-found: warn
+          retention-days: 14
+
   release-build:
     name: DreamJotterMac release build
     runs-on: macos-15
