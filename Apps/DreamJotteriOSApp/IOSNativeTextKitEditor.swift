@@ -39,6 +39,8 @@ struct IOSNativeTextKitEditor: UIViewRepresentable {
         textView.keyboardDismissMode = .interactive
         textView.smartQuotesType = .no
         textView.smartDashesType = .no
+        textView.layoutManager.allowsNonContiguousLayout = true
+        textView.textContainer.widthTracksTextView = true
         textView.accessibilityLabel = "Screenplay editor"
         textView.text = session.text
         textView.selectedRange = NSRange(location: session.selection.location, length: session.selection.length)
