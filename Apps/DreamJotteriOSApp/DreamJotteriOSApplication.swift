@@ -35,7 +35,7 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
     ) {}
 
     @MainActor
-    final class Coordinator: NSObject, UIDocumentBrowserViewControllerDelegate {
+    final class Coordinator: NSObject, @preconcurrency UIDocumentBrowserViewControllerDelegate {
         private let documentAdapter = IOSProjectDocumentAdapter()
 
         func documentBrowser(
@@ -99,9 +99,9 @@ struct IOSDocumentBrowserRootView: UIViewControllerRepresentable {
         func documentBrowser(
             _ controller: UIDocumentBrowserViewController,
             failedToImportDocumentAt documentURL: URL,
-            error: any Error
+            error: (any Error)?
         ) {
-            presentError(error.localizedDescription, from: controller)
+            presentError(error?.localizedDescription ?? "The document could not be imported.", from: controller)
         }
 
         private func presentWorkspace(
