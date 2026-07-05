@@ -45,17 +45,44 @@ struct ScriptEditorView: View {
     }
 
     private var header: some View {
-        HStack {
-            Text(document.project.metadata.title).font(.title2.weight(.semibold))
-            Spacer()
-            ScreenplayLanguagePicker(document: $document)
-            Picker("Editor", selection: $editorAdapter) {
-                ForEach(ScreenplayEditorAdapter.allCases) { Text($0.rawValue).tag($0) }
+        VStack(alignment: .leading, spacing: 8) {
+            Text(document.project.metadata.title)
+                .font(.title2.weight(.semibold))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 10) {
+                    editorControls
+                    Spacer(minLength: 0)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    ScreenplayLanguagePicker(document: $document)
+                    HStack(spacing: 10) {
+                        editorPicker
+                        Button("Refresh Parse") { document.refreshParseRespectingLanguage() }
+                    }
+                }
             }
-            .pickerStyle(.segmented)
-            .frame(width: 180)
+        }
+    }
+
+    private var editorControls: some View {
+        HStack(spacing: 10) {
+            ScreenplayLanguagePicker(document: $document)
+            editorPicker
             Button("Refresh Parse") { document.refreshParseRespectingLanguage() }
         }
+    }
+
+    private var editorPicker: some View {
+        Picker("Editor", selection: $editorAdapter) {
+            ForEach(ScreenplayEditorAdapter.allCases) { Text($0.rawValue).tag($0) }
+        }
+        .pickerStyle(.segmented)
+        .frame(width: 160)
     }
 
     private var searchBar: some View {
@@ -304,7 +331,8 @@ private struct ScreenplayLanguagePicker: View {
             Text("Automatic").tag(ScreenplayLanguageProfile.automatic)
             Text("English").tag(ScreenplayLanguageProfile.english)
             Text("Spanish (Latin America)").tag(ScreenplayLanguageProfile.spanishLatinAmerica)
-        }.frame(width: 240)
+        }
+        .frame(width: 210)
     }
 }
 
@@ -324,27 +352,6 @@ extension ProjectDocumentViewModel {
             snapshots: configured.snapshots, exportPresets: configured.exportPresets,
             story: configured.story, pro: configured.pro
         )
-        self = ScreenplayParsingContext.$language.withValue(language) {
-            ProjectDocumentViewModel(project: updated, packageURL: packageURL, scriptText: scriptText, isDirty: true)
-        }
-    }
-
-    mutating func updateScriptTextRespectingLanguage(_ text: String) {
-        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { updateScriptText(text) }
-    }
-    mutating func refreshParseRespectingLanguage(now: Date = Date()) {
-        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { refreshParse(now: now) }
-    }
-    mutating func acceptEditorSuggestionRespectingLanguage(_ suggestion: EditorSuggestion) {
-        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { acceptEditorSuggestion(suggestion) }
-    }
-    mutating func performSmartEnterRespectingLanguage(at cursorLocation: Int) {
-        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { performSmartEnter(at: cursorLocation) }
-    }
-    mutating func performTabCycleRespectingLanguage(at cursorLocation: Int) {
-        ScreenplayParsingContext.$language.withValue(screenplayLanguage) { performTabCycle(at: cursorLocation) }
-    }
-    mutating func saveRespectingLanguage(to packageURL: URL, now: Date = Date()) throws {
-        try ScreenplayParsingContext.$language.withValue(screenplayLanguage) { try save(to: packageURL, now: now) }
+        replaceProject(updated, updateScriptText: false)
     }
 }
