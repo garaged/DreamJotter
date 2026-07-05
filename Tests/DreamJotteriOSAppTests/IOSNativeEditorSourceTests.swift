@@ -50,6 +50,15 @@ struct IOSNativeEditorSourceTests {
         #expect(!source.contains("modalPresentationStyle"))
     }
 
+    @Test("app metadata opts into a modern full-screen viewport and document packages")
+    func applicationMetadataContract() throws {
+        let source = try appSource(named: "Info.plist")
+        #expect(source.contains("<key>UILaunchScreen</key>"))
+        #expect(source.contains("<key>UISupportedInterfaceOrientations</key>"))
+        #expect(source.contains("org.garaged.dreamjotter.project"))
+        #expect(source.contains("<key>UISupportsDocumentBrowser</key>"))
+    }
+
     private func appSource(named filename: String) throws -> String {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
