@@ -56,12 +56,15 @@ struct IOSProjectDocumentAdapterTests {
                 options: .atomic
             )
 
-            await #expect(throws: IOSProjectDocumentError.externalModificationDetected) {
+            do {
                 _ = try await adapter.saveProject(
                     created.project,
                     at: packageURL,
                     expectedGeneration: created.generation
                 )
+                Issue.record("Expected an external modification conflict")
+            } catch let error as IOSProjectDocumentError {
+                #expect(error == .externalModificationDetected)
             }
 
             #expect(FileManager.default.fileExists(atPath: packageURL.appendingPathComponent("external-change.txt").path))
@@ -106,8 +109,11 @@ struct IOSProjectDocumentAdapterTests {
                 coordination: .direct
             )
 
-            await #expect(throws: IOSProjectDocumentError.securityScopedAccessDenied) {
+            do {
                 _ = try await adapter.openProject(at: packageURL)
+                Issue.record("Expected security-scope denial")
+            } catch let error as IOSProjectDocumentError {
+                #expect(error == .securityScopedAccessDenied)
             }
         }
     }
