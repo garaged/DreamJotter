@@ -22,7 +22,23 @@ struct IOSEditableScenesPane: View {
             .buttonStyle(.plain)
         }
         .sheet(item: $selectedCard) { card in
-            IOSSceneCardEditorSheet(card: card)
+            IOSSceneCardEditorSheet(card: card) { summary, note in
+                saveCard(card, summary: summary, note: note)
+            }
         }
+    }
+
+    private func saveCard(_ card: SceneCard, summary: String, note: String) {
+        let updated = IOSSceneCardEditing.update(
+            project: project,
+            card: card,
+            summary: summary,
+            note: note,
+            status: card.status,
+            plotlineTags: card.plotlineTags
+        )
+        guard updated != project else { return }
+        project = updated
+        commitProjectChange(updated)
     }
 }
