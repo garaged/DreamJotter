@@ -4,6 +4,7 @@ import SwiftUI
 struct IOSEditableScenesPane: View {
     @Binding var project: DreamJotterProject
     let commitProjectChange: (DreamJotterProject) -> Void
+    var navigateToScene: (SceneCard) -> Void = { _ in }
     @State private var selectedCard: SceneCard?
 
     var body: some View {
@@ -20,6 +21,14 @@ struct IOSEditableScenesPane: View {
                 }
             }
             .buttonStyle(.plain)
+            .swipeActions(edge: .leading) {
+                Button {
+                    navigateToScene(card)
+                } label: {
+                    Label("Open", systemImage: "text.cursor")
+                }
+                .tint(.blue)
+            }
         }
         .sheet(item: $selectedCard) { card in
             IOSSceneCardEditorSheet(card: card) { summary, note, status in
