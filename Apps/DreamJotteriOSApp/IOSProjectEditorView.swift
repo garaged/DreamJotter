@@ -10,6 +10,7 @@ struct IOSProjectEditorView: View {
     @State private var generation: IOSPackageGeneration
     @State private var session: IOSEditorSession
     @State private var visibleRange = EditorTextRange(location: 0, length: 0)
+    @State private var autocomplete = IOSAutocompleteState()
     @State private var errorMessage: String?
 
     private let packageURL: URL
@@ -27,39 +28,44 @@ struct IOSProjectEditorView: View {
 
     var body: some View {
         NavigationStack {
-            IOSNativeTextKitEditor(
-                session: $session,
-                onVisibleRangeChanged: { range in
-                    visibleRange = EditorTextRange(
-                        location: range.location,
-                        length: range.length
-                    )
-                    _ = IOSEditorFormattingPolicy.boundedStyleRuns(
-                        text: session.text,
-                        visibleRange: visibleRange
-                    )
-                }
-            )
+            VStack(spacing: 0) {
+                IOSNativeTextKitEditor(
+                    session: $session,
+                    styleRuns: boundedStyleRuns,
+                    onVisibleRangeChanged: updateVisibleRange,
+                    onMoveSuggestion: moveSuggestion,
+                    onAcceptSuggestion: acceptSelectedSuggestion,
+                    onDismissSuggestions: dismissSuggestions,
+                    onSmartEnter: performSmartEnter,
+                    onFormatCycle: performFormatCycle
+                )
+
+                IOSAutocompletePanel(
+                    state: autocomplete,
+                    accept: acceptSuggestion,
+                    dismiss: { _ = dismissSuggestions() }
+                )
+            }
             .navigationTitle(project.metadata.title)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Documents") { dismiss() }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button("Smart Enter") {
-                        IOSEditorCommandService.performSmartEnter(session: &session)
-                    }
-                    Button("Format") {
-                        IOSEditorCommandService.cycleCurrentElementKind(session: &session)
-                    }
+                    Button("Smart Enter", action: performSmartEnter)
+                    Button("Format", action: performFormatCycle)
                 }
             }
         }
         .task(id: session.revision.value) {
+            refreshAutocomplete()
             await parseCurrentRevision()
         }
         .task(id: session.autosaveRevisionPending?.value) {
             await autosaveCurrentRevision()
+        }
+        .onChange(of: session.selection) { _, _ in
+            refreshAutocomplete()
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .background || phase == .inactive else { return }
@@ -73,6 +79,58 @@ struct IOSProjectEditorView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+    }
+
+    private var boundedStyleRuns: [EditorLineStyleRun] {
+        IOSEditorFormattingPolicy.boundedStyleRuns(
+            text: session.text,
+            visibleRange: visibleRange
+        )
+    }
+
+    private func updateVisibleRange(_ range: NSRange) {
+        visibleRange = EditorTextRange(location: range.location, length: range.length)
+    }
+
+    private func refreshAutocomplete() {
+        autocomplete.replaceSuggestions(IOSAutocompleteService.suggestions(
+            text: session.text,
+            cursorLocation: session.selection.location,
+            characters: project.characters.map(\.displayName),
+            scenes: project.screenplay.scenes,
+            language: ScreenplayLanguagePersistence.language(in: project)
+        ))
+    }
+
+    private func moveSuggestion(_ offset: Int) -> Bool {
+        autocomplete.moveSelection(by: offset)
+    }
+
+    private func acceptSelectedSuggestion() -> Bool {
+        guard let suggestion = autocomplete.selectedSuggestion else { return false }
+        acceptSuggestion(suggestion)
+        return true
+    }
+
+    private func acceptSuggestion(_ suggestion: EditorSuggestion) {
+        IOSEditorCommandService.acceptSuggestion(suggestion, session: &session)
+        autocomplete.dismiss()
+    }
+
+    private func dismissSuggestions() -> Bool {
+        guard autocomplete.isPresented else { return false }
+        autocomplete.dismiss()
+        return true
+    }
+
+    private func performSmartEnter() {
+        IOSEditorCommandService.performSmartEnter(session: &session)
+        autocomplete.dismiss()
+    }
+
+    private func performFormatCycle() {
+        IOSEditorCommandService.cycleCurrentElementKind(session: &session)
+        autocomplete.dismiss()
     }
 
     private func parseCurrentRevision() async {
