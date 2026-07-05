@@ -95,7 +95,8 @@ struct ProjectWorkspaceView: View {
                 Divider()
 
                 ScreenplayParagraphInspectorView(document: $document)
-                    .frame(width: 300, maxHeight: .infinity)
+                    .frame(width: 300)
+                    .frame(maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .scenes:
