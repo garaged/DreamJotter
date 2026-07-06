@@ -8,6 +8,7 @@ enum IOSWorkspacePane: String, CaseIterable, Identifiable, Hashable, Sendable {
     case locations
     case notes
     case review
+    case exports
     case healthReport
 
     var id: String { rawValue }
@@ -21,6 +22,7 @@ enum IOSWorkspacePane: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .locations: "Locations"
         case .notes: "Notes"
         case .review: "Review"
+        case .exports: "Export"
         case .healthReport: "Health Report"
         }
     }
@@ -34,6 +36,7 @@ enum IOSWorkspacePane: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .locations: "mappin.and.ellipse"
         case .notes: "note.text"
         case .review: "checkmark.circle"
+        case .exports: "square.and.arrow.up"
         case .healthReport: "waveform.path.ecg"
         }
     }
