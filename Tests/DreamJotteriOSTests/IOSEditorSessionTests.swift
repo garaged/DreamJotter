@@ -98,4 +98,13 @@ struct IOSEditorSessionTests {
         #expect(phone.parseDelayMilliseconds == 140)
         #expect(phone.autosaveDelayMilliseconds == 1_500)
     }
+
+    @Test("staged screenplay replacement is consumed exactly once")
+    func stagedReplacementIsSingleUse() {
+        IOSExternalScreenplayReplacementStore.stage("INT. SECOND SCENE - NIGHT")
+
+        #expect(IOSExternalScreenplayReplacementStore.current() == "INT. SECOND SCENE - NIGHT")
+        #expect(IOSExternalScreenplayReplacementStore.consume() == "INT. SECOND SCENE - NIGHT")
+        #expect(IOSExternalScreenplayReplacementStore.consume() == nil)
+    }
 }
