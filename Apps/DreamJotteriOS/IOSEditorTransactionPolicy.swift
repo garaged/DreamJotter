@@ -25,6 +25,8 @@ public enum IOSEditorTransactionPolicy {
             return IOSEditorTransaction(actionName: "Format Element", groupsWithTyping: false)
         case .suggestionAcceptance:
             return IOSEditorTransaction(actionName: "Accept Suggestion", groupsWithTyping: false)
+        case .externalReplacement:
+            return IOSEditorTransaction(actionName: "Replace Screenplay", groupsWithTyping: false)
         case .undo:
             return IOSEditorTransaction(actionName: "Undo", groupsWithTyping: false)
         case .redo:
