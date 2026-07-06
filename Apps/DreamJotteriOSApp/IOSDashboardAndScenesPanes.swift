@@ -63,6 +63,7 @@ struct IOSScenesPane: View {
     @State private var searchText = ""
     @State private var selectedStatus: SceneCardStatus?
     @State private var editingCard: SceneCard?
+    @State private var showsEditor = false
 
     init(project: DreamJotterProject) {
         _project = State(initialValue: project)
@@ -96,6 +97,7 @@ struct IOSScenesPane: View {
             ForEach(cards, id: \.id) { card in
                 Button {
                     editingCard = card
+                    showsEditor = true
                 } label: {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("\(card.order + 1). \(card.title)").font(.headline)
@@ -118,16 +120,18 @@ struct IOSScenesPane: View {
             }
         }
         .searchable(text: $searchText, prompt: "Search scenes")
-        .sheet(item: $editingCard) { card in
-            IOSSceneCardEditorSheet(card: card) { summary, note, status, tags in
-                project = IOSSceneCardEditing.update(
-                    project: project,
-                    card: card,
-                    summary: summary,
-                    note: note,
-                    status: status,
-                    plotlineTags: tags
-                )
+        .sheet(isPresented: $showsEditor) {
+            if let card = editingCard {
+                IOSSceneCardEditorSheet(card: card) { summary, note, status, tags in
+                    project = IOSSceneCardEditing.update(
+                        project: project,
+                        card: card,
+                        summary: summary,
+                        note: note,
+                        status: status,
+                        plotlineTags: tags
+                    )
+                }
             }
         }
     }
