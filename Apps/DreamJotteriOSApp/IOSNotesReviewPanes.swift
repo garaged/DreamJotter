@@ -4,6 +4,7 @@ import SwiftUI
 struct IOSNotesPane: View {
     @Binding var project: DreamJotterProject
     let commitProjectChange: (DreamJotterProject) -> Void
+    var navigateToLink: (NoteLink) -> Void = { _ in }
     @State private var editing: ProjectNote?
     @State private var showsEditor = false
     @State private var status: ProjectNoteStatus? = .open
@@ -32,21 +33,38 @@ struct IOSNotesPane: View {
             .pickerStyle(.segmented)
 
             ForEach(notes, id: \.id) { note in
-                Button {
-                    editing = note
-                    showsEditor = true
-                } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(note.title ?? "Untitled Note").font(.headline)
-                        Text(note.body).lineLimit(3)
-                        if !note.links.isEmpty {
-                            Text("\(note.links.count) linked target\(note.links.count == 1 ? "" : "s")")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                HStack(alignment: .top) {
+                    Button {
+                        editing = note
+                        showsEditor = true
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(note.title ?? "Untitled Note").font(.headline)
+                            Text(note.body).lineLimit(3)
+                            if !note.links.isEmpty {
+                                Text("\(note.links.count) linked target\(note.links.count == 1 ? "" : "s")")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    if !note.links.isEmpty {
+                        Menu {
+                            ForEach(Array(note.links.enumerated()), id: \.offset) { _, link in
+                                Button(targetTitle(link)) {
+                                    navigateToLink(link)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "arrow.up.forward.app")
+                        }
+                        .accessibilityLabel("Open linked target")
+                    }
                 }
-                .buttonStyle(.plain)
                 .swipeActions(edge: .leading) {
                     Button {
                         apply(IOSWorkspaceProjectEditing.settingNoteStatus(
@@ -92,6 +110,12 @@ struct IOSNotesPane: View {
                 }
             }
         }
+    }
+
+    private func targetTitle(_ link: NoteLink) -> String {
+        IOSNoteTargetOption.options(for: project)
+            .first(where: { $0.id == "\(link.targetKind.rawValue):\(link.targetID)" })?
+            .title ?? link.targetID
     }
 
     private func apply(_ updated: DreamJotterProject) {
