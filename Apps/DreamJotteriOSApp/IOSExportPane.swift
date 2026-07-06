@@ -30,7 +30,7 @@ struct IOSExportPane: View {
 
             Section("Project") {
                 exportButton("JSON Backup", systemImage: "archivebox", extension: "json") {
-                    Data(try BackupRestoreWorkflow.jsonString(for: project).utf8)
+                    Data(try BackupRestoreWorkflow.jsonString(for: project, createdAt: Date()).utf8)
                 }
             }
 
