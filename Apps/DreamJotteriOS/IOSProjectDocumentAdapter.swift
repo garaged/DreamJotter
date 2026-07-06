@@ -220,6 +220,13 @@ public actor IOSProjectDocumentAdapter {
         expectedGeneration: IOSPackageGeneration?,
         now: Date = Date()
     ) throws -> IOSProjectDocumentSnapshot {
+        let projectToSave: DreamJotterProject
+        if let replacement = IOSExternalScreenplayReplacementStore.current() {
+            projectToSave = IOSEditorProjectProjection.applying(text: replacement, to: project)
+        } else {
+            projectToSave = project
+        }
+
         try securityScopedAccess.withAccess(to: packageURL) {
             if let expectedGeneration,
                try generation(at: packageURL) != expectedGeneration {
@@ -228,7 +235,7 @@ public actor IOSProjectDocumentAdapter {
 
             do {
                 try coordination.coordinateWrite(at: packageURL) { coordinatedURL in
-                    try DreamJotterPackageStore.save(project, to: coordinatedURL, updatedAt: now)
+                    try DreamJotterPackageStore.save(projectToSave, to: coordinatedURL, updatedAt: now)
                 }
             } catch let error as IOSProjectDocumentError {
                 throw error
@@ -237,7 +244,7 @@ public actor IOSProjectDocumentAdapter {
             }
         }
 
-        return try snapshot(for: project, at: packageURL)
+        return try snapshot(for: projectToSave, at: packageURL)
     }
 
     public func generation(at packageURL: URL) throws -> IOSPackageGeneration {
