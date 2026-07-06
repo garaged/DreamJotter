@@ -8,6 +8,16 @@ struct IOSNoteTargetOption: Identifiable {
         "\(link.targetKind.rawValue):\(link.targetID)"
     }
 
+    static func options(for project: DreamJotterProject) -> [IOSNoteTargetOption] {
+        entityOptions(for: project) + project.screenplay.elements.enumerated().map { index, element in
+            let preview = element.text.replacingOccurrences(of: "\n", with: " ")
+            return IOSNoteTargetOption(
+                link: NoteLink(targetKind: .screenplayElement, targetID: "element-\(index)"),
+                title: "Element \(index + 1): \(preview)"
+            )
+        }
+    }
+
     static func entityOptions(for project: DreamJotterProject) -> [IOSNoteTargetOption] {
         var values = [IOSNoteTargetOption(
             link: NoteLink(targetKind: .project, targetID: project.metadata.id),
