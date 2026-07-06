@@ -107,6 +107,7 @@ enum IOSWorkspaceProjectEditing {
         existing: ProjectNote?,
         title: String,
         body: String,
+        links: [NoteLink]? = nil,
         now: Date = Date()
     ) -> DreamJotterProject {
         let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -118,7 +119,7 @@ enum IOSWorkspaceProjectEditing {
             body: trimmedBody,
             status: existing?.status ?? .open,
             source: existing?.source ?? .manual,
-            links: existing?.links ?? [NoteLink(targetKind: .project, targetID: project.metadata.id)],
+            links: links ?? existing?.links ?? [NoteLink(targetKind: .project, targetID: project.metadata.id)],
             createdAt: existing?.createdAt ?? now,
             updatedAt: now
         )
