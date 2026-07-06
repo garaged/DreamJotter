@@ -15,6 +15,69 @@ private enum IOSReviewSection: String, CaseIterable, Identifiable {
     }
 }
 
+private enum IOSReviewSeverityFilter: String, CaseIterable, Identifiable {
+    case all
+    case info
+    case warning
+    case issue
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .all: "All severities"
+        case .info: "Information"
+        case .warning: "Warnings"
+        case .issue: "Issues"
+        }
+    }
+
+    func matches(_ severity: ReviewFindingSeverity) -> Bool {
+        switch self {
+        case .all: true
+        case .info: severity == .info
+        case .warning: severity == .warning
+        case .issue: severity == .issue
+        }
+    }
+}
+
+private enum IOSReviewSourceFilter: String, CaseIterable, Identifiable {
+    case all
+    case formatting
+    case unresolvedCharacter
+    case unresolvedLocation
+    case todo
+    case healthReport
+    case storage
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .all: "All sources"
+        case .formatting: "Formatting"
+        case .unresolvedCharacter: "Characters"
+        case .unresolvedLocation: "Locations"
+        case .todo: "TODOs"
+        case .healthReport: "Health"
+        case .storage: "Storage"
+        }
+    }
+
+    func matches(_ source: ReviewFindingSource) -> Bool {
+        switch self {
+        case .all: true
+        case .formatting: source == .formatting
+        case .unresolvedCharacter: source == .unresolvedCharacter
+        case .unresolvedLocation: source == .unresolvedLocation
+        case .todo: source == .todo
+        case .healthReport: source == .healthReport
+        case .storage: source == .storage
+        }
+    }
+}
+
 struct IOSReviewPane: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -23,6 +86,9 @@ struct IOSReviewPane: View {
 
     @State private var searchText = ""
     @State private var selectedSection: IOSReviewSection = .screenplay
+    @State private var severityFilter: IOSReviewSeverityFilter = .all
+    @State private var sourceFilter: IOSReviewSourceFilter = .all
+    @State private var showLayoutNumbering = false
 
     private var report: ScriptHealthReport {
         ScriptHealthReportBuilder.report(
@@ -36,12 +102,29 @@ struct IOSReviewPane: View {
         FountainIO.exportScreenplay(project.screenplay)
     }
 
+    private var numberedScreenplayText: String {
+        screenplayText
+            .components(separatedBy: "\n")
+            .enumerated()
+            .map { index, line in
+                String(format: "%4d  %@", index + 1, line)
+            }
+            .joined(separator: "\n")
+    }
+
     private var findings: [ReviewFinding] {
-        guard !searchText.isEmpty else { return report.findings }
         let key = TextNormalization.key(for: searchText)
-        return report.findings.filter {
-            TextNormalization.key(for: [$0.title, $0.message, $0.source.rawValue].joined(separator: " "))
-                .contains(key)
+        return report.findings.filter { finding in
+            guard severityFilter.matches(finding.severity),
+                  sourceFilter.matches(finding.source) else { return false }
+            guard !key.isEmpty else { return true }
+            return TextNormalization.key(for: [
+                finding.title,
+                finding.message,
+                finding.suggestedAction ?? "",
+                finding.source.rawValue,
+                finding.linkedEntityID ?? ""
+            ].joined(separator: " ")).contains(key)
         }
     }
 
@@ -66,7 +149,7 @@ struct IOSReviewPane: View {
         HStack(spacing: 16) {
             metric(value: report.sceneCount, label: "Scenes")
             metric(value: report.elementCount, label: "Elements")
-            metric(value: report.findings.count, label: "Findings")
+            metric(value: findings.count, label: "Findings")
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
@@ -122,24 +205,52 @@ struct IOSReviewPane: View {
 
     private var screenplayPane: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Read-only Screenplay")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .padding(.top, 10)
+            HStack {
+                Text("Read-only Screenplay")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Toggle("Show layout numbering", isOn: $showLayoutNumbering)
+                    .labelsHidden()
+                    .accessibilityLabel("Show layout numbering")
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
 
-            IOSReadOnlyScreenplayPreview(text: screenplayText)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(uiColor: .secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .padding(.horizontal, 12)
-                .padding(.bottom, 12)
+            IOSReadOnlyScreenplayPreview(
+                text: showLayoutNumbering ? numberedScreenplayText : screenplayText
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .padding(.horizontal, 12)
+            .padding(.bottom, 12)
         }
         .background(Color(uiColor: .systemBackground))
     }
 
     private var findingsPane: some View {
         List {
+            Section("Filters") {
+                Picker("Severity", selection: $severityFilter) {
+                    ForEach(IOSReviewSeverityFilter.allCases) { filter in
+                        Text(filter.title).tag(filter)
+                    }
+                }
+                Picker("Source", selection: $sourceFilter) {
+                    ForEach(IOSReviewSourceFilter.allCases) { filter in
+                        Text(filter.title).tag(filter)
+                    }
+                }
+                if !searchText.isEmpty || severityFilter != .all || sourceFilter != .all {
+                    Button("Clear Filters") {
+                        searchText = ""
+                        severityFilter = .all
+                        sourceFilter = .all
+                    }
+                }
+            }
+
             Section("Review Findings") {
                 ForEach(findings, id: \.id) { finding in
                     Button {
