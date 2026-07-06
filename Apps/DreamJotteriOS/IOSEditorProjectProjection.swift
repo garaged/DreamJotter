@@ -7,8 +7,9 @@ public enum IOSEditorProjectProjection {
         to project: DreamJotterProject,
         modifiedAt: Date = Date()
     ) -> DreamJotterProject {
+        let projectedText = IOSExternalScreenplayReplacementStore.sharedText(or: text)
         let language = ScreenplayLanguagePersistence.language(in: project)
-        let screenplay = ScreenplayParser.parse(text, language: language)
+        let screenplay = ScreenplayParser.parse(projectedText, language: language)
         let metadata = ProjectMetadata(
             id: project.metadata.id,
             title: project.metadata.title,
@@ -35,5 +36,11 @@ public enum IOSEditorProjectProjection {
             story: project.story,
             pro: project.pro
         )
+    }
+}
+
+private extension IOSExternalScreenplayReplacementStore {
+    static func sharedText(or fallback: String) -> String {
+        current() ?? fallback
     }
 }
