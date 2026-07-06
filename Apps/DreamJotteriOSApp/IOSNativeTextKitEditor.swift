@@ -29,6 +29,8 @@ struct IOSNativeTextKitEditor: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> IOSScreenplayTextView {
+        synchronizeExternalReplacement()
+
         let textView = IOSScreenplayTextView()
         textView.delegate = context.coordinator
         textView.commandDelegate = context.coordinator
@@ -68,5 +70,17 @@ struct IOSNativeTextKitEditor: UIViewRepresentable {
             textView.selectedRange = selection
         }
         context.coordinator.applyStyles(to: textView)
+    }
+
+    private func synchronizeExternalReplacement() {
+        guard let replacement = IOSExternalScreenplayReplacementStore.consume(),
+              replacement != session.text else { return }
+        var updated = session
+        updated.applyTextChange(
+            replacementText: replacement,
+            selection: IOSEditorSelection(location: 0, length: 0),
+            kind: .externalReplacement
+        )
+        session = updated
     }
 }
