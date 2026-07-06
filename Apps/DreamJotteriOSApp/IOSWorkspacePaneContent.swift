@@ -6,6 +6,7 @@ struct IOSWorkspacePaneContent: View {
     let pane: IOSWorkspacePane
     @Binding var project: DreamJotterProject
     let commitProjectChange: (DreamJotterProject) -> Void
+    let openNoteLink: (NoteLink) -> Void
     let openReviewFinding: (ReviewFinding) -> Void
 
     var body: some View {
@@ -26,7 +27,11 @@ struct IOSWorkspacePaneContent: View {
             case .locations:
                 IOSLocationsPane(project: $project, commitProjectChange: commitProjectChange)
             case .notes:
-                IOSNotesPane(project: $project, commitProjectChange: commitProjectChange)
+                IOSNotesPane(
+                    project: $project,
+                    commitProjectChange: commitProjectChange,
+                    navigateToLink: openNoteLink
+                )
             case .review:
                 IOSReviewPane(project: project, openFinding: openReviewFinding)
             case .healthReport:
