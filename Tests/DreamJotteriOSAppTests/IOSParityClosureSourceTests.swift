@@ -18,6 +18,34 @@ struct IOSParityClosureSourceTests {
         #expect(source.contains("IOSEditableScenesPane"))
         #expect(source.contains("project: $project"))
         #expect(source.contains("commitProjectChange"))
+        #expect(source.contains("navigateToScene"))
+    }
+
+    @Test("scene planning supports drag order confirmed screenplay application and editor refresh")
+    func scenePlanningContract() throws {
+        let scenes = try appSource("IOSEditableScenesPane.swift")
+        let editor = try appSource("IOSNativeTextKitEditor.swift")
+        #expect(scenes.contains(".onMove"))
+        #expect(scenes.contains("reorderPlanning"))
+        #expect(scenes.contains("reorderScreenplay"))
+        #expect(scenes.contains("confirmationDialog"))
+        #expect(scenes.contains("IOSExternalScreenplayReplacementStore.stage"))
+        #expect(editor.contains("IOSExternalScreenplayReplacementStore.consume"))
+        #expect(editor.contains("externalReplacement"))
+    }
+
+    @Test("notes support every target kind and linked navigation")
+    func noteTargetNavigationContract() throws {
+        let options = try appSource("IOSNoteTargetOption.swift")
+        let notes = try appSource("IOSNotesReviewPanes.swift")
+        let workspace = try appSource("IOSWorkspacePaneContent.swift")
+        for target in [".project", ".scene", ".character", ".location", ".screenplayElement"] {
+            #expect(options.contains("targetKind: \(target)"))
+        }
+        #expect(notes.contains("IOSNoteTargetEditorSheet"))
+        #expect(notes.contains("navigateToLink"))
+        #expect(workspace.contains("navigateToNoteLink"))
+        #expect(workspace.contains("openScreenplayText"))
     }
 
     private func appSource(_ filename: String) throws -> String {
