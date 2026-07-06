@@ -31,6 +31,7 @@ public enum IOSEditorMutationKind: String, Codable, Sendable {
     case smartEnter
     case elementFormatting
     case suggestionAcceptance
+    case externalReplacement
     case undo
     case redo
 }
