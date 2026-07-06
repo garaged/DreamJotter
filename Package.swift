@@ -5,7 +5,8 @@ let package = Package(
     name: "DreamJotter",
     defaultLocalization: "en",
     platforms: [
-        .macOS(.v14)
+        .macOS(.v14),
+        .iOS(.v17)
     ],
     products: [
         .executable(
@@ -15,6 +16,10 @@ let package = Package(
         .library(
             name: "DreamJotterCore",
             targets: ["DreamJotterCore"]
+        ),
+        .library(
+            name: "DreamJotteriOS",
+            targets: ["DreamJotteriOS"]
         ),
         .library(
             name: "SpecSupport",
@@ -27,6 +32,13 @@ let package = Package(
         ),
         .target(
             name: "SpecSupport"
+        ),
+        .target(
+            name: "DreamJotteriOS",
+            dependencies: [
+                "DreamJotterCore"
+            ],
+            path: "Apps/DreamJotteriOS"
         ),
         .executableTarget(
             name: "DreamJotterMac",
@@ -46,6 +58,12 @@ let package = Package(
             ],
             resources: [
                 .process("Fixtures/Localization")
+            ]
+        ),
+        .testTarget(
+            name: "DreamJotteriOSTests",
+            dependencies: [
+                "DreamJotteriOS"
             ]
         ),
         .testTarget(

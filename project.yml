@@ -1,0 +1,105 @@
+name: DreamJotter
+options:
+  bundleIdPrefix: org.garaged
+  deploymentTarget:
+    iOS: "26.0"
+    macOS: "14.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: 1.0.0
+    CURRENT_PROJECT_VERSION: 1
+packages:
+  DreamJotter:
+    path: .
+targets:
+  DreamJotterMac:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Apps/DreamJotterMac
+    resources:
+      - path: Apps/DreamJotterMac/Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.garaged.DreamJotterMac
+        PRODUCT_NAME: DreamJotter
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: DreamJotter
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+    dependencies:
+      - package: DreamJotter
+        product: DreamJotterCore
+
+  DreamJotteriOSApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Apps/DreamJotteriOSApp
+    resources:
+      - path: Apps/DreamJotteriOSApp/Resources
+    preBuildScripts:
+      - name: Generate iOS App Icon
+        script: bash "$SRCROOT/scripts/generate-ios-app-icon"
+        basedOnDependencyAnalysis: false
+    entitlements:
+      path: config/DreamJotteriOS.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.garaged.DreamJotter
+        PRODUCT_NAME: DreamJotter
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+        INFOPLIST_FILE: Apps/DreamJotteriOSApp/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+    dependencies:
+      - package: DreamJotter
+        product: DreamJotterCore
+      - package: DreamJotter
+        product: DreamJotteriOS
+
+  DreamJotteriOSAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Tests/DreamJotteriOSAppTests
+    dependencies:
+      - target: DreamJotteriOSApp
+      - package: DreamJotter
+        product: DreamJotteriOS
+
+schemes:
+  DreamJotterMac:
+    build:
+      targets:
+        DreamJotterMac: all
+    run:
+      config: Debug
+      executable: DreamJotterMac
+    archive:
+      config: Release
+
+  DreamJotteriOSApp:
+    build:
+      targets:
+        DreamJotteriOSApp: all
+        DreamJotteriOSAppTests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - DreamJotteriOSAppTests
+    run:
+      config: Debug
+      executable: DreamJotteriOSApp
+    archive:
+      config: Release

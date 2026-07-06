@@ -31,11 +31,12 @@ struct EditorSuggestionKeyboardTests {
 
     @Test("Suggestion panel documents keyboard controls and selected state")
     func suggestionPanelCommunicatesKeyboardUX() throws {
-        let source = try source(named: "ScriptEditorView.swift")
+        let editorSource = try source(named: "TextKitOnlyScriptEditorView.swift")
+        let supportSource = try source(named: "TextKitOnlyScriptEditorSupport.swift")
 
-        #expect(source.contains("Return or Tab accept"))
-        #expect(source.contains("selectedSuggestionIndex"))
-        #expect(source.contains("accessibilityValue"))
+        #expect(editorSource.contains("selectedSuggestionIndex"))
+        #expect(supportSource.contains("Return or Tab accept"))
+        #expect(supportSource.contains("accessibilityValue"))
     }
 
     private func source(named filename: String) throws -> String {
