@@ -6,18 +6,22 @@ struct IOSEditableScenesPane: View {
     let commitProjectChange: (DreamJotterProject) -> Void
     var navigateToScene: (SceneCard) -> Void = { _ in }
     @State private var selectedCard: SceneCard?
+    @State private var showsEditor = false
 
     var body: some View {
         List(SceneWorkflow.cards(in: project), id: \.id) { card in
             Button {
                 selectedCard = card
+                showsEditor = true
             } label: {
                 Text(card.title)
             }
         }
-        .sheet(item: $selectedCard) { card in
-            IOSPersistentSceneCardEditorSheet(card: card) { summary, note, status in
-                saveCard(card, summary: summary, note: note, status: status)
+        .sheet(isPresented: $showsEditor) {
+            if let card = selectedCard {
+                IOSPersistentSceneCardEditorSheet(card: card) { summary, note, status in
+                    saveCard(card, summary: summary, note: note, status: status)
+                }
             }
         }
     }
