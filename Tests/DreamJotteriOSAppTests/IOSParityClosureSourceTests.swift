@@ -25,6 +25,7 @@ struct IOSParityClosureSourceTests {
     func scenePlanningContract() throws {
         let scenes = try appSource("IOSEditableScenesPane.swift")
         let editor = try appSource("IOSNativeTextKitEditor.swift")
+        let adapter = try moduleSource("IOSProjectDocumentAdapter.swift")
         #expect(scenes.contains(".onMove"))
         #expect(scenes.contains("reorderPlanning"))
         #expect(scenes.contains("reorderScreenplay"))
@@ -32,6 +33,8 @@ struct IOSParityClosureSourceTests {
         #expect(scenes.contains("IOSExternalScreenplayReplacementStore.stage"))
         #expect(editor.contains("IOSExternalScreenplayReplacementStore.consume"))
         #expect(editor.contains("externalReplacement"))
+        #expect(adapter.contains("IOSExternalScreenplayReplacementStore.current"))
+        #expect(adapter.contains("IOSEditorProjectProjection.applying(text: replacement"))
     }
 
     @Test("notes support every target kind and linked navigation")
@@ -49,12 +52,20 @@ struct IOSParityClosureSourceTests {
     }
 
     private func appSource(_ filename: String) throws -> String {
+        try source(in: "Apps/DreamJotteriOSApp", filename: filename)
+    }
+
+    private func moduleSource(_ filename: String) throws -> String {
+        try source(in: "Apps/DreamJotteriOS", filename: filename)
+    }
+
+    private func source(in directory: String, filename: String) throws -> String {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         return try String(
-            contentsOf: root.appendingPathComponent("Apps/DreamJotteriOSApp/\(filename)"),
+            contentsOf: root.appendingPathComponent("\(directory)/\(filename)"),
             encoding: .utf8
         )
     }
