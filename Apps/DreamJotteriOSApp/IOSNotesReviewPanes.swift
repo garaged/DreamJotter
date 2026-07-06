@@ -39,6 +39,11 @@ struct IOSNotesPane: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(note.title ?? "Untitled Note").font(.headline)
                         Text(note.body).lineLimit(3)
+                        if !note.links.isEmpty {
+                            Text("\(note.links.count) linked target\(note.links.count == 1 ? "" : "s")")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .buttonStyle(.plain)
@@ -64,13 +69,27 @@ struct IOSNotesPane: View {
             }
         }
         .sheet(isPresented: $showsEditor) {
-            IOSNoteEditorSheet(note: editing) { title, body in
-                apply(IOSWorkspaceProjectEditing.upsertingNote(
-                    project,
-                    existing: editing,
-                    title: title,
-                    body: body
-                ))
+            IOSNoteTargetEditorSheet(
+                note: editing,
+                options: IOSNoteTargetOption.options(for: project)
+            ) { title, body, links in
+                if let editing {
+                    apply(IOSNoteLinkEditing.update(
+                        project: project,
+                        note: editing,
+                        title: title,
+                        body: body,
+                        links: links
+                    ))
+                } else {
+                    apply(IOSWorkspaceProjectEditing.upsertingNote(
+                        project,
+                        existing: nil,
+                        title: title,
+                        body: body,
+                        links: links
+                    ))
+                }
             }
         }
     }
