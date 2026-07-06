@@ -33,6 +33,8 @@ struct IOSWorkspacePaneContent: View {
                 )
             case .review:
                 IOSReviewPane(project: project, openFinding: openReviewFinding)
+            case .exports:
+                IOSExportPane(project: project)
             case .healthReport:
                 IOSHealthReportPane(project: project)
             }
