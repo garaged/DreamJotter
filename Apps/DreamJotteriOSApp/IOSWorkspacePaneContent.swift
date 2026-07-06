@@ -6,7 +6,6 @@ struct IOSWorkspacePaneContent: View {
     let pane: IOSWorkspacePane
     @Binding var project: DreamJotterProject
     let commitProjectChange: (DreamJotterProject) -> Void
-    let openNoteLink: (NoteLink) -> Void
     let openReviewFinding: (ReviewFinding) -> Void
 
     var body: some View {
@@ -30,7 +29,7 @@ struct IOSWorkspacePaneContent: View {
                 IOSNotesPane(
                     project: $project,
                     commitProjectChange: commitProjectChange,
-                    navigateToLink: openNoteLink
+                    navigateToLink: navigateToNoteLink
                 )
             case .review:
                 IOSReviewPane(project: project, openFinding: openReviewFinding)
@@ -43,20 +42,101 @@ struct IOSWorkspacePaneContent: View {
 
     private func navigateToScene(_ card: SceneCard) {
         guard let heading = card.sourceSceneHeading else { return }
-        let text = FountainIO.exportScreenplay(project.screenplay)
-        let range = (text as NSString).range(of: heading)
-        guard range.location != NSNotFound else { return }
-
-        openReviewFinding(ReviewFinding(
-            id: "scene-navigation-\(card.id)",
-            severity: .info,
+        openScreenplayText(
+            heading,
             title: card.title,
-            message: "Open scene in screenplay",
-            source: .formatting,
-            linkedEntityType: .scene,
-            linkedEntityID: heading,
-            scriptRange: ScriptTextRange(location: range.location, length: range.length),
-            generatedAt: project.metadata.modifiedAt
+            entityType: .scene,
+            entityID: heading,
+            id: "scene-navigation-\(card.id)"
+        )
+    }
+
+    private func navigateToNoteLink(_ link: NoteLink) {
+        switch link.targetKind {
+        case .project:
+            openReviewFinding(navigationFinding(
+                id: "note-project-\(link.targetID)",
+                title: project.metadata.title,
+                entityType: .project,
+                entityID: link.targetID,
+                range: ScriptTextRange(location: 0, length: 0)
+            ))
+        case .scene:
+            openScreenplayText(
+                link.targetID,
+                title: link.targetID,
+                entityType: .scene,
+                entityID: link.targetID,
+                id: "note-scene-\(link.targetID)"
+            )
+        case .character:
+            guard let character = project.characters.first(where: { $0.id == link.targetID }) else { return }
+            openScreenplayText(
+                character.displayName,
+                title: character.displayName,
+                entityType: .character,
+                entityID: character.id,
+                id: "note-character-\(character.id)"
+            )
+        case .location:
+            guard let location = project.locations.first(where: { $0.id == link.targetID }) else { return }
+            openScreenplayText(
+                location.displayName,
+                title: location.displayName,
+                entityType: .location,
+                entityID: location.id,
+                id: "note-location-\(location.id)"
+            )
+        case .screenplayElement:
+            guard let index = Int(link.targetID.replacingOccurrences(of: "element-", with: "")),
+                  project.screenplay.elements.indices.contains(index) else { return }
+            let element = project.screenplay.elements[index]
+            openScreenplayText(
+                element.text,
+                title: "Screenplay Element \(index + 1)",
+                entityType: .screenplayElement,
+                entityID: link.targetID,
+                id: "note-element-\(index)"
+            )
+        }
+    }
+
+    private func openScreenplayText(
+        _ value: String,
+        title: String,
+        entityType: ReviewLinkedEntityType,
+        entityID: String,
+        id: String
+    ) {
+        let text = FountainIO.exportScreenplay(project.screenplay)
+        let range = (text as NSString).range(of: value)
+        guard range.location != NSNotFound else { return }
+        openReviewFinding(navigationFinding(
+            id: id,
+            title: title,
+            entityType: entityType,
+            entityID: entityID,
+            range: ScriptTextRange(location: range.location, length: range.length)
         ))
+    }
+
+    private func navigationFinding(
+        id: String,
+        title: String,
+        entityType: ReviewLinkedEntityType,
+        entityID: String,
+        range: ScriptTextRange
+    ) -> ReviewFinding {
+        ReviewFinding(
+            id: id,
+            severity: .info,
+            title: title,
+            message: "Open linked target in screenplay",
+            source: .formatting,
+            linkedEntityType: entityType,
+            linkedEntityID: entityID,
+            scriptRange: range,
+            generatedAt: project.metadata.modifiedAt
+        )
     }
 }
