@@ -1,4 +1,5 @@
 import DreamJotterCore
+import DreamJotteriOS
 import SwiftUI
 
 struct IOSEditableScenesPane: View {
@@ -103,6 +104,11 @@ struct IOSEditableScenesPane: View {
         )
         let execution = CommandEngine.execute(request, project: project, now: now)
         guard execution.project != project else { return }
+        if action == .reorderScreenplay {
+            IOSExternalScreenplayReplacementStore.stage(
+                FountainIO.exportScreenplay(execution.project.screenplay)
+            )
+        }
         project = execution.project
         commitProjectChange(execution.project)
     }
