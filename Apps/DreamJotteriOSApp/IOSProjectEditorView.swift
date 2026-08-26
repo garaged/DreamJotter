@@ -352,8 +352,9 @@ struct IOSProjectEditorView: View {
     }
 
     private func commitWorkspaceProjectChange(_ updated: DreamJotterProject) {
-        guard updated != project else { return }
-        project = updated
+        if updated != project {
+            project = updated
+        }
         projectMutationRevision &+= 1
     }
 
