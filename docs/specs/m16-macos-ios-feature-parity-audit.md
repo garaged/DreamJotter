@@ -34,9 +34,9 @@ No remaining row in this document may be deferred before PR #19 is merged. Work 
 | Note target selection and linked-target navigation | Touch target picker and direct destination navigation | Pending |
 | Review screenplay preview | Read-only native TextKit Fountain preview | Implemented |
 | Review finding search | Native searchable findings list | Implemented |
-| Review severity and source filters | Compact filter controls | Pending |
+| Review severity and source filters | Compact filter controls with search and reset | Implemented; source regression coverage added; human acceptance pending |
 | Review direct script navigation | Finding script-range selection plus linked-entity fallback | Partial |
-| Review layout numbering preview | Touch-adapted numbered preview | Pending |
+| Review layout numbering preview | Touch-adapted numbered preview in the native read-only surface | Implemented; source regression coverage added; human acceptance pending |
 | Health report overview | Counts, ratio, longest scenes, no-dialogue scenes, formatting warnings | Implemented |
 
 ## Document and sharing parity
@@ -67,7 +67,7 @@ No remaining row in this document may be deferred before PR #19 is merged. Work 
 
 - Core tests for scene-card mutation and planning reorder, including snapshot creation and no-loss round trip.
 - Core tests for note links and linked-target resolution.
-- Review filter and numbered-preview tests.
+- Review severity/source filtering and numbered-preview source regression tests.
 - Export content and filename tests for every format.
 - JSON backup restore round trip on iOS adapter.
 - Document-browser source and UI smoke coverage.
