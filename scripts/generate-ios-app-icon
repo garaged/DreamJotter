@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SOURCE_ICON="${1:-$ROOT_DIR/docs/icon-v1.png}"
+OUTPUT_ICON="${2:-$ROOT_DIR/Apps/DreamJotteriOSApp/Resources/Assets.xcassets/AppIcon.appiconset/DreamJotter-iOS-1024.png}"
+
+if [[ ! -f "$SOURCE_ICON" ]]; then
+  echo "Source icon does not exist: $SOURCE_ICON" >&2
+  exit 1
+fi
+
+mkdir -p "$(dirname "$OUTPUT_ICON")"
+
+# iOS applies its own icon mask. Preserve a square, opaque 1024px master and
+# never bake an additional rounded-rectangle mask into the generated asset.
+sips --resampleHeightWidth 1024 1024 "$SOURCE_ICON" --out "$OUTPUT_ICON" >/dev/null
+
+WIDTH="$(sips -g pixelWidth "$OUTPUT_ICON" | awk '/pixelWidth/ {print $2}')"
+HEIGHT="$(sips -g pixelHeight "$OUTPUT_ICON" | awk '/pixelHeight/ {print $2}')"
+ALPHA="$(sips -g hasAlpha "$OUTPUT_ICON" | awk '/hasAlpha/ {print $2}')"
+
+if [[ "$WIDTH" != "1024" || "$HEIGHT" != "1024" ]]; then
+  echo "Generated icon must be 1024x1024, got ${WIDTH}x${HEIGHT}." >&2
+  exit 1
+fi
+
+if [[ "$ALPHA" == "yes" ]]; then
+  echo "Generated iOS icon contains alpha; App Store icons must be opaque." >&2
+  exit 1
+fi
+
+echo "Generated $OUTPUT_ICON"

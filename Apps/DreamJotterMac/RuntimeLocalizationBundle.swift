@@ -59,40 +59,31 @@ enum RuntimeLocalizationBundle {
     }
 
     private static func candidateResourceBundles() -> [Bundle] {
-        var bundles = [Bundle.module, Bundle.main]
-        var seenURLs = Set(
-            bundles.map { $0.bundleURL.standardizedFileURL }
-        )
+        var bundles: [Bundle] = [
+            DreamJotterResourceBundle.bundle,
+            Bundle(for: DreamJotterLanguageBundle.self),
+            Bundle.main
+        ]
+        bundles.append(contentsOf: Bundle.allBundles)
+        bundles.append(contentsOf: Bundle.allFrameworks)
 
-        func appendBundle(at url: URL) {
-            let standardizedURL = url.standardizedFileURL
-            guard seenURLs.insert(standardizedURL).inserted,
-                  let bundle = Bundle(url: standardizedURL) else {
-                return
-            }
-            bundles.append(bundle)
+        let sourceResourcesURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Resources", isDirectory: true)
+        if let sourceResourcesBundle = Bundle(url: sourceResourcesURL) {
+            bundles.append(sourceResourcesBundle)
         }
 
-        let searchRoots = [
-            Bundle.main.resourceURL,
-            Bundle.main.executableURL?.deletingLastPathComponent()
-        ].compactMap { $0 }
-
-        for root in searchRoots {
-            guard let children = try? FileManager.default.contentsOfDirectory(
-                at: root,
-                includingPropertiesForKeys: [.isDirectoryKey],
-                options: [.skipsHiddenFiles]
-            ) else {
-                continue
-            }
-
-            for child in children where child.pathExtension == "bundle" {
-                appendBundle(at: child)
+        var unique: [Bundle] = []
+        var seenURLs = Set<URL>()
+        for bundle in bundles {
+            let url = bundle.bundleURL.standardizedFileURL
+            if seenURLs.insert(url).inserted {
+                unique.append(bundle)
             }
         }
 
-        return bundles
+        return unique
     }
 
     private static func availableLocalizations(in bundles: [Bundle]) -> [String] {
@@ -117,6 +108,7 @@ enum RuntimeLocalizationBundle {
     ) -> [String] {
         var result: [String] = []
         var seen = Set<String>()
+        let supportedLanguages: Set<String> = ["en", "es"]
 
         func append(_ identifier: String) {
             let canonical = canonicalIdentifier(identifier)
@@ -128,28 +120,40 @@ enum RuntimeLocalizationBundle {
 
         for identifier in requested {
             let canonical = canonicalIdentifier(identifier)
-            append(canonical)
-
             let language = Locale(identifier: canonical).language.languageCode?.identifier
                 ?? canonical.split(separator: "-").first.map(String.init)
 
-            if let language {
-                append(language)
+            guard let language, supportedLanguages.contains(language) else {
+                continue
+            }
 
-                if language == "es" {
-                    append("es-419")
-                    append("es-MX")
-                }
+            append(canonical)
+            append(language)
+
+            if language == "es" {
+                append("es-419")
+                append("es-MX")
             }
         }
 
+        let supportedAvailable = availableLocalizations.filter { localization in
+            let language = Locale(identifier: localization).language.languageCode?.identifier
+                ?? localization.split(separator: "-").first.map(String.init)
+            return language.map(supportedLanguages.contains) ?? false
+        }
+        let supportedRequested = requested.filter { identifier in
+            let canonical = canonicalIdentifier(identifier)
+            let language = Locale(identifier: canonical).language.languageCode?.identifier
+                ?? canonical.split(separator: "-").first.map(String.init)
+            return language.map(supportedLanguages.contains) ?? false
+        }
         let preferred = Bundle.preferredLocalizations(
-            from: availableLocalizations,
-            forPreferences: requested
+            from: supportedAvailable,
+            forPreferences: supportedRequested
         )
         preferred.forEach(append)
 
-        if let developmentRegion = Bundle.module.developmentLocalization {
+        if let developmentRegion = DreamJotterResourceBundle.bundle.developmentLocalization {
             append(developmentRegion)
         }
         append("en")
