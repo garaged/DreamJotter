@@ -67,6 +67,24 @@ struct IOSParityClosureSourceTests {
         #expect(preview.contains("Read-only screenplay preview"))
     }
 
+
+    @Test("exports cover shareable formats and JSON restore requires replacement confirmation")
+    func exportAndRestoreContract() throws {
+        let export = try appSource("IOSExportPane.swift")
+        let workspace = try appSource("IOSWorkspacePaneContent.swift")
+
+        for fileExtension in ["fountain", "txt", "md", "json", "fdx", "pdf"] {
+            #expect(export.contains(`extension: "\\(fileExtension)"`))
+        }
+        #expect(export.contains("UIActivityViewController"))
+        #expect(export.contains("UIPrintInteractionController"))
+        #expect(export.contains(".fileImporter"))
+        #expect(export.contains("BackupRestoreWorkflow.validateRestore"))
+        #expect(export.contains("Replace this project with the backup?"))
+        #expect(export.contains("Replace Project"))
+        #expect(workspace.contains("IOSExportPane(project: $project, commitProjectChange: commitProjectChange)"))
+    }
+
     private func appSource(_ filename: String) throws -> String {
         try source(in: "Apps/DreamJotteriOSApp", filename: filename)
     }
