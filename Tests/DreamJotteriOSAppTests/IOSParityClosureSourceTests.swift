@@ -74,7 +74,7 @@ struct IOSParityClosureSourceTests {
         let workspace = try appSource("IOSWorkspacePaneContent.swift")
 
         for fileExtension in ["fountain", "txt", "md", "json", "fdx", "pdf"] {
-            #expect(export.contains(`extension: "\\(fileExtension)"`))
+            #expect(export.contains("extension: \"\\(fileExtension)\""))
         }
         #expect(export.contains("UIActivityViewController"))
         #expect(export.contains("UIPrintInteractionController"))
