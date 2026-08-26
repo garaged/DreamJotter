@@ -85,6 +85,16 @@ struct IOSNativeEditorSourceTests {
         #expect(source.contains("<key>UISupportsDocumentBrowser</key>"))
     }
 
+
+    @Test("bound workspace mutations always schedule a coordinated save")
+    func workspaceMutationPersistenceContract() throws {
+        let source = try appSource(named: "IOSProjectEditorView.swift")
+        #expect(source.contains("private func commitWorkspaceProjectChange"))
+        #expect(source.contains("if updated != project"))
+        #expect(source.contains("projectMutationRevision &+= 1"))
+        #expect(!source.contains("guard updated != project else { return }"))
+    }
+
     private func appSource(named filename: String) throws -> String {
         try repositorySource(named: "Apps/DreamJotteriOSApp/\(filename)")
     }
