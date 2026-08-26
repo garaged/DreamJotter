@@ -45,11 +45,11 @@ No remaining row in this document may be deferred before PR #19 is merged. Work 
 | --- | --- | --- |
 | Open/create project packages | UIDocumentBrowser open-in-place workflow | Implemented |
 | Autosave/background save/conflict checks | Coordinated package adapter and generation checks | Implemented; acceptance ongoing |
-| Fountain export | Files destination and share sheet | Pending |
-| Text and Markdown export | Files destination and share sheet | Pending |
-| JSON backup and restore | Files import/export plus destructive restore confirmation | Pending |
-| FDX export | Files destination and share sheet | Pending |
-| Production PDF export | Share sheet, Files destination, and print preview | Pending |
+| Fountain export | Native share sheet with Save to Files destination | Implemented; source regression coverage added; human acceptance pending |
+| Text and Markdown export | Native share sheet with Save to Files destination | Implemented; source regression coverage added; human acceptance pending |
+| JSON backup and restore | Native share export, Files import, validation, destructive replacement confirmation, and autosave | Implemented; source regression coverage added; human acceptance pending |
+| FDX export | Native share sheet with Save to Files destination | Implemented; core and source regression coverage added; human acceptance pending |
+| Production PDF export | Native share sheet with Save to Files destination and system print flow | Implemented; source regression coverage added; human acceptance pending |
 | Save As / duplicate / rename / move / delete | Native document-browser actions | Partial; implementation and browser acceptance pending |
 
 ## Cross-cutting parity
@@ -68,7 +68,7 @@ No remaining row in this document may be deferred before PR #19 is merged. Work 
 - Core tests for scene-card mutation and planning reorder, including snapshot creation and no-loss round trip.
 - Core tests for note links and linked-target resolution.
 - Review severity/source filtering and numbered-preview source regression tests.
-- Export content and filename tests for every format.
+- Export format, filename-extension, share, print, and JSON restore source regression tests; core FDX serialization tests.
 - JSON backup restore round trip on iOS adapter.
 - Document-browser source and UI smoke coverage.
 - Localization resource validation for English, es-MX, and es-419.
