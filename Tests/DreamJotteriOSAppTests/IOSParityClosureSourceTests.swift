@@ -51,6 +51,22 @@ struct IOSParityClosureSourceTests {
         #expect(workspace.contains("openScreenplayText"))
     }
 
+
+    @Test("review provides composable severity and source filters with a numbered preview")
+    func reviewFilterAndNumberingContract() throws {
+        let review = try appSource("IOSReviewPane.swift")
+        let preview = try appSource("IOSReadOnlyScreenplayPreview.swift")
+
+        #expect(review.contains("IOSReviewSeverityFilter"))
+        #expect(review.contains("IOSReviewSourceFilter"))
+        #expect(review.contains("severityFilter.matches(finding.severity)"))
+        #expect(review.contains("sourceFilter.matches(finding.source)"))
+        #expect(review.contains("Clear Filters"))
+        #expect(review.contains("showLayoutNumbering"))
+        #expect(review.contains("numberedScreenplayText"))
+        #expect(preview.contains("Read-only screenplay preview"))
+    }
+
     private func appSource(_ filename: String) throws -> String {
         try source(in: "Apps/DreamJotteriOSApp", filename: filename)
     }
