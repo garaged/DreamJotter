@@ -1,12 +1,17 @@
 import DreamJotterCore
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 struct IOSExportPane: View {
-    let project: DreamJotterProject
+    @Binding var project: DreamJotterProject
+    let commitProjectChange: (DreamJotterProject) -> Void
 
     @State private var sharedFileURL: URL?
     @State private var errorMessage: String?
+    @State private var showsRestoreImporter = false
+    @State private var showsRestoreConfirmation = false
+    @State private var restoredProject: DreamJotterProject?
 
     var body: some View {
         List {
@@ -32,6 +37,9 @@ struct IOSExportPane: View {
                 exportButton("JSON Backup", systemImage: "archivebox", extension: "json") {
                     Data(try BackupRestoreWorkflow.jsonString(for: project, createdAt: Date()).utf8)
                 }
+                Button("Restore JSON Backup", systemImage: "arrow.counterclockwise") {
+                    showsRestoreImporter = true
+                }
             }
 
             Section("Production") {
@@ -43,6 +51,12 @@ struct IOSExportPane: View {
                 }
             }
         }
+        .fileImporter(
+            isPresented: $showsRestoreImporter,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false,
+            onCompletion: importBackup
+        )
         .sheet(isPresented: Binding(
             get: { sharedFileURL != nil },
             set: { if !$0 { sharedFileURL = nil } }
@@ -50,6 +64,20 @@ struct IOSExportPane: View {
             if let sharedFileURL {
                 IOSActivityView(items: [sharedFileURL])
             }
+        }
+        .confirmationDialog(
+            "Replace this project with the backup?",
+            isPresented: $showsRestoreConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Replace Project", role: .destructive) {
+                applyRestoredProject()
+            }
+            Button("Cancel", role: .cancel) {
+                restoredProject = nil
+            }
+        } message: {
+            Text("This replaces the current project with the selected backup. The replacement will be saved automatically.")
         }
         .alert("Export Failed", isPresented: Binding(
             get: { errorMessage != nil },
@@ -77,6 +105,40 @@ struct IOSExportPane: View {
                 errorMessage = error.localizedDescription
             }
         }
+    }
+
+    private func importBackup(_ result: Result<[URL], Error>) {
+        do {
+            guard let url = try result.get().first else { return }
+            let hasAccess = url.startAccessingSecurityScopedResource()
+            defer {
+                if hasAccess {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+
+            let data = try Data(contentsOf: url)
+            let validation = BackupRestoreWorkflow.validateRestore(
+                from: data,
+                currentProjectIsDirty: false
+            )
+            guard validation.result.status == .restored,
+                  let restored = validation.project else {
+                throw IOSExportError.restoreRejected(validation.result.userMessage)
+            }
+
+            restoredProject = restored
+            showsRestoreConfirmation = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func applyRestoredProject() {
+        guard let restoredProject else { return }
+        project = restoredProject
+        commitProjectChange(restoredProject)
+        self.restoredProject = nil
     }
 
     private func pdfData() throws -> Data {
@@ -119,11 +181,14 @@ struct IOSExportPane: View {
 
 private enum IOSExportError: LocalizedError {
     case missingPreset
+    case restoreRejected(String)
 
     var errorDescription: String? {
         switch self {
         case .missingPreset:
             "No compatible export preset is available for this project."
+        case .restoreRejected(let message):
+            message
         }
     }
 }
